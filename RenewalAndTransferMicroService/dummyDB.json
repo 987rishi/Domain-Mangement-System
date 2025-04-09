@@ -1,0 +1,100 @@
+{
+    "DRM": [
+        {
+            "emp_no": 101,
+            "drm_fname": "John",
+            "drm_lname": "Doe",
+            "email_id": "john.doe@example.com",
+            "desig": "Senior DRM",
+            "tele_no": "1234567890",
+            "mob_no": "9876543210",
+            "centre_id": 1,
+            "grp_id": 101,
+            "is_active": true
+        },
+        {
+            "emp_no": 102,
+            "drm_fname": "Jane",
+            "drm_lname": "Smith",
+            "email_id": "jane.smith@example.com",
+            "desig": "DRM",
+            "tele_no": "1234567891",
+            "mob_no": "9876543211",
+            "centre_id": 2,
+            "grp_id": 102,
+            "is_active": true
+        },
+        {
+            "emp_no": 103,
+            "drm_fname": "Alice",
+            "drm_lname": "Brown",
+            "email_id": "alice.brown@example.com",
+            "desig": "Assistant DRM",
+            "tele_no": "1234567892",
+            "mob_no": "9876543212",
+            "centre_id": 3,
+            "grp_id": 103,
+            "is_active": false
+        }
+    ],
+    "DomainName": [
+        {
+            "dm_id": 201,
+            "dm_name": "example.com",
+            "expiry_date": "2025-12-31",
+            "d_o_apl": "2023-01-01",
+            "d_o_act": "2023-02-01",
+            "lst_rw_date": "2024-06-15",
+            "drm_emp_no": 101,
+            "arm_emp_no": 201,
+            "hod_emp_no": 301,
+            "service_type": "Hosting",
+            "gigcw_comp": true,
+            "ed_emp_no": 401,
+            "netops_emp_no": 501,
+            "webmaster_emp_no": 601,
+            "is_active": true,
+            "is_del": false,
+            "dm_desc": "Primary corporate domain"
+        },
+        {
+            "dm_id": 202,
+            "dm_name": "example.org",
+            "expiry_date": "2026-05-15",
+            "d_o_apl": "2024-03-10",
+            "d_o_act": "2024-04-05",
+            "lst_rw_date": "2025-07-20",
+            "drm_emp_no": 102,
+            "arm_emp_no": 202,
+            "hod_emp_no": 302,
+            "service_type": "Web Service",
+            "gigcw_comp": false,
+            "ed_emp_no": 402,
+            "netops_emp_no": 502,
+            "webmaster_emp_no": 602,
+            "is_active": true,
+            "is_del": false,
+            "dm_desc": "Non-profit organization domain"
+        },
+        {
+            "dm_id": 203,
+            "dm_name": "example.net",
+            "expiry_date": "2024-09-10",
+            "d_o_apl": "2022-05-20",
+            "d_o_act": "2022-06-15",
+            "lst_rw_date": "2023-08-30",
+            "drm_emp_no": 103,
+            "arm_emp_no": 203,
+            "hod_emp_no": 303,
+            "service_type": "Cloud",
+            "gigcw_comp": true,
+            "ed_emp_no": 403,
+            "netops_emp_no": 503,
+            "webmaster_emp_no": 603,
+            "is_active": false,
+            "is_del": true,
+            "dm_desc": "Cloud services domain"
+        }
+    ],
+    "IP": [{ "ip_id": 1, "ip_addr": "172.154.123.1"  }, { "ip_id": 2, "ip_addr": "121.154.123.1"  }, { "ip_id": 1, "ip_addr": "123.154.123.1"  } ]
+}
