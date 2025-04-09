@@ -1,0 +1,33 @@
+{
+  "name": "notificationmicroservice",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node ./dist/server.js",
+    "server": "nodemon ./dist/server.js",
+    "watch": "tsc -w",
+    "dev": "concurrently \"npm run watch\" \"npm run server\" "
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@prisma/client": "^6.5.0",
+    "axios": "^1.8.4",
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "nodemailer": "^6.10.0",
+    "prisma": "^6.5.0"
+  },
+  "devDependencies": {
+    "@types/eureka-js-client": "^4.5.9",
+    "@types/express": "^5.0.1",
+    "@types/node": "^22.13.17",
+    "@types/nodemailer": "^6.4.17",
+    "concurrently": "^9.1.2",
+    "eureka-js-client": "^4.5.0",
+    "typescript": "^5.8.2"
+  }
+}

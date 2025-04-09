@@ -1,0 +1,39 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node ./dist/server.js",
+    "server": "nodemon ./dist/server.js",
+    "watch": "tsc -w",
+    "dev": "concurrently \"npm run watch\" \"npm run server\" "
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^6.5.0",
+    "concurrently": "^9.1.2",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-validator": "^7.2.1",
+    "ldapjs": "^3.0.7",
+    "openapi3-ts": "^4.4.0",
+    "passport": "^0.7.0",
+    "passport-ldapauth": "^3.0.1",
+    "typescript": "^5.8.2",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/eureka-js-client": "^4.5.9",
+    "@types/express": "^5.0.1",
+    "@types/express-validator": "^2.20.33",
+    "@types/ldapjs": "^3.0.6",
+    "cors": "^2.8.5",
+    "eureka-js-client": "^4.5.0",
+    "prisma": "^6.5.0",
+    "zod-to-openapi": "^0.2.1"
+  }
+}

@@ -1,0 +1,278 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Designation {
+  // Add actual values from your Java Enum here
+  // Example Placeholder Values:
+    SCIENTIST_E
+    SCIENTIST_F
+  // Add others...
+}
+enum Role {
+  DRM
+  ARM
+  HOD
+  ED // Assuming ED corresponds to EdCentreHead role concept
+  NETOPS
+  WEBMASTER
+  HODHPC // Assuming HODHPC corresponds to HodHpcIandE role concept
+  // Add ADMIN or other roles if needed
+}
+
+enum Status {
+  YES
+  NO
+  NA
+}
+
+enum ServiceType {
+  INTERNAL
+  EXTERNAL
+}
+
+
+// --- Core User Table (Implied Necessity) ---
+// This table is essential to link the emp_no from role tables
+// It would typically hold the primary identity information.
+model AppUser {
+  emp_no    BigInt @id @unique // Primary Key, corresponds to employee number (e.g., from LDAP)
+  usr_email String @unique @db.VarChar(100) // User's unique email, likely login identifier
+  role      Role // Uses the Role enum defined above
+  usr_fname String @db.VarChar(255) // User's first name
+  usr_lname String @db.VarChar(255) // User's last name
+  centre_id Int // Foreign key to the user's primary Centre (matching Centre.centre_id type)
+
+  // Relationship to the user's primary Centre
+  centre Centre @relation("UserCentre", fields: [centre_id], references: [centre_id])
+
+  @@map("AppUser")
+}
+
+// --- Organizational Structure Tables ---
+
+model Centre {
+  centre_id Int     @id @default(autoincrement())
+  cn_name   String  @unique @db.VarChar(255)
+  netops_red BigInt?
+
+  netopsRedirectSource MemberNetops? @relation("CentreNetopsRedirect", fields: [netops_red], references: [emp_no])
+
+  // Relationships back
+  users            AppUser[]            @relation("UserCentre")
+  edCentreHeads    EdCentreHead[]    @relation("CentreEdCentreHeads")
+  hods             Hod[]         @relation("CentreHods")
+  groupDepartments GroupDepartment[] @relation("CentreDepartments")
+  memberNetops     MemberNetops?     @relation("CentreMemberNetops")
+  webMasters       WebMaster?        @relation("CentreWebmasters")
+  drms             Drm[]         @relation("CentreDrms")
+  arms             Arm[]         @relation("CentreArms")
+
+  @@map("Centre")
+}
+
+model GroupDepartment {
+  dept_id   Int    @id @default(autoincrement()) // Java used Integer
+  d_name    String @db.VarChar(50) // Added length based on prev schema
+  centre_id Int    // Foreign key field (NOT NULL based on Java @JoinColumn)
+
+  // Relationship to Centre (Required)
+  centre    Centre   @relation("CentreDepartments", fields: [centre_id], references: [centre_id])
+
+  // --- Relationships back from other tables ---
+  hods      Hod[] @relation("DepartmentHods") // Dept can have multiple HODs unless grp_id is unique in HodList
+  drms      Drm[] @relation("DepartmentDrms")
+  arms      Arm[] @relation("DepartmentArms")
+
+  // Optional: Add unique constraint if name must be unique within a centre
+  @@unique([d_name, centre_id])
+  @@map("GroupDepartment")
+}
+
+
+// --- Role-Specific Tables ---
+
+model EdCentreHead {
+  emp_no    BigInt  @id // PK, Links to User.emp_no (NOT auto-generated)
+  fname     String
+  lname     String
+  email_id  String  @unique
+  tele_no   String  @unique
+  mob_no    String  @unique
+  centre_id Int     @unique
+  is_active Boolean @default(true)
+
+  // Relationship back to the core User (Required 1-to-1)
+ 
+  // Relationship to the Centre (Required)
+  centre    Centre  @relation("CentreEdCentreHeads", fields: [centre_id], references: [centre_id])
+
+  @@map("EdCentreHead")
+}
+
+// Assuming consistency, renaming Java Hod class to HodList model
+model Hod {
+  emp_no    BigInt  @id // PK, Links to User.emp_no
+  hod_fname String
+  hod_lname String
+  email_id  String  @unique
+  tele_no   String  @unique
+  mob_no    String  @unique
+  centre_id Int     // Foreign key field 
+  // Making grp_id unique as per original schema intent (1 HOD per Dept)
+  grp_id    Int     @unique // Foreign key field referencing GroupDepartment (unique constraint added)
+  is_active Boolean @default(true)
+
+  // Relationship back to the core User (Required 1-to-1)
+  // Relationship to the Centre (Required)
+  centre      Centre          @relation("CentreHods", fields: [centre_id], references: [centre_id])
+  // Relationship to the specific Department (Required 1-to-1 because grp_id is unique)
+  department  GroupDepartment @relation("DepartmentHods", fields: [grp_id], references: [dept_id])
+
+  projectAssignments ProjectAssignment[] @relation("HODAssignments")
+
+  @@map("Hod") // Map explicitly to table name if needed
+}
+
+// Assuming consistency, renaming Java Drm class to DrmList model
+model Drm {
+  emp_no    BigInt      @id // PK, Links to User.emp_no
+  desig     Designation? // Mapped from @Enumerated(EnumType.STRING)
+  drm_fname String
+  drm_lname String
+  email_id  String      @unique
+  tele_no   String?      @unique
+  mob_no    String?      @unique
+  centre_id Int         // Foreign key field (NOT NULL based on Java @JoinColumn)
+  grp_id    Int         // Foreign key field (NOT NULL based on previous schema, assuming Java implies required here)
+  is_active Boolean     @default(true)
+
+  // Relationship back to the core User (Required 1-to-1)
+  // Relationship to the Centre (Required)
+  centre      Centre          @relation("CentreDrms", fields: [centre_id], references: [centre_id])
+  // Relationship to the Department (Required)
+  department  GroupDepartment @relation("DepartmentDrms", fields: [grp_id], references: [dept_id])
+
+    projectAssignments ProjectAssignment[] @relation("DRMAssignments")
+
+  @@map("Drm") // Map explicitly to table name if needed
+}
+
+// Assuming consistency, renaming Java Arm class to ArmList model
+model Arm {
+  emp_no    BigInt      @id // PK, Links to User.emp_no
+  arm_fname String
+  arm_lname String
+  email_id  String      @unique
+  // unique = true on desig in Java seems incorrect, removing unique constraint here. Add if needed.
+  desig     Designation? // Mapped from @Enumerated(EnumType.STRING)
+  tele_no   String?      @unique
+  mob_no    String?      @unique
+  centre_id Int         // Foreign key field (NOT NULL based on Java @JoinColumn)
+  grp_id    Int         // Foreign key field (NOT NULL based on Java @JoinColumn)
+  is_active Boolean     @default(true)
+
+  // Relationship back to the core User (Required 1-to-1)
+  // Relationship to the Centre (Required)
+  centre      Centre          @relation("CentreArms", fields: [centre_id], references: [centre_id])
+  // Relationship to the Department (Required)
+  department  GroupDepartment @relation("DepartmentArms", fields: [grp_id], references: [dept_id])
+
+    projectAssignments ProjectAssignment[] @relation("ARMAssignments")
+
+  @@map("Arm") // Map explicitly to table name if needed
+}
+
+model HodHpcIandE {
+  emp_no    BigInt  @id // PK, Links to User.emp_no
+  fname     String
+  lname     String
+  tele_no   String  @unique
+  mob_no    String  @unique
+  email_id  String  @unique
+  is_active Boolean @default(true)
+
+  // Relationship back to the core User (Required 1-to-1)
+  // No Centre or Dept link in the Java code provided
+
+  @@map("HodHpcIandE")
+}
+
+model MemberNetops {
+  emp_no    BigInt  @id // PK, Links to User.emp_no
+  fname     String
+  lname     String
+  // Adding unique based on original schema, missing in Java
+  tele_no   String  @unique
+  mob_no    String  @unique
+  email_id  String  @unique // Adding unique based on original schema
+  // Making centre_id unique enforces the 1-to-1 relationship with Centre
+  centre_id Int     @unique // Foreign key field (NOT NULL, Unique based on Java @OneToOne)
+  is_active Boolean @default(true)
+
+  // Relationship back to the core User (Required 1-to-1)
+  // Relationship to the specific Centre (Required 1-to-1 because centre_id is unique)
+  centre    Centre  @relation("CentreMemberNetops", fields: [centre_id], references: [centre_id])
+
+  // Relationship for Centres that redirect TO this NetOps member
+  redirectedCentres Centre[] @relation("CentreNetopsRedirect")
+
+  @@map("MemberNetops")
+}
+
+model WebMaster {
+  emp_no    BigInt  @id // PK, Links to User.emp_no
+  fname     String
+  lname     String
+  // Adding unique based on original schema, missing in Java
+  tele_no   String  @unique
+  mob_no    String  @unique
+  email_id  String  @unique // Adding unique based on original schema
+  is_active Boolean @default(true)
+  // Making centre_id unique enforces the 1-to-1 relationship with Centre
+  centre_id Int     @unique // Foreign key field (NOT NULL, Unique based on Java @OneToOne)
+
+ 
+  // Relationship to the specific Centre (Required 1-to-1 because centre_id is unique)
+  centre    Centre  @relation("CentreWebmasters", fields: [centre_id], references: [centre_id])
+
+  @@map("WebMaster")
+
+
+}
+
+
+model ProjectAssignment {
+  // --- Fields based on your schema ---
+  project_id   BigInt  @id @default(autoincrement()) // Primary Key, assuming auto-increment
+  project_name String  @unique @db.VarChar(100)    // Unique project name, maps to VARCHAR(100)
+  project_remarks String @db.Text
+  // Foreign key fields (scalar fields)
+  drm_emp_no   BigInt  // Foreign key to Drm.emp_no
+  arm_emp_no   BigInt  // Foreign key to Arm.emp_no
+  hod_emp_no   BigInt  // Foreign key to Hod.emp_no
+
+  // --- Relations ---
+  // Defines the connection to the DrmList table using the drm_emp_no field
+  drm Drm @relation("DRMAssignments", fields: [drm_emp_no], references: [emp_no])
+
+  // Defines the connection to the ArmList table using the arm_emp_no field
+  arm Arm @relation("ARMAssignments", fields: [arm_emp_no], references: [emp_no])
+
+  // Defines the connection to the HodList table using the hod_emp_no field
+  hod Hod @relation("HODAssignments", fields: [hod_emp_no], references: [emp_no])
+
+  // Map the Prisma model to the specific database table name
+  @@map("ProjectAssignment")
+}
