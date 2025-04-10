@@ -364,7 +364,10 @@ export const completeIpRenewal = async (
   }
 };
 
-export const getIpRenewal = async (req, res, next): Promise<void> => {
+export const getIpRenewal = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   // const drm_empno = req.user.empno;
   const ip_rnwl_id = parseInt(req.params.ipRnwlId);
 
@@ -379,7 +382,10 @@ export const getIpRenewal = async (req, res, next): Promise<void> => {
   }
 };
 
-export const getIpRenewals = async (req, res, next): Promise<void> => {
+export const getIpRenewals = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   // const drm_empno = req.user.empno;
 
   try {

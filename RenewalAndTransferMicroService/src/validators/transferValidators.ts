@@ -41,6 +41,7 @@ type ApproveTransferParamsDTO = z.infer<typeof ApproveTransferParamsSchema>;
 export {
   CreateTransferBodySchema,
   CreateTransferResponseSchema,
+  ApproveTransferParamsSchema,
   ApproveTransferBodySchema,
 };
 export {
