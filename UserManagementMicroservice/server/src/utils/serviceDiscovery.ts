@@ -15,11 +15,13 @@ const EUREKA_PORT = process.env.EUREKA_PORT || "8761";
 
 // Get the actual network IP
 const networkInterfaces = os.networkInterfaces();
-const localIP =
-  Object.values(networkInterfaces)
-    .flat()
-    .find((iface) => iface && iface.family === "IPv4" && !iface.internal)
-    ?.address || "127.0.0.1";
+// const localIP =
+//   Object.values(networkInterfaces)
+//     .flat()
+//     .find((iface) => iface && iface.family === "IPv4" && !iface.internal)
+//     ?.address || "127.0.0.1";
+
+const localIP = `100.88.57.62`
 
 console.log(`🌍 Service IP Address: ${localIP}`);
 

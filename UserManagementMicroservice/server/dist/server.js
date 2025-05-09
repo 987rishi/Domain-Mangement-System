@@ -17,6 +17,11 @@ const index_config_js_1 = require("./config/index.config.js");
 const database_config_js_1 = __importDefault(require("./config/database.config.js"));
 const PORT = index_config_js_1.config.port;
 const serviceDiscovery_js_1 = require("./utils/serviceDiscovery.js");
+/**
+ * Establishes a connection to the database using Prisma.
+ * Logs a success message upon successful connection.
+ * If the connection fails, logs an error message and terminates the process.
+ */
 const connectDB = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield database_config_js_1.default.$connect();
@@ -27,6 +32,11 @@ const connectDB = () => __awaiter(void 0, void 0, void 0, function* () {
         process.exit(1);
     }
 });
+/**
+ * Establishes a connection to the server using Express.
+ * Logs a success message upon successful connection.
+ * If the connection fails, logs an error message.
+ */
 const connectServer = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield connectDB();
@@ -39,7 +49,9 @@ const connectServer = () => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 connectServer();
-// Connect to Eureka
+/**
+ * Trying to connect with eureka
+*/
 serviceDiscovery_js_1.eurekaClient.start((error) => {
     if (error) {
         console.log("❌ Eureka registration failed:", error);

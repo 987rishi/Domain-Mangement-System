@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 // Load environment variables from .env file
 dotenv.config();
 
+
 export const config = {
   env: process.env.NODE_ENV || "development",
   port: parseInt(process.env.PORT || "5000", 10), // Default to 5000 if PORT not set
@@ -17,6 +18,10 @@ export const config = {
     bindPassword: process.env.LDAP_BIND_PASSWORD || "", // Default to empty string
     searchBase: process.env.LDAP_BASE_DN || "", // Default to empty string
   },
+
+  jwt: {
+    secret: process.env.JWT_SECRET || "",
+  }
 };
 
 // --- Optional: Basic Check for Critical Variables ---

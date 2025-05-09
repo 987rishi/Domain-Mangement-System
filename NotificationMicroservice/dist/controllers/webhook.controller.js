@@ -30,6 +30,7 @@ const handleWebhook = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         console.log(id);
         return id;
     });
+    const role = payload.triggeredBy.role;
     if (recipientEmpNos.length === 0) {
         console.log("Webhook processed: No numeric recipient emp_no found.");
         res.status(200).send("OK: No recipients specified."); // Acknowledge receipt
@@ -41,7 +42,7 @@ const handleWebhook = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         try {
             // 1. Fetch recipient details (Email is essential)
             //    Replace this placeholder with a call to User Management Service or DB lookup
-            const userInfo = yield (0, user_service_1.findUserEmailByEmpNo)(empNo);
+            const userInfo = yield (0, user_service_1.findUserEmailByEmpNo)(empNo, role);
             if (!userInfo || !userInfo.email) {
                 console.warn(`Skipping user ${empNo}: Email not found.`);
                 continue; // Skip to the next recipient

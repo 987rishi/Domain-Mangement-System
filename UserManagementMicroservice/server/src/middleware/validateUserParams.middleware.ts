@@ -1,6 +1,7 @@
 const expressValidator = require("express-validator");
 const { param } = expressValidator;
 
+
 export const validateUserParams = [
   param("role").custom((value: string) => {
     const allowedRoles = [

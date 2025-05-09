@@ -28,7 +28,7 @@ export const handleWebhook = async (req: Request, res: Response):Promise<void> =
       return id;
     }
   );
-
+  const role = payload.triggeredBy.role;
   if (recipientEmpNos.length === 0) {
     console.log("Webhook processed: No numeric recipient emp_no found.");
      res.status(200).send("OK: No recipients specified."); // Acknowledge receipt
@@ -45,7 +45,7 @@ export const handleWebhook = async (req: Request, res: Response):Promise<void> =
       // 1. Fetch recipient details (Email is essential)
       //    Replace this placeholder with a call to User Management Service or DB lookup
       const userInfo: UserInfo | null = await findUserEmailByEmpNo(
-        empNo
+        empNo,role
       );
 
       if (!userInfo || !userInfo.email) {
