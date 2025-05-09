@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.NoSuchElementException;
 
 @Service
@@ -42,80 +43,130 @@ public class PurchaseService {
     private NotificationClient notificationClient;
 
     @Transactional
-    public ResponseEntity<?> registerDomainPurchase(@Valid DomainPurchase domainPurchase) {
+    public ResponseEntity<?> registerDomainPurchase(
+            @Valid DomainPurchase domainPurchase) {
         //PERFORM VALIDATION TO CHECK IF DOMAIN NAME IS FINAL APPROVED BEFORE PURCHASE
 
-        DomainVerification domainVerification = domainVerificationRepo.findByDomainNameId(domainPurchase.getDomainId()).orElseThrow(()-> new NoSuchElementException("GIVEN DOMAIN VERIFICATION RECORD DOES NOT EXIST WITH DOMAIN ID : "+ domainPurchase.getDomainId()));
+        DomainVerification domainVerification = domainVerificationRepo
+                .findByDomainNameId(
+                        domainPurchase
+                                .getDomainId())
+                .orElseThrow(()->
+                        new NoSuchElementException("GIVEN DOMAIN" +
+                                " VERIFICATION RECORD DOES" +
+                                " NOT EXIST WITH DOMAIN ID : " +
+                                domainPurchase.getDomainId()));
 
 
-        if(!domainVerification.is_verified())
-            throw new IllegalStateException("DOMAIN HAS NOT BEEN VERIFIED YET WITH DOMAIN ID: "+domainPurchase.getDomainId());
+        if(!domainVerification.isVerified())
+            throw new IllegalStateException("DOMAIN HAS NOT BEEN" +
+                    " VERIFIED YET WITH DOMAIN ID: " +
+                    domainPurchase.getDomainId());
 
 
-        DomainName domainName = domainNameRepo.findById(domainPurchase.getDomainId()).orElseThrow(()-> new NoSuchElementException("THE GIVEN DOMAIN WITH DOES NOT EXIST WITH ID: " + domainPurchase.getDomainId()));
+        DomainName domainName = domainNameRepo.findById(
+                domainPurchase
+                        .getDomainId())
+                .orElseThrow(() ->
+                        new NoSuchElementException("THE GIVEN " +
+                        "DOMAIN WITH DOES NOT EXIST WITH ID: " +
+                                domainPurchase.getDomainId()));
 
-        WebMaster webMaster = utility.findOrThrowNoSuchElementException("WEBMASTER", WebMaster.class,domainPurchase.getWebMasterId());
+        WebMaster webMaster = utility.findOrThrowNoSuchElementException(
+                "WEBMASTER",
+                WebMaster.class,
+                domainPurchase.getWebMasterId());
 
         Purchases purchases = new Purchases();
 
-        purchases.setDt_of_purchase(domainPurchase.getDateOfPurchase());
+        purchases.setDateOfPurchase(domainPurchase.getDateOfPurchase());
 
-        purchases.setWbmstr_id(webMaster.getEmp_no());
+        purchases.setWebmasterId(webMaster.getEmpNo());
 
-        purchases.setPrf_of_purchase(domainPurchase.getProofOfWork());
+        purchases.setProofOfPurchase(Base64
+                .getDecoder()
+                .decode(
+                        domainPurchase
+                                .getProofOfWorkBase64Encoded()
+                )
+        );
 
         purchases.setDomainName(domainName);
 
         purchases.setPurchaseType(domainPurchase.getPurchaseType());
 
 
-        domainName.setExpiry_date(domainPurchase.getDomainExpiryDate());
-        domainName.setD_o_act(LocalDateTime.now());
-        domainName.setPeriod(domainPurchase.getFinalPeriod());
-        domainName.set_active(true);
+        domainName.setExpiryDate(domainPurchase.getDomainExpiryDate());
+        domainName.setDateOfActivation(LocalDateTime.now());
+        domainName.setPeriodInYears(domainPurchase.getFinalPeriod());
+        domainName.setActive(true);
+        domainName.setRenewal(false);
 
-        Ip ip = ipRepo.findByDomainId(domainName.getDm_id()).orElseThrow(()->new NoSuchElementException("IP CORRESPONDING TO DOMAIN DOES NOT EXIST WITH ID "+domainName.getDm_id()));
-        Vapt vapt = vaptRepo.findByIpId(ip.getIp_id()).orElseThrow(()->new NoSuchElementException("VAPT CORRESPONDING TO IP DOES NOT EXIST WITH ID "+ip.getIp_id()));
-
-        if(ip.getExpiry_date()==null || vapt.getExp_date()==null)
-            throw new IllegalStateException("EXPIRY DATE OF IP AND VAPT CANNOT BE NULL DURING DOMAIN NAME PURCHASE");
-
-        ip.set_active(true);
-        vapt.set_active(true);
+//        Ip ip = ipRepo.findByDomainId(
+//                domainName
+//                        .getDomainNameId())
+//                .orElseThrow(() ->
+//                        new NoSuchElementException("IP " +
+//                        "CORRESPONDING TO DOMAIN " +
+//                                "DOES NOT EXIST WITH ID " +
+//                                domainName.getDomainNameId()));
+//        Vapt vapt = vaptRepo.findByIpId(
+//                ip
+//                        .getIpId())
+//                .orElseThrow(() ->
+//                        new NoSuchElementException("VAPT " +
+//                "CORRESPONDING TO IP " +
+//                                "DOES NOT EXIST WITH ID " +
+//                                ip.getIpId()));
+//
+//        if(ip.getExpiryDate() == null || vapt.getExpiryDate() == null)
+//            throw new IllegalStateException("EXPIRY DATE OF IP " +
+//                    "AND VAPT CANNOT BE NULL " +
+//                    "DURING DOMAIN NAME PURCHASE");
+//
+//        ip.setActive(true);
+//        vapt.setActive(true);
 
 
         try{
             domainNameRepo.save(domainName);
-            vaptRepo.save(vapt);
-            ipRepo.save(ip);
-            notificationClient.sendNotification(buildNotification(domainName));
+//            vaptRepo.save(vapt);
+//            ipRepo.save(ip);
+//            notificationClient.sendNotification(buildNotification(domainName));
 
-            return new ResponseEntity<>(purchasesRepo.save(purchases), HttpStatus.CREATED);
+            return new ResponseEntity<>(
+                    purchasesRepo.save(purchases),
+                    HttpStatus.CREATED);
         } catch (Exception e) {
-            throw new RuntimeException("ERROR OCCURED WHILE SAVING DOMAIN PURCHASE :"+e.getMessage());
+            throw new RuntimeException("ERROR OCCURED " +
+                    "WHILE SAVING DOMAIN PURCHASE :" + e.getMessage());
         }
     }
+
     private NotificationWebhook buildNotification(DomainName domainName) {
 
-        String remarks = "DOMAIN NAME IS APPLICATION HAS BEEN SUCCESSFULLY COMPLETED AND IS NOW AVAILABLE FOR USE.";
-        NotificationWebhook.EventType eventType = NotificationWebhook.EventType.DOMAIN_ACTIVATED;
+        String remarks = "DOMAIN NAME IS APPLICATION HAS " +
+                "BEEN SUCCESSFULLY COMPLETED " +
+                "AND IS NOW AVAILABLE FOR USE.";
+        NotificationWebhook.EventType eventType = NotificationWebhook
+                .EventType.DOMAIN_ACTIVATED;
         Role role = Role.WEBMASTER;
 
         return new NotificationWebhook(
                 eventType,
                 LocalDateTime.now(),
                 new NotificationWebhook.TriggeredBy(
-                        domainName.getWebmaster_emp_no(),
+                        domainName.getWebmasterEmployeeNumber(),
                         role
                 ),
                 new NotificationWebhook.NotificationData(
-                        domainName.getDm_id(),
-                        domainName.getDm_name(),
+                        domainName.getDomainNameId(),
+                        domainName.getDomainName(),
                         remarks
                 ),
                 new NotificationWebhook.Recipients(
-                        domainName.getDrm_emp_no(),
-                        domainName.getArm_emp_no()
+                        domainName.getDrmEmployeeNumber(),
+                        domainName.getArmEmployeeNumber()
                 )
         );
     }

@@ -1,5 +1,6 @@
 package com.dnsManagement.WorkFlowIpVaptService.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -12,22 +13,35 @@ import lombok.NoArgsConstructor;
 public class WebMaster {
 
     @NotNull
-    private Long emp_no;
+    @JsonProperty("emp_no")
+    private Long empNo;
+
     @NotNull
-    private String fname;
+    @JsonProperty("fname")
+    private String firstName;
+
     @NotNull
-    private String lname;
+    @JsonProperty("lname")
+    private String lastName;
+
     @NotNull
-    private String tele_no;
+    @JsonProperty("tele_no")
+    private String telePhoneNumber;
+
     @NotNull
-    private String mob_no;
+    @JsonProperty("mob_no")
+    private String mobileNumber;
+
     @NotNull
     @Email
-    private String email_id;
+    @JsonProperty("email_id")
+    private String emailId;
 
     @NotNull
-    private boolean is_active;
+    @JsonProperty("is_active")
+    private boolean isActive;
 
     @NotNull
-    private Integer centre_id;//TO IDENTIFY THE WEBMASTER BELONGS TO WHICH CENTRE SINCE HE IS ALSO AN EMPLOYEE AND MUST BELONG TO SOME CENTRE
+    @JsonProperty("centre_id")
+    private Integer centreId; // To identify the webmaster belongs to which centre since they are also an employee
 }

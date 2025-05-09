@@ -32,6 +32,32 @@ public final class Utility {
         T stakeHolder = objectMapper.convertValue(object,tClass); // CONVERTS OUR RAW OBJECT (DESERILIZED JSON) INTO A CLASS OBJECT USING JACKSON
         return stakeHolder;
     }
+    public <T> T findGroupOrThrowNoSuchElementException(
+                                                     Class<T> tClass,
+                                                Long searchKey){
+        Object object = stakeHolderClient.fetchDepartmentDetails(searchKey);
+        //SERVICE DISCOVERY USING OPEN FEIGN
+
+        if(object == null) throw new NoSuchElementException(String.format(
+                "GIVEN DEPARTMENT DOES NOT EXIST WITH ID :%d",searchKey));
+
+        T stakeHolder = objectMapper.convertValue(object,tClass); // CONVERTS OUR RAW OBJECT (DESERILIZED JSON) INTO A CLASS OBJECT USING JACKSON
+        return stakeHolder;
+    }
+
+    public <T> T findCentreOrThrowNoSuchElementException(
+            Class<T> tClass,
+            Long searchKey){
+        Object object = stakeHolderClient.fetchCentreDetails(searchKey);
+        //SERVICE DISCOVERY USING OPEN FEIGN
+
+        if(object == null) throw new NoSuchElementException(String.format(
+                "GIVEN CENTRE DOES NOT EXIST WITH ID :%d",searchKey));
+
+        T stakeHolder = objectMapper.convertValue(object,tClass); // CONVERTS OUR RAW OBJECT (DESERILIZED JSON) INTO A CLASS OBJECT USING JACKSON
+        return stakeHolder;
+    }
+
     public static boolean verifyIfVerifiedByPrevAuth(Role prevAuth, Role auth, DomainVerification dv) {
         int currentIndex = VERIFICATION_ORDER.indexOf(auth);
         int prevIndex = VERIFICATION_ORDER.indexOf(prevAuth);
@@ -43,11 +69,11 @@ public final class Utility {
 
         // Check verification status based on role
         return switch (auth) {
-            case HOD -> dv.isFwd_arm() && !dv.isVfyd_by_hod();
-            case ED -> dv.isVfyd_by_hod() && !dv.isVfy_by_ed();
-            case NETOPS -> dv.isVfy_by_ed() && !dv.isVfy_by_netops();
-            case WEBMASTER -> dv.isVfy_by_netops() && !dv.isVfy_by_wbmstr();
-            case HODHPC -> dv.isVfy_by_wbmstr() && !dv.isVfy_by_hod_hpc_iand_e();
+            case HOD -> dv.isForwardedToArm() && !dv.isVerifiedByHod();
+            case ED -> dv.isVerifiedByHod() && !dv.isVerifiedByEd();
+            case NETOPS -> dv.isVerifiedByEd() && !dv.isVerifiedByNetops();
+            case WEBMASTER -> dv.isVerifiedByNetops() && !dv.isVerifiedByWebmaster();
+            case HODHPC -> dv.isVerifiedByWebmaster() && !dv.isVerifiedByHodHpcIandE();
             default -> false;
         };
     }
@@ -63,11 +89,11 @@ public final class Utility {
 
             // Check verification status based on role
             return switch (auth) {
-                case HOD -> !dv.isSnt_bk_by_hod();
-                case ED -> !dv.isSnt_bk_by_hod() && !dv.isSnt_bk_by_ed();
-                case NETOPS -> !dv.isSnt_bk_by_ed() && !dv.isSnt_bk_by_netops();
-                case WEBMASTER -> !dv.isSnt_bk_by_netops() && !dv.isSnt_bk_by_wbmstr();
-                case HODHPC -> !dv.isSnt_bk_by_wbmstr() && !dv.isSnt_bk_by_hpc();
+                case HOD -> !dv.isSentBackByHod();
+                case ED -> !dv.isSentBackByHod() && !dv.isSentBackByEd();
+                case NETOPS -> !dv.isSentBackByEd() && !dv.isSentBackByNetops();
+                case WEBMASTER -> !dv.isSentBackByNetops() && !dv.isSentBackByWebmaster();
+                case HODHPC -> !dv.isSentBackByWebmaster() && !dv.isSentBackByHpc();
                 default -> false;
             };
 

@@ -15,27 +15,31 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class Purchases {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long purchase_id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "purchase_id")
+  private Long purchaseId;
 
+  @ManyToOne
+  @JsonIgnore
+  @JoinColumn(name = "dm_id", nullable = false)
+  private DomainName domainName;
 
-    @ManyToOne
-    @JsonIgnore
-    @JoinColumn(name="dm_id",nullable = false)
-    private DomainName domainName;
+  @JsonIgnore
+  @NotNull
+  @Column(name = "wbmstr_id", nullable = false)
+  private Long webmasterId;
 
-    @JsonIgnore
-    @NotNull
-    private Long wbmstr_id;
+  @NotNull
+  @Column(name = "dt_of_purchase", nullable = false)
+  private LocalDateTime dateOfPurchase;
 
-    @NotNull
-    private LocalDateTime dt_of_purchase;
+  @NotNull
+  @Enumerated(EnumType.STRING)
+  @Column(name = "purchase_type", nullable = false)
+  private PurchaseType purchaseType;
 
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    private PurchaseType purchaseType;
-
-    @NotNull
-    private byte[] prf_of_purchase;
+  @NotNull
+  @Column(name = "prf_of_purchase", nullable = false)
+  private byte[] proofOfPurchase;
 }

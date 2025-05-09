@@ -1,6 +1,8 @@
 package com.dnsManagement.WorkFlowIpVaptService.dto;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,34 +13,44 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Arm {
 
-    @NotNull
-    private Long emp_no;//Clarify whether emp_no can fit in long or need to keep string
+  @NotNull
+  @JsonProperty("emp_no")
+  private Long employeeNumber;
 
-    @NotNull
-    private String arm_fname;
+  @NotNull
+  @JsonProperty("arm_fname")
+  private String firstName;
 
-    @NotNull
-    private String arm_lname;
+  @NotNull
+  @JsonProperty("arm_lname")
+  private String lastName;
 
-    @NotNull
-    private String email_id;
+  @NotNull
+  @JsonProperty("email_id")
+  private String email;
 
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    private Designation desig;
+  @NotNull
+  @Enumerated(EnumType.STRING)
+  @JsonProperty("desig")
+  private Designation designation;
 
-    @NotNull
-    private String tele_no;
+  @NotNull
+  @JsonProperty("tele_no")
+  private String telephoneNumber;
 
-    @NotNull
-    private String mob_no;
+  @NotNull
+  @JsonProperty("mob_no")
+  private String mobileNumber;
 
-    @NotNull
-    private Long centre_id;
+  @NotNull
+  @JsonProperty("centre_id")
+  private Long centreId;
 
-    @NotNull
-    private Long grp_id;
+  @NotNull
+  @JsonProperty("grp_id")
+  private Long groupId;
 
-    @NotNull
-    private boolean is_active;
+  @NotNull
+  @JsonProperty("is_active")
+  private boolean active;
 }

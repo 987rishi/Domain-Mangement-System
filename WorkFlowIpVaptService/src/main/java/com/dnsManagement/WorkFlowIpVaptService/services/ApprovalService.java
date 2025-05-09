@@ -40,49 +40,56 @@ public class ApprovalService {
 
     private final Map<Role, Consumer<DomainVerification>> roleHandlers = Map.of(
             Role.ARM, dv -> {
-                dv.setFwd_arm(true);
-                dv.setFwd_date_arm(LocalDateTime.now());
+                dv.setForwardedToArm(true);
+                dv.setForwardedDateArm(LocalDateTime.now());
             },
             Role.HOD, dv -> {
                 if(!Utility.verifyIfVerifiedByPrevAuth(Role.ARM,Role.HOD,dv))
                     throw new IllegalStateException("HOD CANNOT VERIFY UNLESS ARM HAS VERIFIED");
                 hodRenewalVerify(dv);
-                dv.setVfyd_by_hod(true);
-                dv.setVfy_date_hod(LocalDateTime.now());
+                dv.setVerifiedByHod(true);
+                dv.setVerificationDateHod(LocalDateTime.now());
             },
             Role.ED, dv -> {
                 if(!Utility.verifyIfVerifiedByPrevAuth(Role.HOD,Role.ED,dv))
                     throw new IllegalStateException("ED CANNOT VERIFY UNLESS HOD HAS VERIFIED");
-                dv.setVfy_by_ed(true);
-                dv.setVfy_date_ed(LocalDateTime.now());
+                dv.setVerifiedByEd(true);
+                dv.setVerificationDateEd(LocalDateTime.now());
             },
             Role.NETOPS, dv -> {
                 if(!Utility.verifyIfVerifiedByPrevAuth(Role.ED,Role.NETOPS,dv))
                     throw new IllegalStateException("NETOPS CANNOT VERIFY UNLESS ED HAS VERIFIED");
-                dv.setVfy_by_netops(true);
-                dv.setVfy_date_netops(LocalDateTime.now());
+                dv.setVerifiedByNetops(true);
+                dv.setVerificationDateNetops(LocalDateTime.now());
             },
             Role.WEBMASTER, dv -> {
                 if(!Utility.verifyIfVerifiedByPrevAuth(Role.NETOPS,Role.WEBMASTER,dv))
                     throw new IllegalStateException("WEBMASTER CANNOT VERIFY UNLESS NETOPS HAS VERIFIED");
-                dv.setVfy_by_wbmstr(true);
-                dv.setVfy_date_wbmstr(LocalDateTime.now());
+                dv.setVerifiedByWebmaster(true);
+                dv.setVerificationDateWebmaster(LocalDateTime.now());
             },
             Role.HODHPC, dv -> {
                 if(!Utility.verifyIfVerifiedByPrevAuth(Role.WEBMASTER,Role.HODHPC,dv))
                     throw new IllegalStateException("HOD HPC CANNOT VERIFY UNLESS WEBMASTER HAS VERIFIED");
-                dv.setVfy_by_hod_hpc_iand_e(true);
-                dv.setVfy_date_hod_hpc(LocalDateTime.now());
-                dv.set_verified(true);
+                dv.setVerifiedByHodHpcIandE(true);
+                dv.setVerificationDateHodHpc(LocalDateTime.now());
+                dv.setVerified(true);
             }
     );
 
     @Transactional
     public ResponseEntity<?> approve(Long domainNameId, String remarks, Role role) {
-        DomainVerification domainVerification = domainVerificationRepo.findByDomainNameId(domainNameId)
-                .orElseThrow(() -> new NoSuchElementException("Invalid domain name ID: " + domainNameId));
+        DomainVerification domainVerification = domainVerificationRepo
+                .findByDomainNameId(domainNameId)
+                .orElseThrow(() ->
+                        new NoSuchElementException("Invalid domain name ID: " +
+                                domainNameId));
 
-        DomainName domainName = domainNameRepo.findById(domainNameId).orElseThrow(()->new NoSuchElementException("DOMAIN NAME RECORD DOES NOT EXIST CORRESPONDING TO ID: "+domainNameId));
+        DomainName domainName = domainNameRepo
+                .findById(domainNameId)
+                .orElseThrow(() ->
+                        new NoSuchElementException("DOMAIN NAME " +
+                        "RECORD DOES NOT EXIST CORRESPONDING TO ID: " + domainNameId));
 
 
         // Apply role-specific updates
@@ -96,56 +103,56 @@ public class ApprovalService {
         try {
             domainVerificationRepo.save(domainVerification);
 
-            NotificationWebhook notificationWebhook = buildNotification(domainName,role,remarks);
-            client.sendNotification(notificationWebhook);
+            NotificationWebhook notificationWebhook = buildNotification(
+                    domainName,
+                    role,
+                    remarks);
+//  ON WHEN RAJ HAS FINSIHED IT
+//            client.sendNotification(notificationWebhook);
 
             return ResponseEntity.ok(domainVerification);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error updating domain verification: " + e.getMessage());
+            throw new RuntimeException("ERROR WHILE " +
+                    "APPROVE WORKFLOW."
+                    + e.getMessage()
+                    );
         }
     }
 
-    private NotificationWebhook buildNotification(DomainName domainName, Role role, String remarks) {
+    private NotificationWebhook buildNotification(
+            DomainName domainName,
+            Role role,
+            String remarks) {
+
         Long empNo;
         NotificationWebhook.EventType eventType;
 
 
          switch (role){
             case ARM -> {
-                empNo = domainName.getArm_emp_no();
-                eventType = NotificationWebhook.EventType.DOMAIN_ARM_VERIFICATION_FORWARDED;
-                break;
+              empNo = domainName.getArmEmployeeNumber();
+              eventType =
+                      NotificationWebhook.EventType.DOMAIN_ARM_VERIFICATION_FORWARDED;
             }
             case HOD ->{
-                empNo = domainName.getHod_emp_no();
+                empNo = domainName.getHodEmployeeNumber();
                 eventType = NotificationWebhook.EventType.DOMAIN_HOD_VERIFIED;
-                break;
-
             }
             case ED ->{
-                empNo = domainName.getEd_emp_no();;
+                empNo = domainName.getEdEmployeeNumber();
                 eventType = NotificationWebhook.EventType.DOMAIN_ED_APPROVED;
-                break;
-
             }
             case NETOPS ->{
-                empNo = domainName.getNetops_emp_no();;
+                empNo = domainName.getNetopsEmployeeNumber();
                 eventType = NotificationWebhook.EventType.DOMAIN_NETOPS_VERIFIED;
-                break;
-
             }
             case WEBMASTER ->{
-                empNo = domainName.getWebmaster_emp_no();
+                empNo = domainName.getWebmasterEmployeeNumber();
                 eventType = NotificationWebhook.EventType.DOMAIN_WEBMASTER_VERIFIED;
-                break;
-
             }
             case HODHPC ->{
-                empNo = domainName.getHod_hpc_emp_no();
+                empNo = domainName.getHodHpcEmployeeNumber();
                 eventType = NotificationWebhook.EventType.DOMAIN_HPC_HOD_RECOMMENDED;
-                break;
-
             }
             default ->{
                 empNo = null;
@@ -161,13 +168,13 @@ public class ApprovalService {
                          role
                  ),
                  new NotificationWebhook.NotificationData(
-                         domainName.getDm_id(),
-                         domainName.getDm_name(),
+                         domainName.getDomainNameId(),
+                         domainName.getDomainName(),
                          remarks
                  ),
                  new NotificationWebhook.Recipients(
-                         domainName.getDrm_emp_no(),
-                         domainName.getArm_emp_no()
+                         domainName.getDrmEmployeeNumber(),
+                         domainName.getArmEmployeeNumber()
                  )
          );
 
@@ -175,31 +182,41 @@ public class ApprovalService {
 
     private void setRemarks(DomainVerification dv, Role role, String remarks) {
         switch (role) {
-            case ARM -> dv.setArm_remarks(remarks);
-            case HOD -> dv.setHod_remarks(remarks);
-            case ED -> dv.setEd_remarks(remarks);
-            case NETOPS -> dv.setNetops_remarks(remarks);
-            case WEBMASTER -> dv.setWbmstr_remarks(remarks);
-            case HODHPC -> dv.setHpc_remarks(remarks);
+            case ARM -> dv.setArmRemarks(remarks);
+            case HOD -> dv.setHodRemarks(remarks);
+            case ED -> dv.setEdRemarks(remarks);
+            case NETOPS -> dv.setNetopsRemarks(remarks);
+            case WEBMASTER -> dv.setWebmasterRemarks(remarks);
+            case HODHPC -> dv.setHpcRemarks(remarks);
         }
     }
 
     private void hodRenewalVerify(DomainVerification dv){
-        DomainName domainName = dv.getDm_id();
+        DomainName domainName = dv.getDomainName();
 
-        if(!domainName.is_renewal())
+        if(!domainName.isRenewal())
             return;
 
-        DomainRenewal renewal = domainRenewalRepo.findByDomainId(dv.getDm_id().getDm_id()).orElseThrow(()-> new NoSuchElementException("DOMAIN RENEWAL RECORD DOES NOT EXIST CORRESPONDING TO DOMAIN ID: "+dv.getDm_id().getDm_id()));
+        DomainRenewal renewal =
+                domainRenewalRepo.findByDomainId(dv
+                        .getDomainName()
+                        .getDomainNameId())
+                        .orElseThrow(()-> new NoSuchElementException("DOMAIN RENEWAL " +
+                                "RECORD DOES NOT EXIST " +
+                                "CORRESPONDING TO DOMAIN ID: " + dv
+                                .getDomainName()
+                                .getDomainNameId()));
 
 
-        renewal.setHod_appr_date(LocalDateTime.now());
+        renewal.setHodApprovalDate(LocalDateTime.now());
 
         try{
             domainRenewalRepo.save(renewal);
         }catch(Exception e)
         {
-            throw e;
+            throw new RuntimeException("ERROR WHILE SAVING SAVING RENEWAL " +
+                    "RECORD. " +
+                    e.getMessage());
         }
     }
 }

@@ -14,23 +14,26 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class Ip {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long ip_id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "ip_id")
+  private Long ipId;
 
-    @Column(name="ip_address",nullable = false,unique = true)
-    private String ip_address;
+  @Column(name = "ip_address", nullable = false, unique = true)
+  private String ipAddress;
 
-    @NotNull
-    @Column(nullable = false)
-    private String ip_issuer;
+  @NotNull
+  @Column(name = "ip_issuer", nullable = false)
+  private String ipIssuer;
 
-    private LocalDateTime expiry_date;
+  @Column(name = "expiry_date", nullable = true)
+  private LocalDateTime expiryDate;
 
-    @OneToOne
-    @JoinColumn(name="dm_id",nullable = false)
-    private DomainName dm_id;
+  @OneToOne
+  @JoinColumn(name = "dm_id", nullable = false)
+  private DomainName domainName;
 
-    @Column(nullable = false)
-    private boolean is_active = false;
+  @Column(name = "is_active", nullable = false)
+  private boolean isActive = false;
+
 }

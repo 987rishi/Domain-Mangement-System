@@ -1,6 +1,6 @@
 package com.dnsManagement.WorkFlowIpVaptService.models;
 
 public enum PurchaseType {
-    RENEWAL,
-    NEW_REGISTRATION
+  RENEWAL,
+  NEW_REGISTRATION
 }

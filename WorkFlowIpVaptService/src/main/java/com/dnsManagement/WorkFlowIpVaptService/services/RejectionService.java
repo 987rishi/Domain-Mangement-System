@@ -29,56 +29,87 @@ public class RejectionService {
     @Autowired
     private DomainNameRepo domainNameRepo;
 
-    private Map<Role, Consumer<DomainVerification>> rejectionRole=Map.of(
-            Role.HOD,dv->{
-                if(dv.isVfyd_by_hod()) throw new IllegalStateException("HOD CANNOT CHANGE DECISION AFTER VERFIYING");
-                dv.setSnt_bk_by_hod(true);
-                dv.setVfy_date_hod(LocalDateTime.now());
+    private final Map<Role, Consumer<DomainVerification>> rejectionRole = Map.of(
+            Role.HOD,dv -> {
+                if(dv.isVerifiedByHod()) throw new IllegalStateException(
+                        "HOD CANNOT CHANGE DECISION" +
+                                " AFTER VERFIYING");
+                dv.setSentBackByHod(true);
+                dv.setVerificationDateHod(LocalDateTime.now());
                 //notification microservice
             },
             Role.ED,dv->{
-                if(dv.isVfy_by_ed()) throw new IllegalStateException("ED CANNOT CHANGE DECISION AFTER VERFIYING");
+                if(dv.isVerifiedByEd()) throw new IllegalStateException("ED " +
+                        "CANNOT CHANGE DECISION " +
+                        "AFTER VERFIYING");
                 if(!Utility.verifyIfSentByPrevAuth(Role.HOD,Role.ED,dv))
-                    throw new IllegalStateException("HOD HAS ALREADY REJECTED REQUEST, APPLICATION HAS NOT REACHED ED YET HENCE ED CANNOT REJECT IT NOW");
-                dv.setSnt_bk_by_ed(true);
-                dv.setVfy_date_ed(LocalDateTime.now());
+                    throw new IllegalStateException("HOD HAS ALREADY" +
+                            " REJECTED REQUEST, " +
+                            "APPLICATION HAS NOT REACHED ED YET " +
+                            "HENCE ED CANNOT REJECT IT NOW");
+                dv.setSentBackByEd(true);
+                dv.setVerificationDateEd(LocalDateTime.now());
             },
-            Role.NETOPS,dv->{
-                if(dv.isVfy_by_netops()) throw new IllegalStateException("NETOPS CANNOT CHANGE DECISION AFTER VERFIYING");
+            Role.NETOPS,dv -> {
+                if(dv.isVerifiedByNetops()) throw new IllegalStateException("NETOPS" +
+                        " CANNOT CHANGE DECISION" +
+                        " AFTER VERFIYING");
                 if(!Utility.verifyIfSentByPrevAuth(Role.ED,Role.NETOPS,dv))
-                    throw new IllegalStateException("ED HAS ALREADY REJECTED REQUEST, APPLICATION HAS NOT REACHED NETOPS YET HENCE NETOPS CANNOT REJECT IT NOW");
-                dv.setSnt_bk_by_netops(true);
-                dv.setVfy_date_netops(LocalDateTime.now());
+                    throw new IllegalStateException("ED HAS ALREADY" +
+                            " REJECTED REQUEST, " +
+                            "APPLICATION HAS NOT REACHED NETOPS" +
+                            " YET HENCE NETOPS CANNOT REJECT IT NOW");
+                dv.setSentBackByNetops(true);
+                dv.setVerificationDateNetops(LocalDateTime.now());
                 //notification microservice
             },
-            Role.WEBMASTER,dv->{
-                if(dv.isVfy_by_wbmstr()) throw new IllegalStateException("WEBMASTER CANNOT CHANGE DECISION AFTER VERFIYING");
+            Role.WEBMASTER,dv -> {
+                if(dv.isVerifiedByWebmaster()) throw new IllegalStateException("WEBMASTER CANNOT CHANGE" +
+                        " DECISION AFTER VERFIYING");
                 if(!Utility.verifyIfSentByPrevAuth(Role.NETOPS,Role.WEBMASTER,dv))
-                    throw new IllegalStateException("NETOPS HAS ALREADY REJECTED REQUEST, APPLICATION HAS NOT REACHED WEBMASTER YET HENCE WEBMASTER CANNOT REJECT IT NOW");
-                dv.setSnt_bk_by_wbmstr(true);
-                dv.setVfy_date_wbmstr(LocalDateTime.now());
+                    throw new IllegalStateException("NETOPS HAS ALREADY" +
+                            " REJECTED REQUEST, " +
+                            "APPLICATION HAS NOT REACHED" +
+                            " WEBMASTER YET HENCE WEBMASTER" +
+                            " CANNOT REJECT IT NOW");
+                dv.setSentBackByWebmaster(true);
+                dv.setVerificationDateWebmaster(LocalDateTime.now());
                 //notification microservice
             },
-            Role.HODHPC,dv->{
-                if(dv.isVfy_by_hod_hpc_iand_e()) throw new IllegalStateException("HOD HPC CANNOT CHANGE DECISION AFTER VERFIYING");
+            Role.HODHPC,dv -> {
+                if(dv.isVerifiedByHodHpcIandE()) throw new
+                        IllegalStateException("HOD " +
+                        "HPC CANNOT CHANGE DECISION" +
+                        " AFTER VERFIYING");
                 if(!Utility.verifyIfSentByPrevAuth(Role.WEBMASTER,Role.HODHPC,dv))
-                    throw new IllegalStateException("WEBMASTER HAS ALREADY REJECTED REQUEST, APPLICATION HAS NOT REACHED HOD HPC YET HENCE HOD HPC CANNOT REJECT IT NOW");
-                dv.setSnt_bk_by_hpc(true);
+                    throw new IllegalStateException("WEBMASTER HAS" +
+                            " ALREADY REJECTED REQUEST, " +
+                            "APPLICATION HAS NOT REACHED HOD" +
+                            " HPC YET HENCE HOD " +
+                            "HPC CANNOT REJECT IT NOW");
+                dv.setSentBackByHpc(true);
                 //notification microservice
-                dv.setVfy_date_hod_hpc(LocalDateTime.now());
+                dv.setVerificationDateHodHpc(LocalDateTime.now());
             }
     );
 
 
 
 
-
-
     public ResponseEntity<?> reject(Long domainNameId, String remarks, Role role) {
-        DomainVerification domainVerification = domainVerificationRepo.findByDomainNameId(domainNameId)
-                .orElseThrow(() -> new NoSuchElementException("Invalid domain name ID: " + domainNameId));
+        DomainVerification domainVerification = domainVerificationRepo
+                .findByDomainNameId(domainNameId)
+                .orElseThrow(() ->
+                        new NoSuchElementException("Invalid domain " +
+                                "name ID: " + domainNameId));
 
-        DomainName domainName = domainNameRepo.findById(domainNameId).orElseThrow(()->new NoSuchElementException("DOMAIN NAME RECORD DOES NOT EXIST CORRESPONDING TO ID: "+domainNameId));
+        DomainName domainName = domainNameRepo
+                .findById(domainNameId)
+                .orElseThrow(() -> new NoSuchElementException(
+                        "DOMAIN NAME " +
+                        "RECORD DOES NOT EXIST" +
+                                " CORRESPONDING TO ID: " +
+                                domainNameId));
         // Apply role-specific updates
         rejectionRole.getOrDefault(role, dv -> {
             throw new IllegalArgumentException("Invalid role: " + role);
@@ -89,7 +120,8 @@ public class RejectionService {
 
         try {
             domainVerificationRepo.save(domainVerification);
-            notificationClient.sendNotification(buildNotification(domainName,role,remarks));
+            notificationClient.sendNotification(
+                    buildNotification(domainName,role,remarks));
             return ResponseEntity.ok(domainVerification);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -97,44 +129,49 @@ public class RejectionService {
         }
     }
 
-    private void setRemarks(DomainVerification dv, Role role, String remarks) {
+    private void setRemarks(DomainVerification dv,
+                            Role role,
+                            String remarks) {
         switch (role) {
-            case ARM -> dv.setArm_remarks(remarks);
-            case HOD -> dv.setHod_remarks(remarks);
-            case ED -> dv.setEd_remarks(remarks);
-            case NETOPS -> dv.setNetops_remarks(remarks);
-            case WEBMASTER -> dv.setWbmstr_remarks(remarks);
-            case HODHPC -> dv.setHpc_remarks(remarks);
+            case ARM -> dv.setArmRemarks(remarks);
+            case HOD -> dv.setHodRemarks(remarks);
+            case ED -> dv.setEdRemarks(remarks);
+            case NETOPS -> dv.setNetopsRemarks(remarks);
+            case WEBMASTER -> dv.setWebmasterRemarks(remarks);
+            case HODHPC -> dv.setHpcRemarks(remarks);
         }
     }
 
-    private NotificationWebhook buildNotification(DomainName domainName, Role role, String remarks) {
+    private NotificationWebhook buildNotification(
+            DomainName domainName,
+            Role role,
+            String remarks) {
         Long empNo;
-        NotificationWebhook.EventType  eventType = NotificationWebhook.EventType.DOMAIN_VERIFICATION_REJECTED;
+        NotificationWebhook.EventType  eventType = NotificationWebhook
+                .EventType.DOMAIN_VERIFICATION_REJECTED;
 
 
         switch (role){
             case ARM -> {
-                empNo = domainName.getArm_emp_no();
+                empNo = domainName.getArmEmployeeNumber();
             }
-            case HOD ->{
-                empNo = domainName.getHod_emp_no();
+            case HOD -> {
+                empNo = domainName.getHodEmployeeNumber();
+            }
+            case ED -> {
+                empNo = domainName.getEdEmployeeNumber();
+            }
+            case NETOPS -> {
+                empNo = domainName.getNetopsEmployeeNumber();
 
             }
-            case ED ->{
-                empNo = domainName.getEd_emp_no();;
+            case WEBMASTER -> {
+                empNo = domainName.getWebmasterEmployeeNumber();
             }
-            case NETOPS ->{
-                empNo = domainName.getNetops_emp_no();;
-
+            case HODHPC -> {
+                empNo = domainName.getHodHpcEmployeeNumber();
             }
-            case WEBMASTER ->{
-                empNo = domainName.getWebmaster_emp_no();
-            }
-            case HODHPC ->{
-                empNo = domainName.getHod_hpc_emp_no();
-            }
-            default ->{
+            default -> {
                 empNo = null;
                 eventType = NotificationWebhook.EventType.UNKNOWN_EVENT;
             }
@@ -148,13 +185,13 @@ public class RejectionService {
                         role
                 ),
                 new NotificationWebhook.NotificationData(
-                        domainName.getDm_id(),
-                        domainName.getDm_name(),
+                        domainName.getDomainNameId(),
+                        domainName.getDomainName(),
                         remarks
                 ),
                 new NotificationWebhook.Recipients(
-                        domainName.getDrm_emp_no(),
-                        domainName.getArm_emp_no()
+                        domainName.getDrmEmployeeNumber(),
+                        domainName.getArmEmployeeNumber()
                 )
         );
 

@@ -1,7 +1,6 @@
 package com.dnsManagement.WorkFlowIpVaptService.dto;
 
-import com.dnsManagement.WorkFlowIpVaptService.models.DomainName;
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,21 +13,27 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class IpResponse {
 
-    @NotNull
-    private Long ip_id;
+  @NotNull
+  @JsonProperty("ip_id")
+  private Long ipId;
 
-    @NotNull
-    private String ip_address;
+  @NotNull
+  @JsonProperty("ip_address")
+  private String ipAddress;
 
-    @NotNull
-    private String ip_issuer;
+  @NotNull
+  @JsonProperty("ip_issuer")
+  private String ipIssuer;
 
-    @NotNull
-    private LocalDateTime expiry_date;
+  @NotNull
+  @JsonProperty("expiry_date")
+  private LocalDateTime expiryDate;
 
-    @NotNull
-    private Long dm_id;
+  @NotNull
+  @JsonProperty("dm_id")
+  private Long domainNameId;
 
-    @NotNull
-    private boolean is_active;
+  @NotNull
+  @JsonProperty("is_active")
+  private boolean isActive;
 }

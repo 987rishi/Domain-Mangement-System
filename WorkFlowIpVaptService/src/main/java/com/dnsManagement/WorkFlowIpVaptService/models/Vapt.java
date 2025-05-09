@@ -13,28 +13,31 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Vapt {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long vapt_id;
 
-    @OneToOne
-    @JoinColumn(name="ip_id",nullable = false,unique = true)
-    private Ip ip_id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "vapt_id")
+  private Long vaptId;
 
-    private LocalDateTime exp_date;
+  @OneToOne
+  @JoinColumn(name = "ip_id", nullable = false, unique = true)
+  private Ip ip;
 
-    @NotNull
-    @Column(nullable = false)
-    private String vapt_certify_auth;
+  @Column(name = "exp_date", nullable = true)
+  private LocalDateTime expiryDate;
 
-    @Lob
-    @NotNull
-    @Column(name="prf_work",nullable = false)
-    private byte[] prf_work;
+  @NotNull
+  @Column(name = "vapt_certify_auth", nullable = false)
+  private String vaptCertifyAuthority;
 
-    private String vapt_remarks;
+  @Lob
+  @NotNull
+  @Column(name = "prf_work", nullable = false)
+  private byte[] proofOfWork;
 
-    @Column(nullable = false)
-    private boolean is_active = false;
+  @Column(name = "vapt_remarks", nullable = true)
+  private String vaptRemarks;
 
+  @Column(name = "is_active", nullable = false)
+  private boolean isActive = false;
 }

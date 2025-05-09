@@ -10,6 +10,6 @@ import java.util.Optional;
 
 @Repository
 public interface DomainRenewalRepo extends JpaRepository<DomainRenewal,Long> {
-    @NativeQuery("select * from domain_renewal where dm_id=:dmId")
-    Optional<DomainRenewal> findByDomainId(Long dmId);
+  @NativeQuery("select * from domain_renewal where dm_id=:dmId")
+  Optional<DomainRenewal> findByDomainId(Long dmId);
 }

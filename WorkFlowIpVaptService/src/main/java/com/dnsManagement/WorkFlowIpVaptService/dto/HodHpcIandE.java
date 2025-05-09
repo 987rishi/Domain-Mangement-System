@@ -1,5 +1,6 @@
 package com.dnsManagement.WorkFlowIpVaptService.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -11,25 +12,32 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class HodHpcIandE {
 
-    @NotNull
-    private Long emp_no;
+  @NotNull
+  @JsonProperty("emp_no")
+  private Long employeeNumber;
 
-    @NotNull
-    private String fname;
+  @NotNull
+  @JsonProperty("fname")
+  private String firstName;
 
-    @NotNull
-    private String lname;
+  @NotNull
+  @JsonProperty("lname")
+  private String lastName;
 
-    @NotNull
-    private String tele_no;
+  @NotNull
+  @JsonProperty("tele_no")
+  private String telephoneNumber;
 
-    @NotNull
-    private String mob_no;
+  @NotNull
+  @JsonProperty("mob_no")
+  private String mobileNumber;
 
-    @NotNull
-    @Email
-    private String email_id;
+  @NotNull
+  @Email
+  @JsonProperty("email_id")
+  private String email;
 
-    @NotNull
-    private boolean is_active;
+  @NotNull
+  @JsonProperty("is_active")
+  private boolean isActive;
 }

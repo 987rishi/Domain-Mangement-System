@@ -15,35 +15,32 @@ import java.time.LocalDateTime;
 @Data
 public class DomainRenewal {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "id")
+  private Long renewalId;
 
-    @ManyToOne
-    @JsonIgnore
-    @JoinColumn(name="dm_id",nullable = false)
-    private DomainName dm_id;
+  @ManyToOne
+  @JsonIgnore
+  @JoinColumn(name = "dm_id", nullable = false)
+  private DomainName domainName;
 
-    @Column(nullable = false)
-    private String prev_dm_name;
+  @Column(name = "prev_dm_name", nullable = false)
+  private String previousDomainName;
 
+  @Column(name = "reason", nullable = true)
+  private String reason;
 
-    private String reason;
+  @Column(name = "hod_appr_date", nullable = true)
+  private LocalDateTime hodApprovalDate;
 
-    //private LocalDateTime dm_exp_date;
+  @JsonIgnore
+  @JoinColumn(name = "hod_emp_no", nullable = false)
+  private Long hodEmployeeNumber;
 
-    @Column(name="hod_appr_date",nullable = true)
-    private LocalDateTime hod_appr_date;
-
-
-    @JsonIgnore
-    @JoinColumn(name = "hod_emp_no",nullable = false)
-    private Long hod_emp_no;
-
-    @Lob
-    @NotNull
-    @Column(name="appr_prf_by_hod",nullable = false)
-    private byte[] appr_prf_by_hod;
-
+  @Lob
+  @NotNull
+  @Column(name = "appr_prf_by_hod", nullable = false)
+  private byte[] approvalProofByHod;
 
 }

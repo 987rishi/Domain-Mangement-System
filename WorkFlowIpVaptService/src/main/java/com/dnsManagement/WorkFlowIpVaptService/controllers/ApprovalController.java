@@ -18,7 +18,7 @@ public class ApprovalController {
     @Autowired
     private ApprovalService approvalService;
 
-    @PostMapping("arm/consent")
+    @PostMapping("arm/verifies")
     public ResponseEntity<?> armConsent(@RequestBody @Valid ApprovalRequest approvalRequest){
         Long domainNameId=approvalRequest.getDomainNameId();
         System.out.println("DomainNameID="+domainNameId);
@@ -64,7 +64,7 @@ public class ApprovalController {
     }
 
 
-    @PostMapping("hpc/verifies")
+    @PostMapping("hodhpc/verifies")
     public ResponseEntity<?> hpcVerifies(@RequestBody @Valid ApprovalRequest approvalRequest){
         Long domainNameId=approvalRequest.getDomainNameId();
         System.out.println("DomainNameID="+domainNameId);

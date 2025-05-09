@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -14,85 +15,85 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class DomainName {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long dm_id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "dm_id")
+  private Long domainNameId;
 
-    @Column(name = "dm_name", nullable = false, unique = true)
-    private String dm_name;
+  @Column(name = "dm_name", nullable = false, unique = true)
+  private String domainName;
 
-    @Column(nullable = true)
-    private LocalDateTime expiry_date;
+  @Column(name = "expiry_date", nullable = true)
+  private LocalDateTime expiryDate;
 
-    @Column(nullable = true)
-    private LocalDateTime d_o_apl; // Date of Application
+  @Column(name = "d_o_apl", nullable = true)
+  private LocalDateTime dateOfApplication; // Date of Application
 
-    @Column(nullable = true)
-    private LocalDateTime d_o_act; // Date of Activation
+  @Column(name = "d_o_act", nullable = true)
+  private LocalDateTime dateOfActivation; // Date of Activation
 
-    @Column(nullable = true)
-    private LocalDateTime lst_rw_date; // Last Renewal Date
+  @Column(name = "lst_rw_date", nullable = true)
+  private LocalDateTime lastRenewalDate; // Last Renewal Date
 
-    // Instead of ManyToOne associations, store only the stakeholder IDs:
-    @Column(name = "drm_emp_no", nullable = false)
-    private Long drm_emp_no;
+  @Column(name = "drm_emp_no", nullable = false)
+  private Long drmEmployeeNumber;
 
-    @Column(name = "arm_emp_no", nullable = false)
-    private Long arm_emp_no;
+  @Column(name = "arm_emp_no", nullable = false)
+  private Long armEmployeeNumber;
 
-    @Column(name = "hod_emp_no", nullable = false)
-    private Long hod_emp_no;
+  @Column(name = "hod_emp_no", nullable = false)
+  private Long hodEmployeeNumber;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    @NotNull
-    private ServiceType service_type;
+  @Enumerated(EnumType.STRING)
+  @Column(name = "service_type", nullable = false)
+  @NotNull
+  private ServiceType serviceType;
 
-    @NotNull
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private Status gigcw_comp;
+  @NotNull
+  @Enumerated(EnumType.STRING)
+  @Column(name = "gigcw_comp", nullable = false)
+  private Status gigcwCompletionStatus;
 
-    @NotNull
-    @Column(nullable = false)
-    private boolean vapt_comp;
+  @NotNull
+  @Column(name = "vapt_comp", nullable = false)
+  private boolean vaptCompletionStatus;
 
-    @Column(nullable = false)
-    @Lob
-    private byte[] appr_prf_vapt_comp;
+  @Column(name = "appr_prf_vapt_comp", nullable = false)
+  @Lob
+  private byte[] approvalProofVaptCompletionStatus;
 
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private Status mou_status;
+  @Column(name = "mou_status", nullable = false)
+  @Enumerated(EnumType.STRING)
+  private Status mouStatus;
 
-    @Column(nullable = false)
-    private Integer period; // In years
+  @Column(name = "period", nullable = false)
+  private Integer periodInYears; // In years
 
-    @Column(nullable = false)
-    private boolean serv_hard_status;
+  @Column(name = "serv_hard_status", nullable = false)
+  private boolean serverHardeningStatus;
 
-    @Column(name = "ed_emp_no", nullable = false)
-    private Long ed_emp_no;
+  @Column(name = "ed_emp_no", nullable = false)
+  private Long edEmployeeNumber;
 
-    @Column(name = "netops_emp_no", nullable = false)
-    private Long netops_emp_no;
+  @Column(name = "netops_emp_no", nullable = false)
+  private Long netopsEmployeeNumber;
 
-    @Column(name = "webmaster_emp_no", nullable = false)
-    private Long webmaster_emp_no;
+  @Column(name = "webmaster_emp_no", nullable = false)
+  private Long webmasterEmployeeNumber;
 
-    @Column(name = "hod_hpc_emp_no", nullable = false)
-    private Long hod_hpc_emp_no;
+  @Column(name = "hod_hpc_emp_no", nullable = false)
+  private Long hodHpcEmployeeNumber;
 
-    @NotNull
-    @Column(nullable = false)
-    private boolean is_active = false;
+  @NotNull
+  @Column(name = "is_active", nullable = false)
+  private boolean isActive = false;
 
-    @Column(nullable = false)
-    private boolean is_del = false; // Is the domain deleted or not
+  @Column(name = "is_del", nullable = false)
+  private boolean isDeleted = false; // Is the domain deleted or not
 
-    @Column(name = "is_renewal", nullable = false)
-    private boolean is_renewal = false;
+  @Column(name = "is_renewal", nullable = false)
+  private boolean isRenewal = false;
 
-    @Column(nullable = true)
-    private String dm_desc; // Description about the domain
+  @Column(name = "dm_desc", nullable = true)
+  private String domainDescription; // Description about the domain
 }

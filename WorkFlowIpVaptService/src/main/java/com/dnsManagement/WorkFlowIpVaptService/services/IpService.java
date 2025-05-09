@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -19,43 +20,65 @@ public class IpService {
     @Autowired
     private IpRepo ipRepo;
 
+    @Transactional
     public ResponseEntity<?> getIp(@Positive Long ipId) {
-        Ip ip = ipRepo.findByIpId(ipId).orElseThrow(()->new NoSuchElementException("IP RECORD DOES NOT EXIST CORRESPONDING TO THE ID: "+ipId));
+        Ip ip = ipRepo
+                .findByIpId(ipId)
+                .orElseThrow(()->
+                        new NoSuchElementException(
+                                "IP RECORD DOES NOT EXIST " +
+                                        "CORRESPONDING TO THE ID: " + ipId));
 
         return new ResponseEntity<>(buildIpResponse(ip), HttpStatus.OK);
 
     }
-
+    @Transactional
     public ResponseEntity<?> updateIp(@Valid IpResponse ipResponse) {
-        Ip ip = ipRepo.findByIpId(ipResponse.getIp_id()).orElseThrow(()->new NoSuchElementException("IP RECORD DOES NOT EXIST CORRESPONDING TO THE ID: "+ipResponse.getIp_id()));
+        Ip ip = ipRepo
+                .findByIpId(
+                        ipResponse
+                                .getIpId())
+                .orElseThrow(() ->
+                        new NoSuchElementException("IP RECORD DOES" +
+                        " NOT EXIST CORRESPONDING" +
+                                " TO THE ID: " +
+                                ipResponse
+                                        .getIpId()));
 
-        if(ip.getDm_id().getDm_id()!=ipResponse.getDm_id())
-            throw new IllegalAccessError("DOMAIN ID DOES NOT MATCH WITH ACTUAL DOMAIN RECORD ID");
+        if(ip.getDomainName().getDomainNameId() != ipResponse.getDomainNameId())
+            throw new IllegalAccessError("DOMAIN ID DOES NOT" +
+                    " MATCH WITH ACTUAL DOMAIN RECORD ID");
 
-        ip.setExpiry_date(ipResponse.getExpiry_date());
-        ip.set_active(ipResponse.is_active());
-        ip.setIp_address(ipResponse.getIp_address());
-        ip.setIp_issuer(ipResponse.getIp_issuer());
+        ip.setExpiryDate(ipResponse.getExpiryDate());
+        ip.setActive(ipResponse.isActive());
+        ip.setIpAddress(ipResponse.getIpAddress());
+        ip.setIpIssuer(ipResponse.getIpIssuer());
 
         try {
             return new ResponseEntity<>(ipRepo.save(ip),HttpStatus.OK);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("ERROR OCCURED " +
+                    "WHILE UPDATING IP. " +
+                    e.getMessage());
         }
     }
 
+    @Transactional
     public ResponseEntity<List<?>> getAllIps() {
         return new ResponseEntity<>(ipRepo.findAll(),HttpStatus.OK);
     }
 
+
     private IpResponse buildIpResponse(Ip ip) {
         IpResponse ipResponse = new IpResponse();
-        ipResponse.setIp_id(ip.getIp_id());
-        ipResponse.setDm_id(ip.getDm_id().getDm_id());
-        ipResponse.setIp_issuer(ip.getIp_issuer());
-        ipResponse.setIp_address(ip.getIp_address());
-        ipResponse.setExpiry_date(ip.getExpiry_date());
-        ipResponse.set_active(ip.is_active());
+        ipResponse.setIpId(ip.getIpId());
+        ipResponse.setDomainNameId(
+                ip.getDomainName()
+                        .getDomainNameId());
+        ipResponse.setIpIssuer(ip.getIpIssuer());
+        ipResponse.setIpAddress(ip.getIpAddress());
+        ipResponse.setExpiryDate(ip.getExpiryDate());
+        ipResponse.setActive(ip.isActive());
         return ipResponse;
     }
 }

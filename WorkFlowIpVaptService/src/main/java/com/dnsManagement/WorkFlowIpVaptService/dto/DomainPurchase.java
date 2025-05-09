@@ -13,26 +13,26 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class DomainPurchase {
 
-    @NotNull
-    private LocalDateTime domainExpiryDate;
+  @NotNull
+  private LocalDateTime domainExpiryDate;
 
-    @NotNull
-    private Integer finalPeriod;
+  @NotNull
+  private Integer finalPeriod;
 
 
-    @NotNull
-    private Long domainId;
+  @NotNull
+  private Long domainId;
 
-    @NotNull
-    private Long webMasterId;
+  @NotNull
+  private Long webMasterId;
 
-    @NotNull
-    private LocalDateTime dateOfPurchase;
+  @NotNull
+  private LocalDateTime dateOfPurchase;
 
-    @NotNull
-    private PurchaseType purchaseType;
+  @NotNull
+  private PurchaseType purchaseType;
 
-    @NotNull
-    private byte[] proofOfWork;
+  @NotNull
+  private String proofOfWorkBase64Encoded;
 
 }

@@ -10,7 +10,7 @@ import java.util.Optional;
 @Repository
 public interface DomainVerificationRepo extends JpaRepository<DomainVerification,Long> {
 
-    @NativeQuery("select * from domain_verification where dm_id=:domainNameId")
-    Optional<DomainVerification> findByDomainNameId(Long domainNameId);
+  @NativeQuery("select * from domain_verification where dm_id=:domainNameId")
+  Optional<DomainVerification> findByDomainNameId(Long domainNameId);
 
 }

@@ -10,6 +10,6 @@ import java.util.Optional;
 @Repository
 public interface VaptRepo extends JpaRepository<Vapt,Long> {
 
-    @NativeQuery("select * from vapt where ip_id=:ipId")
-    Optional<Vapt> findByIpId(Long ipId);
+  @NativeQuery("select * from vapt where ip_id=:ipId")
+  Optional<Vapt> findByIpId(Long ipId);
 }

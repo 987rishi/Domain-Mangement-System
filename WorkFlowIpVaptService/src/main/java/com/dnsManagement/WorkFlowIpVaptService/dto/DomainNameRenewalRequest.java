@@ -2,6 +2,7 @@ package com.dnsManagement.WorkFlowIpVaptService.dto;
 
 import com.dnsManagement.WorkFlowIpVaptService.models.ServiceType;
 import com.dnsManagement.WorkFlowIpVaptService.models.Status;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -15,139 +16,81 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class DomainNameRenewalRequest {
 
-    //
-    @NotNull
-    private Long domainId;
+  @NotNull @JsonProperty("domainId") private Long domainId;
+  @NotNull @JsonProperty("reason") private String reason;
+  @NotNull @JsonProperty("domainRenewalApprovalProofByHod") private byte[] domainRenewalApprovalProofByHod;
+  @NotNull @JsonProperty("drmInfo") private PersonInfo drmInfo;
+  @NotNull @JsonProperty("armInfo") private PersonInfo armInfo;
+  @NotNull @JsonProperty("domainDetails") private DomainDetails domainDetails;
+  @NotNull @JsonProperty("approverInfo") private ApproverInfo approverInfo;
+  @NotNull @JsonProperty("ipDetails") private IpDetails ipDetails;
+  @NotNull @JsonProperty("vaptCompliance") private VaptCompliance vaptCompliance;
+  @NotNull @JsonProperty("complianceStatus") private ComplianceStatus complianceStatus;
+  private String status;
 
-    @NotNull
-    private String reason;
+  @Data
+  @AllArgsConstructor
+  @NoArgsConstructor
+  public static class PersonInfo {
+    @NotNull private String firstName;
+    @NotNull private String lastName;
+    @NotNull private Integer groupId;
+    @NotNull private Integer centreId;
+    @NotNull private Designation designation;
+    @NotNull @Email private String email;
+    @NotNull private String teleNumber;
+    @NotNull private String mobileNumber;
+    @NotNull private Long empNo;
+    private String groupName;
+    private String centreName;
+  }
 
-    @NotNull
-    private byte[] domainRenewalApprovalProofByHod;
+  @Data
+  @AllArgsConstructor
+  @NoArgsConstructor
+  public static class DomainDetails {
+    @NotNull @JsonProperty("domainName") private String domainName;
+    @NotNull @JsonProperty("description") private String description;
+    @NotNull @JsonProperty("serviceType") private ServiceType serviceType;
+    @NotNull @JsonProperty("periodInYears") private Integer periodInYears;
+  }
 
-    //
-    @NotNull
-    private String drmFname;
+  @Data
+  @AllArgsConstructor
+  @NoArgsConstructor
+  public static class ApproverInfo {
+    @NotNull @JsonProperty("hodEmpNo") private Long hodEmpNo;
+    @NotNull @JsonProperty("edEmpNo") private Long edEmpNo;
+    @NotNull @JsonProperty("netopsEmpNo") private Long netopsEmpNo;
+    @NotNull @JsonProperty("webmasterEmpNo") private Long webmasterEmpNo;
+    @NotNull @JsonProperty("hodHpcEmpNo") private Long hodHpcEmpNo;
+  }
 
-    @NotNull
-    private String drmLname;
+  @Data
+  @AllArgsConstructor
+  @NoArgsConstructor
+  public static class IpDetails {
+    @NotNull @JsonProperty("publicIpAddress") private String publicIpAddress;
+    @NotNull @JsonProperty("ipIssuer") private String ipIssuer;
+    @NotNull @JsonProperty("serverHardeningStatus") private boolean serverHardeningStatus;
+  }
 
-    @NotNull
-    private String armFname;
+  @Data
+  @AllArgsConstructor
+  @NoArgsConstructor
+  public static class VaptCompliance {
+    @NotNull @JsonProperty("vaptCompliant") private boolean vaptCompliant;
+    @NotNull @JsonProperty("vaptCertifyingAuthority") private String certifyingAuthority;
+    @NotNull @JsonProperty("vaptCertificateExpiryDate") private LocalDate certificateExpiryDate;
+    @NotNull @JsonProperty("approvalProofVaptCompliant") private byte[] approvalProof;
+    @JsonProperty("vaptRemarks") private String remarks;
+  }
 
-    @NotNull
-    private String armLname;
-
-    @NotNull
-    private Integer drmGroupId;
-
-    @NotNull
-    private Integer armGroupId;
-
-
-    @NotNull
-    private String drmDesignation;
-
-    @NotNull
-    private String armDesignation;
-
-    @NotNull
-    private Integer drmCentreId;
-
-    @NotNull
-    private Integer armCentreId;
-
-    @NotNull
-    @Email
-    private String drmEmail;
-
-    @NotNull
-    @Email
-    private String armEmail;
-
-    @NotNull
-    private String drmTeleNumber;
-
-    @NotNull
-    private String drmMobileNumber;
-
-    @NotNull
-    private String armTeleNumber;
-
-    @NotNull
-    private String armMobileNumber;
-
-
-
-    @NotNull
-    private String dm_name;
-
-    @NotNull
-    private ServiceType service_type;
-
-    @NotNull
-    private Integer period;//IN YRS
-
-    @NotNull
-    private Long drm_emp_no;
-
-    @NotNull
-    private Long arm_emp_no;
-
-    @NotNull
-    private Long hod_emp_no;
-
-    @NotNull
-    private Long ed_emp_no;
-
-    @NotNull
-    private Long netops_emp_no;
-
-    @NotNull
-    private Long webmaster_emp_no;
-
-    @NotNull
-    private Long hod_hpc_emp_no;
-
-
-
-    @NotNull
-    private String dm_desc;//DESCRIPTION ABOUT THE DOMAIN
-
-
-
-
-
-    @NotNull
-    private String publicIpAddress;
-
-    @NotNull
-    private String ipIssuer;
-
-    @NotNull
-    private boolean serverHardeningStatus;
-
-
-    @NotNull
-    private boolean vaptCompliant; // true for Yes, false for No
-
-    @NotNull
-    private String vaptCertifyingAuthority;
-
-    @NotNull
-    private LocalDate vaptCertificateExpiryDate;
-
-    @NotNull
-    private byte[] approvalProofVaptCompliant;
-
-    private String vaptRemarks;
-
-
-
-    @NotNull
-    private Status gigwCompliance; // "Yes", "No", or "NA"
-
-    @NotNull
-    private Status mouStatus;
-
+  @Data
+  @AllArgsConstructor
+  @NoArgsConstructor
+  public static class ComplianceStatus {
+    @NotNull @JsonProperty("gigwCompliance") private Status gigwCompliance;
+    @NotNull @JsonProperty("mouStatus") private Status mouStatus;
+  }
 }
