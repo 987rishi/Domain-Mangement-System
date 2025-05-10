@@ -1,7 +1,7 @@
 
 services:
   sonarqube:
-    image: sonarqube:latest
+    image: 4f01870f15a6
     container_name: sonarqube
     ports:
       - "9000:9000"
