@@ -19,6 +19,9 @@ exports.config = {
         bindPassword: process.env.LDAP_BIND_PASSWORD || "", // Default to empty string
         searchBase: process.env.LDAP_BASE_DN || "", // Default to empty string
     },
+    jwt: {
+        secret: process.env.JWT_SECRET || "",
+    }
 };
 // --- Optional: Basic Check for Critical Variables ---
 // You might still want a simple check for absolutely essential variables

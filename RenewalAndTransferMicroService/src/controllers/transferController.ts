@@ -1,20 +1,21 @@
 import { transferService } from "../services/transferService";
 import { NextFunction, Request, Response, RequestHandler } from "express";
-import prisma from "../database/prisma";
-import dummyDB from "../../dummyDB.json";
-import { TransferResponse } from "../types/transfer.interface";
-import eurekaClient from "../registry/eurekaClient";
 import {
   CreateTransferBodySchema,
   CreateTransferResponseSchema,
-  ApproveTransferBodySchema
+  ApproveTransferBodySchema,
+  ApproveTransferParamsSchema,
 } from "../validators/transferValidators";
 import { AppError } from "../errors";
 
 // @desc   Create a transfer
 // @route  /api/transfers/create
 // @access Private
-export const createTransfer = async (req, res, next): Promise<void> => {
+export const createTransfer = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const parsed = CreateTransferBodySchema.safeParse(req.body);
   if (!parsed.success) {
     const err = new AppError("Invalid transfer data");
@@ -23,82 +24,83 @@ export const createTransfer = async (req, res, next): Promise<void> => {
     return;
   }
 
-  let newRenewal = await transferService.create(parsed.data);
+  let newTransfer = await transferService.create(parsed.data);
 
-  if (!newRenewal) {
+  if (!newTransfer) {
     const err = new AppError("Failed to create transfer");
     err.statusCode = 500;
     next(err);
     return;
   }
-  let response = CreateTransferResponseSchema.safeParse(newRenewal);
+  let response = CreateTransferResponseSchema.safeParse(newTransfer);
 
-  res.status(200).json(response);
+  res.status(200).json(response.data);
 };
 
 // @desc Approve a transfer
-// @route PUT /api/transfers/:trnsfrId/create
+// @route PUT /api/transfers/:trnsfrId/approve
 export const approveTransfer: RequestHandler = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const tt_id = parseInt(req.params.trnsfrId);
-  const { emp_no } = req.body;
-  if (!emp_no && !tt_id) {
-    res.status(400).send("Please add all fields");
-  }
-
-  // 1. Check if it's from HOD
-  const isValidHOD = emp_no;
-  if (!isValidHOD) {
-    res.status(401).send("Authentication error");
-  }
-
-  let transfer = await prisma.transfer.findUnique({ where: { tt_id: tt_id } });
-  if (!transfer) {
-    res.status(400).send("No valid transfer for corresponding transfer ID.");
-  }
-
-  transfer = await prisma.transfer.update({
-    where: { tt_id: tt_id },
-    data: { hod_approved: true, approved_at: new Date() },
+  // 1. Parse the params and input
+  const hod_empno = /* BigInt(req.user.id) || */ BigInt(1);
+  const tt_id = req.params.trnsfrId;
+  const params = ApproveTransferParamsSchema.safeParse({
+    tt_id,
   });
+  const body = ApproveTransferBodySchema.safeParse(req.body);
+  console.log(req.params);
 
-  res.status(200).send({ tt_id: transfer.tt_id.toString() });
+  if (!params.success || !body.success || body.data.hod_approved == false) {
+    console.log(`Input validation failded:\n${params.error}\n${body.error}`);
+    const e = new AppError(`Invalid input fields`);
+    e.statusCode = 400;
+    throw e;
+  }
+
+  // 2. Approve the transfer
+  const approvedTransfer = await transferService.approve(
+    params.data,
+    body.data,
+    hod_empno
+  );
+
+  if (!approvedTransfer) {
+    const err = new AppError("Failed to approve transfer");
+    err.statusCode = 500;
+    next(err);
+    return;
+  }
+
+  // 3. prepare and send the response
+  let response = CreateTransferResponseSchema.safeParse(approvedTransfer);
+  console.log("Parsed Response: ", response.error);
+  res.status(200).json(response.data);
 };
 
 // @desc Get all transfers for a user (HOD | DRM)
 // @route GET /api/transfers
-// ? For a authenticated request we can obtain the id from the response. Should we check again for the auth user in database?
 export const getTransfers: RequestHandler = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const emp_no = parseInt(String(req.headers.authorization));
+  // TODO Get the employee number from the req
+  const emp_no = /* Bigint(req.user.id) || */ BigInt(101);
+  const transfers = await transferService.getAll(emp_no);
 
-  const drm = dummyDB.DRM.find((drm) => drm.emp_no == emp_no);
-  if (!drm) {
-    res.status(401).send("Authentication error");
+  if (!transfers) {
+    const e = new AppError("Failed to fetch the transfers");
+    e.statusCode = 400;
+    throw e;
   }
 
-  const transfers = await prisma.transfer.findMany({
-    where: { trns_frm: emp_no },
-  });
-  const transfersResponse: TransferResponse[] = transfers.map((t) => {
-    const safeT: TransferResponse = {
-      ...t,
-      dm_id: t.dm_id.toString(),
-      tt_id: t.tt_id.toString(),
-      trns_frm: t.trns_frm.toString(),
-      trns_to: t.trns_to.toString(),
-      prf_upload: Buffer.from(t.prf_upload).toString("base64"),
-    };
-    return safeT;
-  });
-
-  res.status(200).send(transfersResponse);
+  const response = transfers.map(
+    (t) => CreateTransferResponseSchema.safeParse(t).data
+  );
+  res.status(200).json(response);
 };
 
 // @desc Get all transfers for a user (HOD | DRM)
@@ -108,36 +110,25 @@ export const getTransfer: RequestHandler = async (
   res: Response,
   next: NextFunction
 ) => {
-  const emp_no = parseInt(String(req.headers.authorization));
-  const tt_id = parseInt(req.params.trnsfrId);
-
-  const drm = dummyDB.DRM.find((drm) => drm.emp_no == emp_no);
-  if (!drm) {
-    res.status(401).send("Authentication error");
-    return;
+  // TODO Get the employee number from the req
+  const emp_no = /* Bigint(req.user.id) || */ BigInt(1);
+  let trnsfrId: bigint;
+  try {
+    trnsfrId = BigInt(req.params.trnsfrId);
+  } catch (error) {
+    const e = new AppError("Transfer Id must be a number");
+    e.statusCode = 400;
+    throw e;
   }
 
-  if (isNaN(emp_no)) {
-    res.status(400).send("Invalid transfer id");
-    return;
-  }
+  const transfer = await transferService.getById(trnsfrId, emp_no);
 
-  const transfer = await prisma.transfer.findUnique({
-    where: { tt_id: tt_id },
-  });
   if (!transfer) {
-    res.status(404).send("Transfer not found");
-    return;
+    const e = new AppError("Failed to fetch the transfer");
+    e.statusCode = 400;
+    throw e;
   }
 
-  const safeTransfer: TransferResponse = {
-    ...transfer,
-    tt_id: transfer.tt_id.toString(),
-    dm_id: transfer.dm_id.toString(),
-    trns_frm: transfer.trns_frm.toString(),
-    trns_to: transfer.trns_to.toString(),
-    prf_upload: Buffer.from(transfer.prf_upload).toString("base64"),
-  };
-
-  res.status(200).send(safeTransfer);
+  const response = CreateTransferResponseSchema.safeParse(transfer);
+  res.status(200).json(response.data);
 };

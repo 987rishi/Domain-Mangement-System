@@ -15,12 +15,33 @@ const EUREKA_PORT = process.env.EUREKA_PORT || "8761";
 
 // Get the actual network IP
 const networkInterfaces = os.networkInterfaces();
-const localIP =
-  Object.values(networkInterfaces)
-    .flat()
-    .find((iface) => iface && iface.family === "IPv4" && !iface.internal)
-    ?.address || "127.0.0.1";
+// const localIP =
+//   Object.values(networkInterfaces)
+//     .flat()
+//     .find((iface) => iface && iface.family === "IPv4" && !iface.internal)
+//     ?.address || "127.0.0.1";
+    function getTailscaleIP(): string {
+      const interfaces = os.networkInterfaces();
+      for (const [name, addrs] of Object.entries(interfaces)) {
+        if (name.startsWith("tailscale") || name.startsWith("ts")) {
+          const iface = addrs?.find(
+            (addr) => addr.family === "IPv4" && !addr.internal
+          );
+          if (iface) return iface.address;
+        }
+      }
+      // fallback to first non-internal IPv4
+      for (const addrs of Object.values(interfaces)) {
+        const iface = addrs?.find(
+          (addr) => addr.family === "IPv4" && !addr.internal
+        );
+        if (iface) return iface.address;
+      }
+      return "127.0.0.1";
+    }
 
+    const localIP = getTailscaleIP();
+    
 console.log(`🌍 Service IP Address: ${localIP}`);
 
 app.get("/", (req: Request, res: Response) => {

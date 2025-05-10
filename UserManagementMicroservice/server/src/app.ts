@@ -1,29 +1,54 @@
 import express, { Express, Request, Response, NextFunction } from "express";
 import mainRouter from "./routes/index.routes.js"; // Import the main router from routes/index.ts
-import cors from "cors";
+
+
 const app: Express = express();
 
+/**
+ * @module Server
+ * @description Initializes and configures the Express server.
+ */
+
 // --- Middleware ---
-// Parse JSON request bodies
+
+/**
+ * Parses incoming JSON requests and puts the parsed data in `req.body`.
+ */
 app.use(express.json());
-// Add other middleware like CORS if needed:
-// import cors from 'cors';
-app.use(cors()); // Allow requests from your frontend domain
+
+
 
 // --- Routes ---
-// Mount the main router
+
+/**
+ * Mounts the main router containing all API routes.
+ */
 app.use(mainRouter);
 
 // --- Error Handling ---
-// Not Found Handler (if no route matched)
+
+/**
+ * Middleware to handle 404 Not Found errors.
+ * This will be triggered if no matching route is found.
+ *
+ * @param req - Express Request object
+ * @param res - Express Response object
+ * @param next - Express NextFunction callback
+ */
 app.use((req: Request, res: Response, next: NextFunction) => {
   res.status(404).json({ message: "Resource not found" });
 });
 
-// Global Error Handler (catches errors thrown in controllers/middleware)
+/**
+ * Global error handler middleware for handling uncaught errors.
+ *
+ * @param err - Error object
+ * @param req - Express Request object
+ * @param res - Express Response object
+ * @param next - Express NextFunction callback
+ */
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error("Unhandled Error:", err.stack);
-  // Avoid sending stack trace in production
   res.status(500).json({ message: "Internal Server Error" });
 });
 

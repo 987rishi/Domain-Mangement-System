@@ -23,11 +23,11 @@ app.use("/api", routeIndex);
 
 app.get("/test", (req, res) => {
   const service = eurekaClient.getInstancesByAppId("workflow-service")[0];
-  // const ips = fetch(`http://${service.ipAddr}:${service.port}`, {
-  //   method: "GET",
-  // });
+  const ips = fetch(`http://${service.ipAddr}:${service.port}`, {
+    method: "GET",
+  });
 
-  // res.send({ service, port: (service.port) });
+  res.send({ service, port: service.port });
   console.log(service);
 });
 

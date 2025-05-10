@@ -3,6 +3,12 @@ import { config } from "./config/index.config.js";
 import prisma from "./config/database.config.js";
 const PORT = config.port;
 import { eurekaClient  } from "./utils/serviceDiscovery.js";
+/**
+ * Establishes a connection to the database using Prisma.
+ * Logs a success message upon successful connection.
+ * If the connection fails, logs an error message and terminates the process.
+ */
+
 const connectDB = async () => {
   try {
     await prisma.$connect();
@@ -12,6 +18,11 @@ const connectDB = async () => {
     process.exit(1);
   }
 };
+/**
+ * Establishes a connection to the server using Express.
+ * Logs a success message upon successful connection.
+ * If the connection fails, logs an error message.
+ */
 const connectServer = async () => {
   try {
     await connectDB();
@@ -23,7 +34,9 @@ const connectServer = async () => {
   }
 };
 connectServer();
-// Connect to Eureka
+/** 
+ * Trying to connect with eureka 
+*/
 eurekaClient.start((error: unknown) => {
   if (error) {
     console.log("❌ Eureka registration failed:", error);

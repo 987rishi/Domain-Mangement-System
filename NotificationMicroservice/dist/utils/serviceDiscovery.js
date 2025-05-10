@@ -2,7 +2,6 @@
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.eurekaClient = void 0;
 const express_1 = __importDefault(require("express"));
@@ -18,9 +17,29 @@ const EUREKA_HOST = process.env.EUREKA_HOST || "localhost";
 const EUREKA_PORT = process.env.EUREKA_PORT || "8761";
 // Get the actual network IP
 const networkInterfaces = os_1.default.networkInterfaces();
-const localIP = ((_a = Object.values(networkInterfaces)
-    .flat()
-    .find((iface) => iface && iface.family === "IPv4" && !iface.internal)) === null || _a === void 0 ? void 0 : _a.address) || "127.0.0.1";
+// const localIP =
+//   Object.values(networkInterfaces)
+//     .flat()
+//     .find((iface) => iface && iface.family === "IPv4" && !iface.internal)
+//     ?.address || "127.0.0.1";
+function getTailscaleIP() {
+    const interfaces = os_1.default.networkInterfaces();
+    for (const [name, addrs] of Object.entries(interfaces)) {
+        if (name.startsWith("tailscale") || name.startsWith("ts")) {
+            const iface = addrs === null || addrs === void 0 ? void 0 : addrs.find((addr) => addr.family === "IPv4" && !addr.internal);
+            if (iface)
+                return iface.address;
+        }
+    }
+    // fallback to first non-internal IPv4
+    for (const addrs of Object.values(interfaces)) {
+        const iface = addrs === null || addrs === void 0 ? void 0 : addrs.find((addr) => addr.family === "IPv4" && !addr.internal);
+        if (iface)
+            return iface.address;
+    }
+    return "127.0.0.1";
+}
+const localIP = getTailscaleIP();
 console.log(`🌍 Service IP Address: ${localIP}`);
 app.get("/", (req, res) => {
     res.json({ message: "Hello from Node.js Eureka Microservice!" });

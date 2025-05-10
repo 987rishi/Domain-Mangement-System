@@ -14,6 +14,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateController = void 0;
 const database_config_1 = __importDefault(require("../config/database.config"));
+/**
+ * PATCH: /api/update/users/:empNo
+ *
+ * Updates the user details in the database based on the role of the user (DRM or ARM).
+ *
+ * The request must include the employee number, designation, telephone number, and mobile number.
+ *
+ * @param {Request} req - Express request object
+ * @param {Response} res - Express response object
+ * @returns {Promise<void>} - Promise indicating successful completion
+ */
 const updateController = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { empNo } = req.params;
     const { designation, tele_no, mob_no } = req.body;
@@ -23,8 +34,7 @@ const updateController = (req, res) => __awaiter(void 0, void 0, void 0, functio
     }
     try {
         const updateUser = yield database_config_1.default.appUser.findUnique({
-            where: { emp_no: BigInt(empNo),
-            }
+            where: { emp_no: BigInt(empNo) }
         });
         if (!updateUser) {
             res.status(404).json({ message: `User not found for employee number ${empNo}.` });
@@ -34,11 +44,7 @@ const updateController = (req, res) => __awaiter(void 0, void 0, void 0, functio
         if (updateUser.role === "DRM") {
             yield database_config_1.default.drm.update({
                 where: { emp_no: BigInt(empNo) },
-                data: {
-                    desig: designation,
-                    tele_no,
-                    mob_no,
-                },
+                data: { desig: designation, tele_no, mob_no }
             });
             res.status(200).json({ message: `DRM details updated successfully for employee number ${empNo}.` });
             console.log(`DRM details updated successfully for employee number ${empNo}.`);
@@ -47,11 +53,7 @@ const updateController = (req, res) => __awaiter(void 0, void 0, void 0, functio
         else if (updateUser.role === "ARM") {
             yield database_config_1.default.arm.update({
                 where: { emp_no: BigInt(empNo) },
-                data: {
-                    desig: designation,
-                    tele_no,
-                    mob_no,
-                },
+                data: { desig: designation, tele_no, mob_no }
             });
             res.status(200).json({ message: `ARM details updated successfully for employee number ${empNo}.` });
             console.log(`ARM details updated successfully for employee number ${empNo}.`);

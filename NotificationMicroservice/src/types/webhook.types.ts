@@ -18,7 +18,6 @@ export interface UserInfo {
   emp_no: bigint;
   email: string;
   fname: string;
-  role?: string; // Optional, might get from recipients key
 }
 
 export interface ApiNotification {
@@ -26,7 +25,6 @@ export interface ApiNotification {
   message: string;
   is_read: boolean;
   created_at: Date | string;
-  link_url?: string | null;
   event_type?: string | null;
   related_entity_id?: bigint | number | null;
   related_entity_type?: string | null;
