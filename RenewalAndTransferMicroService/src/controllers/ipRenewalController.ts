@@ -1,17 +1,25 @@
 import prisma from "../database/prisma";
-import dummyDB from "../../dummyDB.json";
 import { NextFunction, Request, Response } from "express";
 import { IpRenewalRequestStatus } from "@prisma/client";
+import {
+  getDomainDetails,
+  getIpDetailsById,
+  updateIpDetails,
+} from "../integrations/workflow/workflowService";
+import { AppError } from "../errors";
+import { sendNotification } from "../integrations/notifications/notificationService";
+import { WebhookEventType } from "../integrations/notifications/notificationDTOs";
 
 // @desc Creates a ip renewal
 // @route POST /api/renwals/ip/create
 // @access Private
 export const createIpRenewal = async (
   req: Request,
-  res: Response,
-  next: NextFunction
+  res: Response
 ): Promise<void> => {
-  const { ip_id, prev_ip_addrs, aprvl_pdf, drm_remarks } = req.body;
+  // [Basic Field Validation, Database Checks, Microservice Checks(dm, ip), Create, Notification ]
+  const drm_empno = BigInt(1);
+  const { ip_id, prev_ip_addrs, aprvl_pdf, drm_remarks, dm_id } = req.body;
 
   if (!ip_id || !aprvl_pdf || !prev_ip_addrs) {
     console.error("ALL FIELDS ARE NOT PRESENT".red);
@@ -20,7 +28,6 @@ export const createIpRenewal = async (
   }
 
   try {
-    /* Check for a ongoing renewal for ip_id */
     const renewalExists = await prisma.ipRenewal.findFirst({
       where: {
         ip_id,
@@ -37,24 +44,37 @@ export const createIpRenewal = async (
       return;
     }
 
-    const count = await prisma.ipRenewal.count({
-      where: {
-        ip_id,
-      },
-    });
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    const domainInfo = await getDomainDetails(dm_id);
+    if (!domainInfo) {
+      const e = new AppError(`Domain with id(${dm_id}) not found.`);
+      e.statusCode = 404;
+      throw e;
+    }
+    console.log(`${domainInfo}`.red);
 
-    const rnwl_no = count + 1;
+    const ipInfo = await getIpDetailsById(ip_id);
+    if (!ipInfo) {
+      const e = new AppError(`IP with id(${ip_id}) not found.`);
+      e.statusCode = 404;
+      throw e;
+    }
+    console.log(`${ipInfo}`.red);
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    const rnwl_no = (await prisma.ipRenewal.count({ where: { ip_id } })) + 1;
     const newRenewal = await prisma.ipRenewal.create({
       data: {
+        dm_id,
         ip_id,
         aprvl_pdf,
         prev_ip_addrs,
         drm_remarks: drm_remarks ? drm_remarks : "NA",
         rnwl_no: rnwl_no,
-        rqst_date: new Date(),
-        // created_by_drm,
-        // aprvd_by_hod,
-        // rnwd_by_netops,
+        created_at: new Date(),
+        drm_empno_initiator: drm_empno,
+        hod_empno_approver: domainInfo.hodEmployeeNumber,
+        netops_empno_renewer: domainInfo.netopsEmployeeNumber,
       },
     });
 
@@ -65,7 +85,14 @@ export const createIpRenewal = async (
         .json({ message: "Failed to create a ip renewal. Please try again." });
       return;
     }
-
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // await sendNotification(
+    //   WebhookEventType.IP_RENEWED,
+    //   {emp_no: drm_empno, role: "DRM"},
+    //   {domainId: dm_id, domainName: domainInfo.domainName, remarks: drm_remarks},
+    //   {hod_emp_no: domainInfo.hodEmployeeNumber}
+    // )
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     res.status(201).json({ ip_rn_id: newRenewal.ip_rnwl_id.toString() });
   } catch (error) {
     console.error("SOMETHING WENT WRONG WHILE CREATING A RENEWAL.".red, error);
@@ -85,7 +112,7 @@ export const approveIpRenewal = async (
   next: NextFunction
 ): Promise<void> => {
   const ip_rnwl_id = parseInt(req.params.ipRnwlId);
-  const { hod_empno, hod_remarks } = req.body;
+  const { dm_id, hod_empno, hod_remarks } = req.body;
 
   // Check if all fields are present [ and their data types ]
   if (isNaN(ip_rnwl_id) || /* !is_aprvd || */ !hod_remarks) {
@@ -129,12 +156,20 @@ export const approveIpRenewal = async (
       },
       data: {
         is_aprvd: true,
-        aprvl_date: new Date(),
+        approved_at: new Date(),
         hod_remarks,
         status: IpRenewalRequestStatus.APPROVED_BY_HOD,
       },
     });
 
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // await sendNotification(
+    //   WebhookEventType.IP_RENEWED,
+    //   {emp_no: hod_empno, role: "HOD"},
+    //   {domainId: dm_id, domainName: "NA RIGHT", remarks: hod_remarks},
+    //   {drm_emp_no: rejectedRenewal.drm_empno_initiator}
+    // )
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     res.status(200).json({ ip_rnwl_id: approvedRenewal.ip_rnwl_id.toString() });
     return;
   } catch (error) {
@@ -156,7 +191,7 @@ export const rejectIpRenewal = async (
   next: NextFunction
 ): Promise<void> => {
   const ip_rnwl_id = parseInt(req.params.ipRnwlId);
-  const { hod_empno, hod_remarks } = req.body;
+  const { hod_empno, hod_remarks, dm_id } = req.body;
 
   // Check if all fields are present [ and their data types ]
   if (isNaN(ip_rnwl_id) || /* !is_aprvd || */ !hod_remarks) {
@@ -194,19 +229,27 @@ export const rejectIpRenewal = async (
       return;
     }
 
-    const approvedRenewal = await prisma.ipRenewal.update({
+    const rejectedRenewal = await prisma.ipRenewal.update({
       where: {
         ip_rnwl_id,
       },
       data: {
         is_aprvd: false,
-        aprvl_date: new Date(),
+        approved_at: new Date(),
         hod_remarks,
         status: IpRenewalRequestStatus.REJECTED_BY_HOD,
       },
     });
 
-    res.status(200).json({ ip_rnwl_id: approvedRenewal.ip_rnwl_id.toString() });
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // await sendNotification(
+    //   WebhookEventType.IP_RENEWED,
+    //   {emp_no: hod_empno, role: "HOD"},
+    //   {domainId: dm_id, domainName: "NA RIGHT NOW", remarks: hod_remarks},
+    //   {drm_emp_no: rejectedRenewal.drm_empno_initiator}
+    // )
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    res.status(200).json({ ip_rnwl_id: rejectedRenewal.ip_rnwl_id.toString() });
     return;
   } catch (error) {
     console.error("Something went wrong while rejecting renewal".red, error);
@@ -227,12 +270,9 @@ export const reviewIpRenewal = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
+  const drm_empno = req.user.empno || BigInt(1);
   const ip_rnwl_id = parseInt(req.params.ipRnwlId);
-  const {
-    // drm_empno
-    aprvl_pdf,
-    drm_remarks,
-  } = req.body;
+  const { aprvl_pdf, drm_remarks } = req.body;
 
   // Check the fields and their types
   if (!ip_rnwl_id || !aprvl_pdf) {
@@ -266,7 +306,7 @@ export const reviewIpRenewal = async (
       data: {
         aprvl_pdf,
         drm_remarks: drm_remarks ? drm_remarks : "NA",
-        rqst_date: new Date(),
+        created_at: new Date(),
         status: IpRenewalRequestStatus.PENDING_APPROVAL,
       },
     });
@@ -298,14 +338,10 @@ export const completeIpRenewal = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
+  const netops_empno = req.user.empno || BigInt(1);
   const ip_rnwl_id = parseInt(req.params.ipRnwlId);
-  const {
-    /* netops_id, */
-    new_ip_addrs,
-    ip_expiry_date,
-    rnwl_pdf,
-    netops_remarks,
-  } = req.body;
+  const { dm_id, new_ip_addrs, ip_expiry_date, rnwl_pdf, netops_remarks } =
+    req.body;
 
   // Check the fields and their types
   if (!rnwl_pdf || !ip_rnwl_id) {
@@ -339,7 +375,7 @@ export const completeIpRenewal = async (
         is_rnwd: true,
         rnwl_pdf,
         netops_remarks: netops_remarks ? netops_remarks : "NA",
-        rnwl_date: new Date(),
+        renewed_at: new Date(),
         status: IpRenewalRequestStatus.RENEWED_BY_NETOPS,
       },
     });
@@ -352,6 +388,21 @@ export const completeIpRenewal = async (
       return;
     }
 
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    await updateIpDetails({
+      ip_id: completedRenewal.ip_id,
+      new_expiry_date: completedRenewal.ip_expiry_date,
+      new_ip_address: completedRenewal.new_ip_addrs,
+      rnwl_pdf: completedRenewal.rnwl_pdf?.toString(),
+    });
+
+    // await sendNotification(
+    //   WebhookEventType.IP_RENEWED,
+    //   {emp_no: netops_empno, role: "NETOPS"},
+    //   {domainId: dm_id, domainName: "NA RIGHT NOW", remarks: drm_remarks},
+    //   {drm_emp_no: completedRenewal.drm_empno_inititator}
+    // )
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     res
       .status(200)
       .json({ ip_rnwl_id: completedRenewal.ip_rnwl_id.toString() });

@@ -1,6 +1,5 @@
 import { VaptRenewalRequestStatus } from "@prisma/client";
 import prisma from "../database/prisma";
-import { VaptRenewalReviewBodyDTO } from "../validators/vaptRenewalValidators";
 
 const vaptRenewalRepository = {
   // Find a running renewal given vapt_id
@@ -29,12 +28,12 @@ const vaptRenewalRepository = {
   findAll: async (role: "DRM" | "HOD", empno: bigint) => {
     if (role === "DRM")
       return await prisma.vaptRenewal.findMany({
-        where: { created_by_drm: empno },
+        where: { drm_empno_initiator: empno },
       });
 
     if (role === "HOD")
       return await prisma.vaptRenewal.findMany({
-        where: { aprvd_by_hod: empno },
+        where: { hod_empno_approver: empno },
       });
   },
 
@@ -42,7 +41,7 @@ const vaptRenewalRepository = {
   update: async (
     where: {
       vapt_rnwl_id: bigint;
-      // aprvd_by_hod: bigint;
+      // hod_empno_approver: bigint;
     },
     data: any
   ) => {
@@ -52,14 +51,15 @@ const vaptRenewalRepository = {
 
   // Create vapt renewal
   create: async (data: {
+    dm_id: bigint;
     vapt_id: bigint;
     old_vapt_report: Buffer;
     new_vapt_report: Buffer;
     new_vapt_expiry_date: Date;
-    created_by_drm: bigint;
+    drm_empno_initiator: bigint;
     drm_remarks: string;
     rnwl_no: bigint;
-    aprvd_by_hod: bigint;
+    hod_empno_approver: bigint;
   }) => {
     return await prisma.vaptRenewal.create({ data });
   },

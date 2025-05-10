@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import prisma from "../database/prisma";
+import z from "zod";
 import { VaptRenewalRequestStatus } from "@prisma/client";
 import {
   CreateVaptRenewalBodySchema,
@@ -9,7 +9,6 @@ import {
 } from "../validators/vaptRenewalValidators";
 import vaptRenewalService from "../services/vaptRenewalService";
 import { AppError } from "../errors";
-import { bigint, z } from "zod";
 
 // @desc Creates a vapt renewal
 // @route POST /api/renwals/vapt/create
@@ -19,7 +18,7 @@ const createVaptRenewal = async (
   res: Response
 ): Promise<void> => {
   const parsed = CreateVaptRenewalBodySchema.safeParse(req.body);
-  const drm_empno = BigInt(1); // TODO Get empno from req.user
+  const drm_empno = BigInt(req.user.id);
 
   if (!parsed.success) {
     console.error("Input validation failed.", `Error: ${parsed.error}`);
@@ -53,7 +52,7 @@ export const approveVaptRenewal = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const hod_empno = BigInt(1001); // TODO Replace with req.user.id
+  const hod_empno = BigInt(req.user.id);
   const vapt_rnwl_id = BigInt(req.params.vaptRnwlId);
   const parsed = VaptRenewalHodActionBodySchema.safeParse(req.body);
   if (!parsed.success) {
@@ -89,7 +88,7 @@ export const rejectVaptRenewal = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
-  const hod_empno = BigInt(1001); // TODO Replace with req.user.id
+  const hod_empno = BigInt(req.user.id); // TODO Replace with req.user.id
   const vapt_rnwl_id = BigInt(req.params.vaptRnwlId);
   const parsed = VaptRenewalHodActionBodySchema.safeParse(req.body);
   if (!parsed.success) {
@@ -122,10 +121,9 @@ export const rejectVaptRenewal = async (
 // @access Private
 export const reviewVaptRenewal = async (
   req: Request,
-  res: Response,
-  next: NextFunction
+  res: Response
 ): Promise<void> => {
-  const drm_empno = BigInt(1); // TODO Replace with req.user.id
+  const drm_empno = BigInt(req.user.id); // TODO Replace with req.user.id
   const vapt_rnwl_id = BigInt(req.params.vaptRnwlId);
   const parsed = VaptRenewalReviewBodySchema.safeParse(req.body);
   if (!parsed.success) {
@@ -155,11 +153,10 @@ export const reviewVaptRenewal = async (
 
 export const getVaptRenewal = async (
   req: Request,
-  res: Response,
-  next: NextFunction
+  res: Response
 ): Promise<void> => {
   const vapt_rnwl_id = BigInt(req.params.vaptRnwlId);
-  const empno = BigInt(1); // TODO Replace with req.user.id
+  const empno = BigInt(req.user.id); // TODO Replace with req.user.id
 
   const renewal = await vaptRenewalService.getById(empno, vapt_rnwl_id);
   if (!renewal) {
@@ -175,12 +172,44 @@ export const getVaptRenewal = async (
 
 export const getVaptRenewals = async (
   req: Request,
-  res: Response,
-  next: NextFunction
+  res: Response
 ): Promise<void> => {
-  const empno = BigInt(1); // TODO Replace with req.user.id
+  const empno = z.bigint().parse(req.user.id);
 
-  const renewals = await vaptRenewalService.getAll(empno);
+  const renewals = await vaptRenewalService.getAll(req.user.role, empno);
+  if (!renewals) {
+    console.error(`Failed to fetch renewals for user with id (${empno})`);
+    throw new AppError("Failed to load renewals");
+  }
+  const response = renewals.map(
+    (r) => VaptRenewalResponseSchema.safeParse(r).data
+  );
+  res.status(200).json(response);
+};
+
+export const getVaptRenewalsParamsVersion = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  let empno, role: "DRM" | "HOD";
+  try {
+    empno = z.coerce.bigint().parse(req.params.id);
+
+    if (req.params.role === "HOD" || req.params.role === "DRM") {
+      role = req.params.role;
+    } else {
+      const e = new AppError(
+        `Invalid role param in the path. Ex: role ("HOD" or "DRM")`
+      );
+      e.statusCode = 400;
+      throw e;
+    }
+  } catch (error) {
+    res.status(400).json(`Bad params: ${(error as Error).message}`);
+    return;
+  }
+
+  const renewals = await vaptRenewalService.getAll(role, empno);
   if (!renewals) {
     console.error(`Failed to fetch renewals for user with id (${empno})`);
     throw new AppError("Failed to load renewals");

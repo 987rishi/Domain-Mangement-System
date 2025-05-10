@@ -7,12 +7,14 @@
     "build": "tsc --build",
     "watch": "tsc -w",
     "start": "node --watch --env-file=.env dist/server.js",
-    "dev": "concurrently \"npm run watch\" \"npm run start\""
+    "dev1": "concurrently \"npm run watch\" \"npm run start\"",
+    "dev2": "concurrently \"npm run watch\" \"nodemon dist/server.js\""
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "^6.5.0",
+    "axios": "^1.8.4",
     "colors": "^1.4.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
@@ -32,6 +34,7 @@
     "prisma": "^6.5.0",
     "ts-jest": "^29.3.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "typedoc": "^0.28.3",
+    "typescript": "^5.8.2"
   }
 }

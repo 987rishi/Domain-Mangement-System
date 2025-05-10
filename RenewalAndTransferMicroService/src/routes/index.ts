@@ -2,6 +2,14 @@ import { Router } from "express";
 import transferRoute from "./transfers";
 import ipRenewalRoute from "./ipRenewals";
 import vaptRenewalRoute from "./vaptRenewals";
+import { protect } from "../middlewares/authMiddleware";
+declare global {
+  namespace Express {
+    interface Request {
+      user: any;
+    }
+  }
+}
 
 const router = Router();
 

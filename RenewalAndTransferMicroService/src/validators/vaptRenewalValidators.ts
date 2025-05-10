@@ -2,10 +2,17 @@ import z from "zod";
 
 // Schema to validate input for creating a vapt renewal
 const CreateVaptRenewalBodySchema = z.object({
-  vapt_id: z.coerce.bigint(),
-  new_vapt_report: z.string().transform((s) => Buffer.from(s, "base64")),
-  new_vapt_expiry_date: z.string().transform((s) => new Date(s)),
-  drm_remarks: z.string(),
+  dm_id: z.string().min(1).pipe(z.bigint()),
+  vapt_id: z.string().min(1).pipe(z.bigint()),
+  new_vapt_report: z
+    .string()
+    .min(1)
+    .transform((s) => Buffer.from(s, "base64")),
+  new_vapt_expiry_date: z
+    .string()
+    .min(1)
+    .transform((s) => new Date(s)),
+  drm_remarks: z.string().min(1),
 });
 
 type CreateVaptRenewalBodyDTO = z.infer<typeof CreateVaptRenewalBodySchema>;
@@ -20,7 +27,8 @@ const VaptRenewalRequestStatusSchema = z.enum([
 // Schema to structure response
 const VaptRenewalResponseSchema = z.object({
   vapt_rnwl_id: z.bigint().transform((b) => b.toString()),
-  rqst_date: z.coerce.date(),
+  dm_id: z.bigint().transform((b) => b.toString()),
+  created_at: z.coerce.date(),
   rnwl_no: z.bigint().transform((b) => b.toString()),
   vapt_id: z.bigint().transform((b) => b.toString()),
 
@@ -36,7 +44,7 @@ const VaptRenewalResponseSchema = z.object({
 
   new_vapt_expiry_date: z.coerce.date().nullable().optional(),
 
-  created_by_drm: z
+  drm_empno_initiator: z
     .bigint()
     .transform((b) => b.toString())
     .nullable()
@@ -48,9 +56,9 @@ const VaptRenewalResponseSchema = z.object({
   //   drm_group: z.string().optional(),
 
   drm_remarks: z.string(),
-  hod_aprvd: z.boolean().nullable().optional(),
+  is_aprvd: z.boolean().nullable().optional(),
 
-  aprvd_by_hod: z
+  hod_empno_approver: z
     .bigint()
     .transform((b) => b.toString())
     .nullable()
@@ -72,8 +80,9 @@ type VaptRenewalResponse = z.infer<typeof VaptRenewalResponseSchema>;
 // Schema to approve/reject response
 const VaptRenewalHodActionBodySchema = z.object({
   // vapt_rnwl_id: z.coerce.bigint(),
-  hod_aprvd: z.boolean(),
+  is_aprvd: z.boolean(),
   hod_remarks: z.string().optional().default("NA"),
+  dm_id: z.string().transform((s) => BigInt(s)),
 });
 
 type VaptRenewalHodActionDTO = z.infer<typeof VaptRenewalHodActionBodySchema>;
@@ -87,6 +96,7 @@ const VaptRenewalReviewBodySchema = z.object({
     .optional(),
   new_vapt_expiry_date: z.coerce.date().optional(),
   drm_remarks: z.string().optional(),
+  dm_id: z.string().transform((s) => BigInt(s)),
 });
 
 type VaptRenewalReviewBodyDTO = z.infer<typeof VaptRenewalReviewBodySchema>;
