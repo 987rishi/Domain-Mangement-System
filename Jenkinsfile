@@ -131,52 +131,77 @@ pipeline {
     }
 
     stage('SAST Analysis using SonarQube') {
-      // environment {
-      //   SONAR_TOKEN = credentials('cdac-project-sonar-token')
-      // }
+      environment {
+        // Define these at pipeline or stage level
+        SONAR_TOKEN = credentials('cdac-project-sonar-token')
+        SONARQUBE_URL = 'http://your-actual-sonarqube-url:9000' // CHANGE_ME
+      }
       steps {
         script {
+          // Optional: Install @sonar/scan once if not a devDependency or globally on agent
+          // sh 'npm install -g @sonar/scan' // Or handle via npx / devDependency
+
           services.each { svc ->
             dir(svc.name) {
-              withSonarQubeEnv('cdac-project-sonar-server') {
-                if (svc.lang == 'java') {
-                  catchError('Error running SonarQube Java analysis') {
-                    bat """
+              echo "--- Starting SonarQube Analysis for ${svc.name} ---"
+              // Define projectKey either from svc map or derive it
+              String projectKeyForSonar = svc.name // Example: using service name as key
+
+              try {
+                // 'cdac-project-sonar-server' must match the SonarQube server name in Jenkins Global Config
+                withSonarQubeEnv('cdac-project-sonar-server') {
+                  if (svc.lang == 'java') {
+                    bat(label: "Sonar Scan for ${svc.name}", script: """
                       mvn sonar:sonar \
-                        -Dsonar.projectKey=${svc.name} \
+                        -Dsonar.projectKey=${projectKeyForSonar} \
                         -Dsonar.projectName=${svc.name} \
                         -Dsonar.host.url=${env.SONARQUBE_URL} \
                         -Dsonar.login=${env.SONAR_TOKEN}
-                    """
-                  }
-                } else {
-                  catchError("Error running SonarQube TS analysis for ${svc.name}") {
-                    bat 'npm install -g @sonar/scan'
-                    bat """
+                    """)
+                  } else { // TypeScript
+                    // Assuming @sonar/scan is available (globally, via npx, or path)
+                    // And sonar-project.properties defines sonar.sources, sonar.javascript.lcov.reportPaths etc.
+                    // OR you pass them all via -D
+                    bat(label: 'Installing sonar/scan', script: 'npm install -g @sonar/scan')
+                    bat(label: "Sonar Scan for ${svc.name}", script: """
                       sonar \
+                        -Dsonar.projectKey=${projectKeyForSonar} \
+                        -Dsonar.projectName=${svc.name} \
                         -Dsonar.host.url=${env.SONARQUBE_URL} \
-                        -Dsonar.token=${env.SONAR_TOKEN}
-                    """
+                        -Dsonar.token=${env.SONAR_TOKEN} \
+                        -Dsonar.projectVersion=${env.BUILD_ID}
+                    """)
                   }
-                }
-              }
+                } // End withSonarQubeEnv
 
-                // Quality Gate
-                echo "SonarQube analysis submitted for ${svc.name}"
+                // Quality Gate check, now correctly associated with the scan inside withSonarQubeEnv
+                echo "SonarQube analysis submitted for ${svc.name}. Waiting for Quality Gate..."
                 timeout(time: 10, unit: 'MINUTES') {
-                  def qg = waitForQualityGate abortPipeline: false
+                  def qg = waitForQualityGate abortPipeline: false // Don't abort pipeline yet
                   if (qg.status != 'OK') {
-                    error "Quality Gate failed for ${svc.name}: ${qg.status}"
+                    currentBuild.result = 'FAILURE' // Mark build as failure
+                    error "Quality Gate for ${svc.name} failed: ${qg.status}. Dashboard: ${env.SONARQUBE_URL}/dashboard?id=${projectKeyForSonar}"
                   } else {
-                    echo "Quality Gate passed for ${svc.name}"
+                    echo "Quality Gate for ${svc.name} passed! Dashboard: ${env.SONARQUBE_URL}/dashboard?id=${projectKeyForSonar}"
                   }
                 }
+              } catch (e) {
+                currentBuild.result = 'FAILURE' // Ensure any exception in the try block fails the build
+                error "SonarQube analysis or Quality Gate processing failed for ${svc.name}: ${e.getMessage()}"
+              }
+              echo "--- SonarQube Analysis for ${svc.name} finished ---"
             }
           }
         }
       }
     }
+    stage('Dockerization of services and putting them in same network')
+
 
 
   } // stages
 }
+
+
+
+// 
