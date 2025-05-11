@@ -15,13 +15,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/domainRegistration")
 public class DomainNameRegistrationController {
 
-    @Autowired
-    private DomainNameService domainNameService;
+  @Autowired
+  private DomainNameService domainNameService;
 
 
-    @PostMapping("domainRegister")
-    public ResponseEntity<?> applyForDomain(@RequestBody @Valid DomainNameRequest domainNameRequest){
-        return domainNameService.addDomainRequest(domainNameRequest);
-    }
+  @PostMapping("domainRegister")
+  public ResponseEntity<?> applyForDomain(@RequestBody @Valid DomainNameRequest domainNameRequest){
+    return domainNameService.addDomainRequest(domainNameRequest);
+  }
 
 }

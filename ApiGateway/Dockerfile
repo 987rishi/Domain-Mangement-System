@@ -1,6 +1,6 @@
 FROM openjdk:latest
-WORKDIR ./target
+WORKDIR /home/dev
 RUN mvn package -DskipTests
-COPY api-gateway.jar .
+COPY ./target/api-gateway.jar .
 EXPOSE 8085
 CMD["java","-jar","api-gateway.jar"]
