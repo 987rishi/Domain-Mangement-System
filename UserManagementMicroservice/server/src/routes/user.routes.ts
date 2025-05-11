@@ -9,9 +9,16 @@ import {
   getAllGroupList,
   getAllCentreList,
   getProjectList,
-  getProjectDetails } from "../controllers/userController.controller.js";
+  getProjectDetails, 
+  getUserDetails} from "../controllers/userController.controller.js";
 
 const router = Router();
+
+
+// GET /api/users/info/:empNo
+router.get("/info/:empNo", getUserDetails);
+
+
 
 // GET /api/users/details/:role/:empNo
 // Input: role (e.g., 'drm', 'hod'), empNo (employee number)

@@ -12,9 +12,36 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getProjectDetails = exports.getProjectList = exports.getResponsibleOfficials = exports.getAllCentreList = exports.getAllGroupList = exports.getGroupList = exports.getCentreList = exports.getUserListByRole = exports.getUserDetailsByRole = void 0;
+exports.getProjectDetails = exports.getProjectList = exports.getResponsibleOfficials = exports.getAllCentreList = exports.getAllGroupList = exports.getGroupList = exports.getCentreList = exports.getUserListByRole = exports.getUserDetailsByRole = exports.getUserDetails = void 0;
 const database_config_js_1 = __importDefault(require("../config/database.config.js"));
 const userController_helper_js_1 = require("../utils/userController.helper.js");
+const getUserDetails = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const emp_no = req.params.empNo;
+    if (!emp_no) {
+        res.status(400).json({ message: "Invalid employee number." });
+        return;
+    }
+    try {
+        const userData = yield database_config_js_1.default.appUser.findUnique({
+            where: {
+                emp_no: BigInt(emp_no),
+            },
+        });
+        if (!userData) {
+            res.status(404).json({
+                message: `User details not found for employee number '${emp_no}'.`,
+            });
+            return;
+        }
+        res.status(200).json((0, userController_helper_js_1.stringifyBigInts)(userData));
+    }
+    catch (error) {
+        res.status(400).json({ message: "Internal Server error in fetching details from user service" });
+        console.log(error);
+        return;
+    }
+});
+exports.getUserDetails = getUserDetails;
 /**
  *  GET: /api/users/details/:role/:empNo
  *

@@ -7,7 +7,7 @@ import {
   markNotificationRead,
   markAllNotificationsRead,
 } from "../controllers/notificationApi.controller";
-
+import { authMiddleware } from "../middleware/authMiddleware";
 const apiRouter = Router();
 
 
@@ -18,13 +18,13 @@ const notificationRouter = Router();
 notificationRouter.use(authenticate); // Apply auth middleware to all routes below
 
 // GET /api/v1/notifications (?unread=true)
-notificationRouter.get("/", getMyNotifications);
+notificationRouter.get("/", authMiddleware, getMyNotifications);
 
 // PATCH /api/v1/notifications/:id/read
-notificationRouter.patch("/:id/read", markNotificationRead);
+notificationRouter.patch("/:id/read", authMiddleware, markNotificationRead);
 
 // POST /api/v1/notifications/mark-all-read
-notificationRouter.post("/mark-all-read", markAllNotificationsRead);
+notificationRouter.post("/mark-all-read", authMiddleware, markAllNotificationsRead);
 
 
 

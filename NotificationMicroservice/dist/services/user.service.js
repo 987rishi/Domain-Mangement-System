@@ -14,32 +14,24 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.findUserEmailByEmpNo = void 0;
 const axios_1 = __importDefault(require("axios"));
+const eurekaHttpClient_1 = require("../utils/eurekaHttpClient");
+// import { callService } from "../utils/eurekaHttpClient";
 // ---- VERY IMPORTANT PLACEHOLDER ----
 // Replace this with actual logic to fetch user details (email)
 // Call your User Management Microservice API
-const findUserEmailByEmpNo = (empNo, role) => __awaiter(void 0, void 0, void 0, function* () {
+const findUserEmailByEmpNo = (empNo) => __awaiter(void 0, void 0, void 0, function* () {
     console.log(`Placeholder: Looking up email for emp_no ${empNo}`);
-    //  const user = await prisma.user.findUnique({
-    //    where:{
-    //     emp_no:empNo
-    //    }
-    //  })
-    //   if (user) {
-    //     return {
-    //       emp_no:user.emp_no,
-    //       email: user.usr_email,
-    //       fname:user.usr_fname,
-    //       role:user.role
-    //     }
-    //   } else {
-    //     console.warn(`Placeholder: User ${empNo} not exist.`);
-    //     return null;
-    //   }
-    // In reality:
     try {
-        const response = yield axios_1.default.get(`http://api/users/details/${role}/${empNo}`);
+        const baseUrl = yield (0, eurekaHttpClient_1.getServiceBaseUrl)("USER-MANAGEMENT-SERVICE");
+        const response = yield axios_1.default.get(`${baseUrl}/api/users/info/${empNo}`);
+        // const response = await callService(
+        //   "USER-MANAGEMENT-SERVICE",
+        //   `/api/users/info/${empNo}`,
+        //   "GET"
+        // );
+        console.log(response.data);
         if (response.data) {
-            return { emp_no: response.data.emp_no, email: response.data.email_id, fname: response.data.fname };
+            return { emp_no: response.data.emp_no, email: response.data.usr_email, fname: response.data.usr_fname };
         }
         return null;
     }

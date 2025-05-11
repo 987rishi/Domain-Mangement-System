@@ -16,15 +16,12 @@ const prisma = new client_1.PrismaClient();
 // Function to create a dashboard notification
 const createDbNotification = (recipientEmpNo, message, eventType) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // Basic check: Ensure the recipient user exists (optional, depends on FK constraint handling)
-        const userExists = yield prisma.user.findUnique({ where: { emp_no: recipientEmpNo } });
-        if (!userExists) {
-            console.warn(`User with emp_no ${recipientEmpNo} not found. Skipping notification creation.`);
-            return null;
+        if (!Object.values(client_1.WebhookEventType).includes(eventType)) {
+            throw new Error(`Invalid eventType: ${eventType}`);
         }
         const newNotification = yield prisma.notification.create({
             data: {
-                user_emp_no: recipientEmpNo,
+                recipient_emp_no: recipientEmpNo,
                 message: message,
                 event_type: eventType,
                 is_read: false, // Default is false anyway, but explicit
@@ -44,7 +41,7 @@ const getDbNotifications = (userEmpNo_1, ...args_1) => __awaiter(void 0, [userEm
     try {
         const notifications = yield prisma.notification.findMany({
             where: {
-                user_emp_no: userEmpNo,
+                recipient_emp_no: userEmpNo,
                 is_read: onlyUnread ? false : undefined, // Filter by is_read only if onlyUnread is true
             },
             orderBy: {
@@ -54,7 +51,7 @@ const getDbNotifications = (userEmpNo_1, ...args_1) => __awaiter(void 0, [userEm
             // select: { notification_id: true, message: true, is_read: true, created_at: true, link_url: true }
         });
         // Convert BigInt to number/string for JSON safety before sending to frontend
-        return notifications.map((n) => (Object.assign(Object.assign({}, n), { notification_id: Number(n.notification_id), user_emp_no: Number(n.user_emp_no) // Convert BigInt to number
+        return notifications.map((n) => (Object.assign(Object.assign({}, n), { notification_id: Number(n.notification_id), user_emp_no: Number(n.recipient_emp_no) // Convert BigInt to number
          })));
     }
     catch (error) {
@@ -69,7 +66,7 @@ const markDbNotificationAsRead = (notificationId, userEmpNo) => __awaiter(void 0
         const result = yield prisma.notification.updateMany({
             where: {
                 notification_id: BigInt(notificationId), // Convert number to BigInt for query
-                user_emp_no: userEmpNo, // IMPORTANT: Ensure user can only mark their own!
+                recipient_emp_no: userEmpNo, // IMPORTANT: Ensure user can only mark their own!
                 is_read: false, // Only update if currently unread
             },
             data: {
@@ -87,7 +84,7 @@ exports.markDbNotificationAsRead = markDbNotificationAsRead;
 const getUnreadNotificationCount = (empNo) => __awaiter(void 0, void 0, void 0, function* () {
     return yield prisma.notification.count({
         where: {
-            user_emp_no: empNo,
+            recipient_emp_no: empNo,
             is_read: false, // Assuming 'isRead' exists as a boolean field
         },
     });
@@ -98,7 +95,7 @@ const markAllDbNotificationsAsRead = (userEmpNo) => __awaiter(void 0, void 0, vo
     try {
         const result = yield prisma.notification.updateMany({
             where: {
-                user_emp_no: userEmpNo,
+                recipient_emp_no: userEmpNo,
                 is_read: false, // Target only unread ones
             },
             data: {

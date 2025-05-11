@@ -4,6 +4,8 @@ const express_1 = require("express");
 const validateUserParams_middleware_js_1 = require("../middleware/validateUserParams.middleware.js");
 const userController_controller_js_1 = require("../controllers/userController.controller.js");
 const router = (0, express_1.Router)();
+// GET /api/users/info/:empNo
+router.get("/info/:empNo", userController_controller_js_1.getUserDetails);
 // GET /api/users/details/:role/:empNo
 // Input: role (e.g., 'drm', 'hod'), empNo (employee number)
 router.get("/details/:role/:empNo", 

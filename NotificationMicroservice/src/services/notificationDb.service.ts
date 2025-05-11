@@ -1,4 +1,4 @@
-import { PrismaClient, Notification } from "@prisma/client"; // Import generated client and types
+import { PrismaClient, Notification, WebhookEventType } from "@prisma/client"; // Import generated client and types
 import { ApiNotification } from "../types/webhook.types";
 
 // Initialize Prisma Client (best practice: create one instance and reuse)
@@ -8,19 +8,15 @@ const prisma = new PrismaClient();
 export const createDbNotification = async (
   recipientEmpNo: bigint,
   message: string,
-  eventType?: string
+  eventType: any
 ): Promise<Notification | null> => {
   try {
-    // Basic check: Ensure the recipient user exists (optional, depends on FK constraint handling)
-    const userExists = await prisma.user.findUnique({ where: { emp_no: recipientEmpNo } });
-    if (!userExists) {
-        console.warn(`User with emp_no ${recipientEmpNo} not found. Skipping notification creation.`);
-        return null;
+    if (!Object.values(WebhookEventType).includes(eventType)) {
+      throw new Error(`Invalid eventType: ${eventType}`);
     }
-
     const newNotification = await prisma.notification.create({
       data: {
-        user_emp_no: recipientEmpNo,
+        recipient_emp_no: recipientEmpNo,
         message: message,
         event_type: eventType,
         is_read: false, // Default is false anyway, but explicit
@@ -47,7 +43,7 @@ export const getDbNotifications = async (
   try {
     const notifications = await prisma.notification.findMany({
       where: {
-        user_emp_no: userEmpNo,
+        recipient_emp_no: userEmpNo,
         is_read: onlyUnread ? false : undefined, // Filter by is_read only if onlyUnread is true
       },
       orderBy: {
@@ -61,7 +57,7 @@ export const getDbNotifications = async (
     return notifications.map((n) => ({
       ...n,
       notification_id: Number(n.notification_id),
-      user_emp_no:Number(n.user_emp_no) // Convert BigInt to number
+      user_emp_no:Number(n.recipient_emp_no) // Convert BigInt to number
     }));
   } catch (error) {
     console.error(`Error fetching notifications for user ${userEmpNo}:`, error);
@@ -78,7 +74,7 @@ export const markDbNotificationAsRead = async (
     const result = await prisma.notification.updateMany({
       where: {
         notification_id: BigInt(notificationId), // Convert number to BigInt for query
-        user_emp_no: userEmpNo, // IMPORTANT: Ensure user can only mark their own!
+        recipient_emp_no: userEmpNo, // IMPORTANT: Ensure user can only mark their own!
         is_read: false, // Only update if currently unread
       },
       data: {
@@ -100,7 +96,7 @@ export const getUnreadNotificationCount = async (
 ): Promise<number> => {
   return await prisma.notification.count({
     where: {
-      user_emp_no: empNo,
+      recipient_emp_no: empNo,
       is_read: false, // Assuming 'isRead' exists as a boolean field
     },
   });
@@ -114,7 +110,7 @@ export const markAllDbNotificationsAsRead = async (
   try {
     const result = await prisma.notification.updateMany({
       where: {
-        user_emp_no: userEmpNo,
+        recipient_emp_no: userEmpNo,
         is_read: false, // Target only unread ones
       },
       data: {

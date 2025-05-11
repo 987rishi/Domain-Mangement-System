@@ -6,10 +6,10 @@ dotenv.config();
 
 export const config = {
   env: process.env.NODE_ENV || "development",
-  port: parseInt(process.env.PORT || "5000", 10), // Default to 5000 if PORT not set
+  port: parseInt(process.env.UMMS_PORT || "5000", 10), // Default to 5000 if PORT not set
 
   database: {
-    url: process.env.DATABASE_URL || "", // Default to empty string if not set
+    url: process.env.UMMS_DATABASE_URL || "", // Default to empty string if not set
   },
 
   ldap: {

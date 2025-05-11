@@ -19,7 +19,7 @@ const connectServer = async () => {
       console.log(`Server is running on port ${PORT} 🚀`);
     });
   } catch {
-    console.error("server connection failed");
+    console.error("server connection failed");  
   }
 };
 connectServer();

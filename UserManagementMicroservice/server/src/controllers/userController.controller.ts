@@ -6,7 +6,36 @@ import {
   getRoleInfo,
   stringifyBigInts
 } from "../utils/userController.helper.js";
+import { bigint } from "zod";
 
+export const getUserDetails = async (req:Request,res:Response):Promise<void> => {
+  const emp_no = req.params.empNo;
+  if(!emp_no){
+    res.status(400).json({ message: "Invalid employee number." });
+    return;
+  }
+  try {
+    const userData = await prisma.appUser.findUnique({
+      where: {
+        emp_no: BigInt(emp_no),
+      },
+    });
+    
+    if (!userData) {
+      res.status(404).json({
+        message: `User details not found for employee number '${emp_no}'.`,
+      });
+      return;
+    }
+
+    res.status(200).json(stringifyBigInts(userData));
+  } catch (error) {
+    res.status(400).json({ message: "Internal Server error in fetching details from user service" });
+    console.log(error);
+    return;
+  }
+  
+};
 
 /**
  *  GET: /api/users/details/:role/:empNo

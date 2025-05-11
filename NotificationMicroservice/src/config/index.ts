@@ -4,7 +4,7 @@ dotenv.config();
 
 export const config = {
   env: process.env.NODE_ENV || "development",
-  port: process.env.PORT || 3001,
+  port: process.env.NMS_PORT || 3001,
   webhookSecret: process.env.WEBHOOK_SECRET || "",
   email: {
     host: process.env.EMAIL_HOST || "",
