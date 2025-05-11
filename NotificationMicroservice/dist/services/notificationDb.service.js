@@ -11,12 +11,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.markAllDbNotificationsAsRead = exports.getUnreadNotificationCount = exports.markDbNotificationAsRead = exports.getDbNotifications = exports.createDbNotification = void 0;
 const client_1 = require("@prisma/client"); // Import generated client and types
+const event_types_1 = require("../types/event.types");
 // Initialize Prisma Client (best practice: create one instance and reuse)
 const prisma = new client_1.PrismaClient();
 // Function to create a dashboard notification
 const createDbNotification = (recipientEmpNo, message, eventType) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        if (!Object.values(client_1.WebhookEventType).includes(eventType)) {
+        if (!Object.values(event_types_1.WebhookEventType).includes(eventType)) {
             throw new Error(`Invalid eventType: ${eventType}`);
         }
         const newNotification = yield prisma.notification.create({
@@ -37,18 +38,18 @@ const createDbNotification = (recipientEmpNo, message, eventType) => __awaiter(v
 });
 exports.createDbNotification = createDbNotification;
 // Function to get notifications for a user
-const getDbNotifications = (userEmpNo_1, ...args_1) => __awaiter(void 0, [userEmpNo_1, ...args_1], void 0, function* (userEmpNo, onlyUnread = false) {
+const getDbNotifications = (userEmpNo) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const notifications = yield prisma.notification.findMany({
             where: {
                 recipient_emp_no: userEmpNo,
-                is_read: onlyUnread ? false : undefined, // Filter by is_read only if onlyUnread is true
+                is_read: false, // Filter by is_read only if onlyUnread is true
             },
             orderBy: {
                 created_at: "desc", // Show newest first
             },
             // Select specific fields if needed, or omit to get all
-            // select: { notification_id: true, message: true, is_read: true, created_at: true, link_url: true }
+            select: { notification_id: true, recipient_emp_no: true, message: true, is_read: true, created_at: true, event_type: true }
         });
         // Convert BigInt to number/string for JSON safety before sending to frontend
         return notifications.map((n) => (Object.assign(Object.assign({}, n), { notification_id: Number(n.notification_id), user_emp_no: Number(n.recipient_emp_no) // Convert BigInt to number

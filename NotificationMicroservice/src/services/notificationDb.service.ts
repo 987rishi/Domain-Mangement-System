@@ -1,6 +1,6 @@
-import { PrismaClient, Notification, WebhookEventType } from "@prisma/client"; // Import generated client and types
+import { PrismaClient, Notification } from "@prisma/client"; // Import generated client and types
 import { ApiNotification } from "../types/webhook.types";
-
+import { WebhookEventType } from "../types/event.types";
 // Initialize Prisma Client (best practice: create one instance and reuse)
 const prisma = new PrismaClient();
 
@@ -38,19 +38,18 @@ export const createDbNotification = async (
 // Function to get notifications for a user
 export const getDbNotifications = async (
   userEmpNo: bigint,
-  onlyUnread: boolean = false
 ): Promise<ApiNotification[]> => {
   try {
     const notifications = await prisma.notification.findMany({
       where: {
         recipient_emp_no: userEmpNo,
-        is_read: onlyUnread ? false : undefined, // Filter by is_read only if onlyUnread is true
+        is_read:  false , // Filter by is_read only if onlyUnread is true
       },
       orderBy: {
         created_at: "desc", // Show newest first
       },
       // Select specific fields if needed, or omit to get all
-      // select: { notification_id: true, message: true, is_read: true, created_at: true, link_url: true }
+      select: { notification_id: true,recipient_emp_no:true, message: true, is_read: true, created_at: true, event_type: true }
     });
 
     // Convert BigInt to number/string for JSON safety before sending to frontend

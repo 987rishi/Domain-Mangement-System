@@ -1,30 +1,27 @@
 import { Router } from "express";
 import { verifyWebhookSecret } from "../middleware/verifyWebhook";
 import { handleWebhook } from "../controllers/webhook.controller";
-import { authenticate } from "../middleware/authenticate"; // The placeholder auth middleware
 import {
   getMyNotifications,
-  markNotificationRead,
-  markAllNotificationsRead,
+//   markNotificationRead,
+//   markAllNotificationsRead,
 } from "../controllers/notificationApi.controller";
 import { authMiddleware } from "../middleware/authMiddleware";
-const apiRouter = Router();
-
-
-
+import { Request,Response } from "express";
 // --- Dashboard Notification API Endpoints (for Frontend) ---
 // These endpoints require authentication
 const notificationRouter = Router();
-notificationRouter.use(authenticate); // Apply auth middleware to all routes below
 
-// GET /api/v1/notifications (?unread=true)
-notificationRouter.get("/", authMiddleware, getMyNotifications);
+notificationRouter.get("/health",(req:Request,res:Response)=>{
+  res.send("hello")
+})
+// GET /api/v1/notifications/unread (?unread=true)
+notificationRouter.get("/unread", authMiddleware,getMyNotifications);
+// // PATCH /api/v1/notifications/:id/read
+// notificationRouter.patch("/:id/read", authMiddleware, markNotificationRead);
 
-// PATCH /api/v1/notifications/:id/read
-notificationRouter.patch("/:id/read", authMiddleware, markNotificationRead);
-
-// POST /api/v1/notifications/mark-all-read
-notificationRouter.post("/mark-all-read", authMiddleware, markAllNotificationsRead);
+// // POST /api/v1/notifications/mark-all-read
+// notificationRouter.post("/mark-all-read", authMiddleware, markAllNotificationsRead);
 
 
 

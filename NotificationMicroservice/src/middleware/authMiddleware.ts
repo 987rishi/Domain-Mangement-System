@@ -5,6 +5,7 @@ export const authMiddleware = (
   res: Response,
   next: NextFunction
 ): void => {
+  console.log("Verifying right person")
   const authHeader = req.headers.authorization;
   if (!authHeader) {
     res.status(401).json({ message: "Unauthorized User" });
