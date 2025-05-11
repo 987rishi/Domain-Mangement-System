@@ -1,28 +1,42 @@
 # Use a lightweight Node.js image
-FROM node:18-alpine
+FROM node:18-alpine AS base
 
 # Set working directory inside the container
-WORKDIR /app
+WORKDIR /usr/src/app
 
 # Copy only package.json and lock file first to install dependencies (optimizes Docker cache)
 COPY package*.json ./
 
-COPY tsconfig.json ./
+FROM base AS dependencies
 
 # Install dependencies
-RUN npm install
+# RUN npm ci --only=production
+RUN npm ci
 
-# Copy the rest of the code
+
+COPY prisma ./prisma/
+RUN npx prisma generate
+
+FROM dependencies AS builder
 COPY . .
 
-# Build the TypeScript code
+
 RUN npm run build
 
-# Expose the port your app runs on (adjust if different)
+
+FROM base AS production
+
+COPY --from=dependencies /usr/src/app/node_modules ./node_modules
+COPY --from=dependencies /usr/src/app/prisma ./prisma/
+
+
+COPY --from=builder /usr/src/app/dist ./dist
+
+COPY package.json .
+
 EXPOSE 5000
 
-# Command to run the server
+
 CMD ["node", "dist/server.js"]
 
 
-# FROM node:16
