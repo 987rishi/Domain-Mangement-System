@@ -1,0 +1,102 @@
+# version: '3.8' # Obsolete, removed
+
+services:
+  # --- Backend Application Service (Node.js/Prisma) ---
+  backend:
+    build:
+      context: .
+    container_name: user-management-service
+    ports:
+      - "5000:5000"
+    environment:
+      UMMS_DATABASE_URL: "postgresql://postgres:raj97096@db:5432/UserManagementMicroservice"
+      LDAP_URL: "ldap://ldap:389"
+      LDAP_BIND_DN: "cn=admin,dc=cdac,dc=in,dc=world" # Verify this matches what's in your LDIF or how Bitnami sets it up
+      LDAP_BIND_PASSWORD: "raju" # Should match LDAP_ADMIN_PASSWORD below
+      LDAP_BASE_DN: "dc=cdac,dc=in,dc=world" # Verify this matches your LDIF structure
+      NODE_ENV: "development"
+      LDAP_CONFIG_ADMIN_PASSWORD: "raju"
+    volumes:
+      - .:/app:delegated
+      - /app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+      ldap:
+        condition: service_started # Bitnami image might support healthchecks, check docs
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # --- PostgreSQL Database Service ---
+  db:
+    image: postgres:16
+    container_name: postgres_db
+    environment:
+      POSTGRES_DB: UserManagementMicroservice
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: raj97096
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d UserManagementMicroservice"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # --- OpenLDAP Service (Using Bitnami) ---
+  ldap:
+    image: bitnami/openldap:latest # Using Bitnami image
+    container_name: openldap_service
+    environment:
+      # --- Bitnami Specific Environment Variables ---
+      # Sets the admin password for the default admin entry (often cn=admin,dc=example,dc=org initially)
+      # Your LDIF should contain your actual admin entry (cn=admin,dc=cdac,dc=in,dc=world) with this password too.
+      LDAP_ADMIN_PASSWORD: "raju"
+      # Sets the password for the OpenLDAP configuration backend (cn=config)
+      LDAP_CONFIG_ADMIN_PASSWORD: "raju" # Can be the same or different
+      # Try setting the base DN via env var if possible (check Bitnami docs for exact var name)
+      # Some Bitnami images might use LDAP_ROOT or expect BaseDN within LDIF.
+      # Let's assume your LDIF defines the dc=cdac,dc=in,dc=world structure correctly.
+      # LDAP_BASE_DN: "dc=cdac,dc=in,dc=world" # Example, may not be the correct var for Bitnami
+
+      # Enable debug logging for troubleshooting startup
+      BITNAMI_DEBUG: "true"
+
+      # --- Optional: Control default database creation ---
+      # Set to 'no' if your LDIF completely defines the database structure
+      # LDAP_CREATE_DEFAULT_DATABASE: 'no' # Check Bitnami docs if this var exists
+
+    volumes:
+      # --- Use NAMED VOLUMES for Bitnami's persistent paths ---
+      - ldap_data:/bitnami/openldap/data       # Bitnami DATA path
+      - ldap_config:/bitnami/openldap/slapd.d  # Bitnami CONFIG path
+
+      # --- Mount initial data LDIF for Bitnami's import mechanism ---
+      # Bitnami typically looks in /ldif/ for *.ldif files on first run
+      - type: bind
+        source: ./ldap-initial-data # Your host dir with cdac_all_data.ldif
+        target: /ldif/              # Bitnami's expected import path
+        read_only: true
+    networks:
+      - app-network
+    restart: unless-stopped
+    # Bitnami images often expose ports 1389 (LDAP) and 1636 (LDAPS)
+    # ports:
+    #  - "1389:1389"
+    #  - "1636:1636"
+
+# --- Top-level volumes definition ---
+volumes:
+  db_data:
+  ldap_data:    # For Bitnami data path /bitnami/openldap/data
+  ldap_config:  # For Bitnami config path /bitnami/openldap/slapd.d
+
+# --- Network definition remains the same ---
+networks:
+  app-network:
+    driver: bridge

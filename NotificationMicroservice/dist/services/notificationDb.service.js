@@ -11,13 +11,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.markAllDbNotificationsAsRead = exports.getUnreadNotificationCount = exports.markDbNotificationAsRead = exports.getDbNotifications = exports.createDbNotification = void 0;
 const client_1 = require("@prisma/client"); // Import generated client and types
-const event_types_1 = require("../types/event.types");
+// import { WebhookEventType } from "../types/event.types";
 // Initialize Prisma Client (best practice: create one instance and reuse)
 const prisma = new client_1.PrismaClient();
 // Function to create a dashboard notification
-const createDbNotification = (recipientEmpNo, message, eventType) => __awaiter(void 0, void 0, void 0, function* () {
+const createDbNotification = (recipientEmpNo, message, eventType, triggered_by_emp_no) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        if (!Object.values(event_types_1.WebhookEventType).includes(eventType)) {
+        if (!Object.values(client_1.WebhookEventType).includes(eventType)) {
             throw new Error(`Invalid eventType: ${eventType}`);
         }
         const newNotification = yield prisma.notification.create({
@@ -25,7 +25,8 @@ const createDbNotification = (recipientEmpNo, message, eventType) => __awaiter(v
                 recipient_emp_no: recipientEmpNo,
                 message: message,
                 event_type: eventType,
-                is_read: false, // Default is false anyway, but explicit
+                is_read: false,
+                triggered_by_emp_no: triggered_by_emp_no
             },
         });
         console.log(`Dashboard notification created for user ${recipientEmpNo}, ID: ${newNotification.notification_id}`);
@@ -72,7 +73,8 @@ const markDbNotificationAsRead = (notificationId, userEmpNo) => __awaiter(void 0
             },
             data: {
                 is_read: true,
-            },
+                read_at: new Date(),
+            }
         });
         return result.count > 0; // Return true if at least one record was updated
     }

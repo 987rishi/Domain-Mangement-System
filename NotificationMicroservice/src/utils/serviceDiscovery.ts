@@ -85,7 +85,7 @@ const networkInterfaces = os.networkInterfaces();
             candidates[0]
           }. Candidates: ${candidates.join(", ")}`
         );
-        return candidates[0];
+        return candidates[1];
       }
 
       // 3. Fallback if no suitable IP is found

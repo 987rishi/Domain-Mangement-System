@@ -18,7 +18,7 @@ app.use(index_routes_1.default);
 // --- Error Handling ---
 // Not Found Handler (if no route matched)
 app.use((req, res, next) => {
-    res.status(404).json({ message: "Resource not found" });
+    res.status(404).json({ message: "notification resource not found" });
 });
 // Global Error Handler (catches errors thrown in controllers/middleware)
 app.use((err, req, res, next) => {

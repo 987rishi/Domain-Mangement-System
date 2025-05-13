@@ -1,4 +1,14 @@
-node_modules
-dist
-.env
 .git
+node_modules
+npm-debug.log
+Dockerfile
+.dockerignore
+docker-compose.yml
+init-db/
+ldap-initial-config/
+ldap-initial-data/
+*.md
+.env
+dist/
+build/
+# Add any other files/dirs not needed inside the final image

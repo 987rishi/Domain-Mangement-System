@@ -11,8 +11,8 @@ notificationRouter.get("/health", (req, res) => {
 });
 // GET /api/v1/notifications/unread (?unread=true)
 notificationRouter.get("/unread", authMiddleware_1.authMiddleware, notificationApi_controller_1.getMyNotifications);
-// // PATCH /api/v1/notifications/:id/read
-// notificationRouter.patch("/:id/read", authMiddleware, markNotificationRead);
-// // POST /api/v1/notifications/mark-all-read
-// notificationRouter.post("/mark-all-read", authMiddleware, markAllNotificationsRead);
+// PATCH /api/v1/notifications/:id/read
+notificationRouter.patch("/:id/read", authMiddleware_1.authMiddleware, notificationApi_controller_1.markNotificationRead);
+// POST /api/v1/notifications/mark-all-read
+notificationRouter.post("/mark-all-read", authMiddleware_1.authMiddleware, notificationApi_controller_1.markAllNotificationsRead);
 exports.default = notificationRouter;

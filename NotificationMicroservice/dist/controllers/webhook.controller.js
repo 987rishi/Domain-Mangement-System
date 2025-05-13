@@ -116,8 +116,8 @@ const handleWebhook = (req, res) => __awaiter(void 0, void 0, void 0, function* 
                 const emailHtml = (0, email_service_1.createEmailContent)(payload, userInfo);
                 const subject = `Notification: ${payload.eventType}`;
                 (0, email_service_1.sendEmail)({ to: emailHtml.to, subject, html: emailHtml.html });
-                const message = `Event: ${payload.eventType}. ${payload.data.remarks || ""}`;
-                (0, notificationDb_service_1.createDbNotification)(empNo, message.trim(), payload.eventType);
+                const message = `${payload.data.remarks || ""}`;
+                (0, notificationDb_service_1.createDbNotification)(empNo, message.trim(), payload.eventType, payload.triggeredBy.emp_no);
                 successCount++;
             }
             catch (error) {

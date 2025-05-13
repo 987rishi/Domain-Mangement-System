@@ -63,7 +63,7 @@ model Notification {
   message             String            @db.Text // The main content of the notification
   is_read             Boolean           @default(false) // Tracks if the notification has been read by the recipient
   created_at          DateTime          @default(now()) // Timestamp of when the notification was created
-  read_at             DateTime?         // Optional: Timestamp of when the notification was marked as read
+  read_at             DateTime?        // Optional: Timestamp of when the notification was marked as read
 
   // --- Information from the Webhook Payload ---
   event_type          WebhookEventType? // The type of event that triggered this notification

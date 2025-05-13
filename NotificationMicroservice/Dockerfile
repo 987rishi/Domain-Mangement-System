@@ -16,6 +16,9 @@ RUN npm install -g typescript nodemon concurrently
 # Copy rest of the code (after deps are cached)
 COPY . .
 
+# This creates the dist/ directory and dist/server.js
+RUN npm run build
+
 # Set environment variable for Prisma (needed during generate)
 ENV NODE_ENV=production
 
@@ -26,4 +29,4 @@ RUN npx prisma generate
 EXPOSE 5000
 
 # Start in development mode
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "server"]
