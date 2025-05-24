@@ -1,0 +1,127 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Transfer {
+  tt_id        BigInt @id @unique @default(autoincrement()) // Unique identifier for transfer records
+  dm_id        BigInt // Foreign key referencing DomainNameList.dm_id
+  trns_frm     BigInt // Foreign key referencing DrmList.emp_no (initiator)
+  trns_to      BigInt // Foreign key referencing DrmList.emp_no (receiver)
+  rsn_for_trns String // Reason for the transfer, not nullable
+  prf_upload   Bytes // Proof of transfer approval from HOD (document or file), required
+
+  hod_empno    BigInt
+  hod_approved Boolean @default(false) // Boolean specifying whether HOD approved the transfer or not
+  hod_remarks  String?
+
+  created_at  DateTime  @default(now()) // Date of transfer event, nullable
+  approved_at DateTime? // Approved by HOD at
+  updated_at  DateTime  @updatedAt
+}
+
+/**
+ * -----------------------------------------------------------------------------
+ */
+/**
+ * -----------------------------------------------------------------------------
+ */
+// @desc States which a ip renewal request can exist in
+enum IpRenewalRequestStatus {
+  PENDING_APPROVAL
+  APPROVED_BY_HOD
+  REJECTED_BY_HOD
+  RENEWED_BY_NETOPS
+}
+
+// @desc Model for the ip renewal request
+// TODO Relate ip, drm, hod, netops with the model
+// TODO Store drm, hod, netops information(name, centre, group)
+model IpRenewal {
+  dm_id               BigInt
+  ip_rnwl_id          BigInt  @id @unique @default(autoincrement())
+  ip_id               BigInt
+  prev_ip_addrs       String
+  aprvl_pdf           Bytes
+  rnwl_no             BigInt
+  // Also add fields for drm_name, centre and group at the time of request 
+  drm_empno_initiator BigInt?
+  drm_remarks         String  @default("NA")
+
+  // Also add fields for hod_name, centre and group at the time of request approval
+  hod_empno_approver BigInt //aprvd_by_hod BigInt?
+  is_aprvd           Boolean?
+  hod_remarks        String?  @default("NA")
+
+  // Also add fields for netops_name, centre and group at the time of renewal completion
+  // put ipid, expdate, ipaddress, issueraddress, 
+  netops_empno_renewer BigInt?
+  new_ip_addrs         String?
+  ip_expiry_date       DateTime?
+  is_rnwd              Boolean   @default(false)
+  netops_remarks       String    @default("NA")
+  rnwl_pdf             Bytes? // 
+
+  status IpRenewalRequestStatus @default(PENDING_APPROVAL)
+
+  created_at  DateTime  @default(now()) //rqst_date   DateTime @default(now())
+  approved_at DateTime? //aprvl_date   DateTime?
+  renewed_at  DateTime? // rnwl_date      DateTime?
+  updated_at  DateTime  @updatedAt
+}
+
+/**
+ * -----------------------------------------------------------------------------
+ */
+// @desc States which a vapt renewal request can exist in
+enum VaptRenewalRequestStatus {
+  PENDING_APPROVAL
+  APPROVED_BY_HOD
+  REJECTED_BY_HOD
+}
+
+// @desc Model for the vapt renewal request
+// TODO Relate vapt, drm, hod, netops with the model
+// TODO Store drm, hod, netops information(name, centre, group)
+model VaptRenewal {
+  dm_id        BigInt
+  // Fields that will be automatically created or added by the developer
+  vapt_rnwl_id BigInt @id @unique @default(autoincrement())
+  rnwl_no      BigInt //!dev
+
+  // Fields that will be provided by the drm at the time of creation
+  vapt_id              BigInt //!drm
+  old_vapt_report      Bytes? //!other-mcs
+  new_vapt_report      Bytes //!drm
+  new_vapt_expiry_date DateTime? //!drm
+
+  // Also add fields for drm_name, centre and group at the time of request 
+  drm_empno_initiator BigInt //created_by_drm BigInt? //!drm
+  // drm_name  String //?other-mcs
+  // drm_centre String //?other-mcs
+  // drm_group String //?other-mcs
+  drm_remarks         String @default("NA")
+
+  is_aprvd           Boolean? //hod_aprvd Boolean? //!logic
+  hod_empno_approver BigInt //aprvd_by_hod BigInt? //!hod
+  // hod_name String //?other-mcs
+  // hod_centre String //?other-mcs
+  // hod_group String //?other-mcs
+  hod_remarks        String   @default("NA")
+
+  status VaptRenewalRequestStatus @default(PENDING_APPROVAL) //!logic
+
+  approved_at DateTime? //approved_at DateTime? //!logic
+  created_at  DateTime  @default(now()) //rqst_date    DateTime @default(now())
+  updated_at  DateTime  @updatedAt
+}

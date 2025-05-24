@@ -1,0 +1,27 @@
+
+services:
+  openldap:
+    image: versatile7programmer/my-cdac-ldap:latest
+    container_name: cdac_ldap_server
+    environment:
+      - LDAP_ADMIN_PASSWORD:"raju"
+      - LDAP_CONFIG_ADMIN_PASSWORD:"raju"
+      - LDAP_ROOT:"dc=cdac,dc=in,dc=world"
+
+    ports:
+      - "1389:1389"
+      - "389:389"    # Standard LDAP
+    volumes:
+      - ldap_data_cdac:/var/lib/ldap
+      - ldap_config_cdac:/etc/ldap/slapd.d
+  
+    networks:
+      - ldap_net_cdac
+    restart: unless-stopped
+
+volumes:
+  ldap_data_cdac:
+  ldap_config_cdac:
+
+networks:
+  ldap_net_cdac:

@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: '*'
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - OPTIONS
+              - PATCH
+            allowedHeaders: '*'
+            maxAge: 3600  
+      httpclient:
+        response-timeout: 120s
+        connect-timeout: 300000
+        pool:
+          max-connections: 200
+          acquire-timeout: 50000    # wait up to 5 s to borrow a connection
+          max-idle-time: 240000    # close idle connections after 5 min
+          max-life-time: 1800000   # close connections after 30 min total
+
+server:
+  port: 8085
+
+eureka:
+  client:
+    service-url:
+#      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE}
+      defaultZone: http://localhost:8761/eureka
+  instance:
+    prefer-ip-address: true
+    ip-address: 100.75.10.81
+
+resilience4j:
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 120s
+
+
+
+
+
+

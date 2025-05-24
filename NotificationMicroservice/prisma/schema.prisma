@@ -1,0 +1,82 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("NMS_DATABASE_URL")
+}
+
+
+enum WebhookEventType {
+  // --- Domain Lifecycle Events ---
+  DOMAIN_APPLICATION_SUBMITTED
+  DOMAIN_ARM_VERIFICATION_FORWARDED
+  DOMAIN_HOD_VERIFIED
+  DOMAIN_ED_APPROVED
+  DOMAIN_NETOPS_VERIFIED
+  DOMAIN_WEBMASTER_VERIFIED
+  DOMAIN_HPC_HOD_RECOMMENDED
+  DOMAIN_VERIFICATION_COMPLETED
+  DOMAIN_VERIFICATION_REJECTED
+  DOMAIN_PURCHASED
+  DOMAIN_RENEWAL_REQUESTED
+  DOMAIN_RENEWAL_APPROVED
+  DOMAIN_RENEWAL_COMPLETED
+  DOMAIN_EXPIRY_WARNING
+  DOMAIN_EXPIRED
+  DOMAIN_DELETED
+  DOMAIN_ACTIVATED
+  DOMAIN_DEACTIVATED
+
+  // --- Infrastructure Events ---
+  IP_ASSIGNED
+  IP_RENEWED
+  IP_EXPIRY_WARNING
+  VAPT_COMPLETED
+  VAPT_RENEWED
+  VAPT_EXPIRY_WARNING
+
+  // --- User / Assignment / Transfer Events ---
+  PROJECT_ASSIGNED
+  DOMAIN_TRANSFER_STARTED
+  DOMAIN_TRANSFER_APPROVED
+  DOMAIN_TRANSFER_FINISHED
+  USER_ENABLED
+  USER_DISABLED
+
+  // --- Generic / System Events ---
+  SYSTEM_ALERT
+  UNKNOWN_EVENT
+}
+
+
+model Notification {
+  notification_id     BigInt            @id @default(autoincrement()) // Primary Key
+  recipient_emp_no    BigInt            // Employee number of the user who should receive this notification
+  message             String            @db.Text // The main content of the notification
+  is_read             Boolean           @default(false) // Tracks if the notification has been read by the recipient
+  created_at          DateTime          @default(now()) // Timestamp of when the notification was created
+  read_at             DateTime?        // Optional: Timestamp of when the notification was marked as read
+
+  // --- Information from the Webhook Payload ---
+  event_type          WebhookEventType? // The type of event that triggered this notification
+  triggered_by_emp_no BigInt?           // Employee number of the user who triggered the event
+  triggered_by_role   String?           // Role of the user who triggered the event
+
+  // --- Contextual Links & Related Entities ---
+  // Useful for navigating the user to the relevant part of the application
+  related_entity_id   BigInt?           // ID of the primary entity related to this notification (e.g., domain_id, project_id)
+  related_entity_type String?           // Type of the related entity (e.g., "Domain", "ProjectAssignment")
+  // Store a small subset of event-specific data if needed for quick display,
+  // --- Indexes for Performance ---
+  @@index([recipient_emp_no, is_read, created_at]) // Common query pattern: get unread notifications for a user, ordered by date
+  @@index([event_type])
+  @@index([related_entity_id, related_entity_type])
+}

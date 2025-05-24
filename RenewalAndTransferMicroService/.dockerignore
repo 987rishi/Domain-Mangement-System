@@ -1,0 +1,44 @@
+# .dockerignore
+
+# Git stuff
+.git
+.gitignore
+
+# Node modules (we'll install these inside the container)
+node_modules
+
+# Local environment variables (these should be passed to the container, not baked in)
+.env
+.env.*
+!/.env.example # You might want to include an example .env
+
+# Build artifacts if you build locally before docker build (we'll build inside Docker)
+dist/
+build/
+tsconfig.tsbuildinfo
+
+# Docker stuff
+Dockerfile
+.dockerignore
+
+# IDE & OS specific
+.vscode/
+.idea/
+*.swp
+*~
+Thumbs.db
+.DS_Store
+
+# Test reports and coverage
+coverage/
+.nyc_output/
+
+# Logs
+logs/
+*.log
+
+# Docs and other non-runtime assets (unless served by the app)
+docs/
+.scannerwork/
+typedoc.json
+README.md # Usually not needed in the image
