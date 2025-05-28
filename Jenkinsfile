@@ -185,13 +185,22 @@ pipeline {
                   bat 'mvn clean install package -DskipTests'
                   // bat 'mvn test'
                 }
-              } else {
-                catchError(message: "Error executing TypeScript tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-                  bat 'npm install'
-                  bat 'npx prisma generate'
-                  bat 'npx tsc'
-                  bat 'npx jest --coverage'
+              } else if (svc.name == 'UserManagementMicroservice') {
+                dir('server') {
+                  catchError(message: "Error executing TypeScript tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+                    bat 'npm install'
+                    bat 'npx prisma generate'
+                    bat 'npx tsc'
+                    bat 'npx jest --coverage'
+                  }
                 }
+              }
+              else {
+                 catchError(message: "Error executing TypeScript tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+                    bat 'npm install'
+                    bat 'npx prisma generate'
+                    bat 'npx tsc'
+                    bat 'npx jest --coverage'
               }
             }
           }

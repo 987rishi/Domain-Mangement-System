@@ -15,7 +15,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@prisma/client": "^6.5.0",
+    "@prisma/client": "^6.8.2",
     "@types/jsonwebtoken": "^9.0.9",
     "concurrently": "^9.1.2",
     "dotenv": "^16.4.7",
@@ -41,7 +41,7 @@
     "@types/swagger-ui-express": "^4.1.8",
     "cors": "^2.8.5",
     "eureka-js-client": "^4.5.0",
-    "prisma": "^6.5.0",
+    "prisma": "^6.8.2",
     "typedoc": "^0.28.2"
   }
 }
