@@ -103,7 +103,7 @@ pipeline {
       steps {
         script {
           // Prepare reports directory
-          mkdir dir: '/reports/junit'
+          // mkdir dir: '/reports/junit'
 
           services.each { svc ->
             dir(svc.name) {
