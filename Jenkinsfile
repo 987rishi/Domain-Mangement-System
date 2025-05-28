@@ -217,7 +217,7 @@ pipeline {
     stage('SAST Analysis using SonarQube') {
       environment {
         // Define these at pipeline or stage level
-        SONAR_TOKEN = credentials('cdac-project-sonar-token')
+        SONAR_TOKEN = credentials('cdac-project-sonar-server')
         SONARQUBE_URL = 'http://localhost:9000' // CHANGE_ME
       }
       steps {
