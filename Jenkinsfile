@@ -201,6 +201,7 @@ pipeline {
                     bat 'npx prisma generate'
                     bat 'npx tsc'
                     bat 'npx jest --coverage'
+                }
               }
             }
           }
