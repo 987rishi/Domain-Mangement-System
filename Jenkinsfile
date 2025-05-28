@@ -204,7 +204,7 @@ pipeline {
         bat(label: 'Running docker compose ',script: 'docker-compose up -d')
       }
     }
-    stage(name: 'Stress and Load Testing using Jmeter')
+    stage('Stress and Load Testing using Jmeter')
     {
       steps{
         bat(label: 'Running jmeter test script',
