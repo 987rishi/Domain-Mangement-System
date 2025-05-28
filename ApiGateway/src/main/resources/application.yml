@@ -30,18 +30,11 @@ server:
 eureka:
   client:
     service-url:
-<<<<<<< HEAD
-#      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE}
-      defaultZone: http://localhost:8761/eureka
+     defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE}
+      # defaultZone: http://localhost:8761/eureka
   instance:
     prefer-ip-address: true
-    ip-address: 100.75.10.81
-=======
-      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE}
-#  instance:
-#    prefer-ip-address: true
-#    ip-address: 100.75.10.81
->>>>>>> origin/main
+    # ip-address: 100.75.10.81
 
 resilience4j:
   timelimiter:
