@@ -108,12 +108,12 @@ pipeline {
           services.each { svc ->
             dir(svc.name) {
               if (svc.lang == 'java') {
-                catchError('Error executing Maven tests') {
+                catchError(message: "Error executing Maven tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
                   bat 'mvn clean install package -DskipTests'
                   bat 'mvn test'
                 }
               } else {
-                catchError('Error executing TypeScript tests') {
+                catchError(message: "Error executing TypeScript tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
                   bat 'npm install'
                   bat 'npx tsc'
                   bat 'npx jest --coverage'
