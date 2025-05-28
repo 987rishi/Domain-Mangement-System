@@ -208,7 +208,7 @@ pipeline {
     {
       steps{
         bat(label: 'Running jmeter test script',
-        script: 'jmeter -n -t Testing\HTTP Request.jmx -l results.jtl -e -o reports\jmeter ')
+        script: 'jmeter -n -t "./Testing/HTTP Request.jmx" -l results.jtl -e -o reports\jmeter ')
       }
       post{
           always {
