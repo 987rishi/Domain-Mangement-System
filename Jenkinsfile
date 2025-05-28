@@ -10,14 +10,87 @@ def services = [
 
 pipeline {
   agent any
+   environment {
+        // This ID matches the 'ID' you gave the Secret file in Jenkins
+        ALL_SERVICES_ENV_FILE_CRED_ID = 'cdac-env-file'
+    }
 
   stages {
+     stage('Load Environment Variables from Secret File') {
+            steps {
+                // Use withCredentials to access the secret file.
+                // It will make the file available at a temporary path,
+                // and the path is stored in an environment variable (e.g., MY_ENV_FILE).
+                withCredentials([file(credentialsId: env.ALL_SERVICES_ENV_FILE_CRED_ID, variable: 'SECRET_ENV_FILE_PATH')]) {
+                    script {
+                        echo "Secret environment file is available at: ${env.SECRET_ENV_FILE_PATH}"
+                        
+                        // Read the file line by line and set environment variables
+                        def envFileContent = readFile(env.SECRET_ENV_FILE_PATH).trim()
+                        envFileContent.eachLine { line ->
+                            // Skip comments and empty lines
+                            line = line.trim()
+                            if (line && !line.startsWith('#')) {
+                                def parts = line.split('=', 2) // Split only on the first '='
+                                if (parts.size() == 2) {
+                                    def key = parts[0].trim()
+                                    def value = parts[1].trim()
+                                    
+                                    // Handle potential quotes around the value
+                                    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+                                        value = value.substring(1, value.length() - 1)
+                                    }
+                                    
+                                    echo "Setting environment variable: ${key}" // Value will be masked if sensitive
+                                    env."${key}" = value // Set it as a pipeline environment variable
+                                } else {
+                                    echo "Skipping malformed line: ${line}"
+                                }
+                            }
+                        }
+                        echo "Finished loading environment variables."
+
+                        // Example: Set a specific NODE_ENV based on one of the loaded values
+                        // Assuming you loaded NODE_ENV_DEVELOPMENT or NODE_ENV_PRODUCTION from the file
+                        // You can then choose which one to assign to the generic NODE_ENV
+                        if (env.NODE_ENV_DEVELOPMENT) { // Check if it was loaded
+                           env.NODE_ENV = env.NODE_ENV_DEVELOPMENT // Or env.NODE_ENV_PRODUCTION
+                        } else {
+                           env.NODE_ENV = "development" // Default if not specified
+                        }
+                        echo "Effective NODE_ENV: ${env.NODE_ENV}"
+                    }
+                }
+                // The env.SECRET_ENV_FILE_PATH is only valid inside the withCredentials block.
+                // The individual env vars (env.WORKFLOW_SERVICE_DB_URL etc.) are now set for subsequent stages.
+            }
+        }
+
+
+
+
     stage('Checkout') {
       steps {
         echo 'Pulling source code from GitHub'
         checkout scm
       }
     }
+
+    stage('Pre-commit Checks') {
+            steps {
+                script {
+                    services.each { svc ->
+                        dir(svc.name) {
+                            echo "Running checks for ${svc.name}"
+                            echo "Example from loaded env: EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE = ${env.EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE}"
+                            echo "WORKFLOW_SERVICE_DB_PASSWORD is (masked): ${env.WORKFLOW_SERVICE_DB_PASSWORD}"
+                            echo "NODE_ENV for this stage: ${env.NODE_ENV}"
+                            // ... your check commands ...
+                        }
+                    }
+                }
+            }
+        }
 
     // stage('Pre-commit Checks') {
     //   steps {
