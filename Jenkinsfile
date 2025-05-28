@@ -191,7 +191,7 @@ pipeline {
                     bat 'npm install'
                     bat 'npx prisma generate'
                     bat 'npx tsc'
-                    bat 'npx jest --coverage' || true
+                    bat 'npx jest --coverage --passWithNoTests'
                   }
                 }
               }
@@ -200,7 +200,7 @@ pipeline {
                     bat 'npm install'
                     bat 'npx prisma generate'
                     bat 'npx tsc'
-                    bat 'npx jest --coverage' || true
+                    bat 'npx jest --coverage --passWithNoTests'
                 }
               }
             }
