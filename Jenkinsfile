@@ -188,6 +188,7 @@ pipeline {
               } else {
                 catchError(message: "Error executing TypeScript tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
                   bat 'npm install'
+                  bat 'npx prisma generate'
                   bat 'npx tsc'
                   bat 'npx jest --coverage'
                 }
