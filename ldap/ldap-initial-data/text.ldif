@@ -1,0 +1,544 @@
+# extended LDIF
+#
+# LDAPv3
+# base <dc=cdac,dc=in,dc=world> with scope subtree
+# filter: (objectClass=*)
+# requesting: ALL
+#
+
+# User, cdac.in.world
+dn: ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: organizationalUnit
+objectClass: top
+ou: User
+
+# PU, User, cdac.in.world
+dn: ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: organizationalUnit
+objectClass: top
+ou: PU
+
+# Group, PU, User, cdac.in.world
+dn: ou=Group,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: organizationalUnit
+objectClass: top
+ou: Group
+
+# --- START: NEW Groups under PU/Group ---
+
+dn: cn=pudevelopers,ou=Group,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: posixGroup
+objectClass: top
+cn: pudevelopers
+gidNumber: 6001
+memberUid: csb22067
+memberUid: 220067
+memberUid: newuser01pu
+
+dn: cn=pumanagers,ou=Group,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: posixGroup
+objectClass: top
+cn: pumanagers
+gidNumber: 6002
+memberUid: 220007
+memberUid: 220012
+
+# --- END: NEW Groups under PU/Group ---
+
+# People, PU, User, cdac.in.world
+dn: ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: organizationalUnit
+objectClass: top
+ou: People
+
+# --- START: Original Users under PU/People ---
+
+# csb22067, People, PU, User, cdac.in.world
+dn: uid=csb22067,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Hansraj Singh
+sn: Singh
+givenName: Hansraj
+uid: csb22067
+mail: csb22067@tezu.ac.in
+uidNumber: 10000
+gidNumber: 500
+homeDirectory: /home/csb22067
+userPassword:: e1NTSEF9bXJ4UWxBM0d6dGRLd0VKSVpscXBSd1BISUUrVHQ3VWQ=
+
+# 220067, People, PU, User, cdac.in.world
+dn: uid=220067,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Aryan Sharma
+sn: Sharma
+# givenName: Aryan (Original missing, can be inferred or added if schema allows cn to be multi-valued for givenName)
+uid: 220067
+gidNumber: 5001
+mail: csb22067@cdac.in
+homeDirectory: /home/220067
+userPassword:: e1NTSEF9R21JWW5MVWhXSDhycllobnBKSThkWHBBUzBwdUtOYkg=
+uidNumber: 220067
+
+# 220055, People, PU, User, cdac.in.world
+dn: uid=220055,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Raj Raushan
+sn: Raushan
+# givenName: Raj (Original missing)
+uid: 220055
+gidNumber: 5001
+mail: csb22055@tezu.ac.in
+homeDirectory: /home/220055
+userPassword:: e1NTSEF9eVdRd0NQNzNSbDdaL3lRMEtmblk1dlN3L0taVlpGRGg=
+uidNumber: 220055
+
+# 220005, People, PU, User, cdac.in.world
+dn: uid=220005,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Rishi Sarkar
+sn: Sarkar
+# givenName: Rishi (Original missing)
+uid: 220005
+gidNumber: 5001
+mail: csb22005@tezu.ac.in
+homeDirectory: /home/220005
+userPassword:: e1NTSEF9bW9zYnNCSDUweEJ1cVhwQ0JqMDNVek84RytSczJCbXo=
+uidNumber: 220005
+
+# 220001, People, PU, User, cdac.in.world
+dn: uid=220001,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Ankit Mishra
+sn: Mishra
+# givenName: Ankit (Original missing)
+uid: 220001
+gidNumber: 5001
+homeDirectory: /home/220001
+userPassword:: e1NTSEF9V0p1ZHh6QThLUjFoZ3lUWHRTbHFySWt6YTZ2N1NYWkU=
+uidNumber: 220001
+mail: ankitNETOPS@cdac.in
+
+# 220002, People, PU, User, cdac.in.world
+dn: uid=220002,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Nidhi Kumari
+sn: Kumari
+# givenName: Nidhi (Original missing)
+uid: 220002
+gidNumber: 5001
+homeDirectory: /home/220002
+userPassword:: e1NTSEF9SmptRWZBdkQ5TVNmRnM5R1B5ejdrTWhPZEFIT0l1WEQ=
+uidNumber: 220002
+mail: nidhiARM@cdac.in
+
+# 220003, People, PU, User, cdac.in.world
+dn: uid=220003,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Arjun Singh
+sn: Singh
+# givenName: Arjun (Original missing)
+uid: 220003
+gidNumber: 5001
+homeDirectory: /home/220003
+userPassword:: e1NTSEF9OFRRL2lWZHlWeTBEUW03bDdGbE1kODZReFdPa0N2WnU=
+uidNumber: 220003
+mail: arjunDRM@cdac.in
+
+# 220004, People, PU, User, cdac.in.world
+dn: uid=220004,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Priya Rani
+sn: Rani
+# givenName: Priya (Original missing)
+uid: 220004
+gidNumber: 5001
+mail: priya@cdac.in
+homeDirectory: /home/220004
+userPassword:: e1NTSEF9cE1Md2pWY1ZyZG1WQURWNmpIbDFNSEYyM0paakwxZEo=
+uidNumber: 220004
+
+# 220006, People, PU, User, cdac.in.world
+dn: uid=220006,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Saurav Kumar
+sn: Kumar
+# givenName: Saurav (Original missing)
+uid: 220006
+gidNumber: 5001
+mail: saurav@cdac.in
+homeDirectory: /home/220006
+userPassword:: e1NTSEF9OWkyNVF3cTd6YUNXNHVJS1I1bmYzQWNJcUhZRzV1amY=
+uidNumber: 220006
+
+# 220007, People, PU, User, cdac.in.world
+dn: uid=220007,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Tanya Verma
+sn: Verma
+# givenName: Tanya (Original missing)
+uid: 220007
+gidNumber: 5001
+homeDirectory: /home/220007
+userPassword:: e1NTSEF9RGRxZ2lTUXJicFRMQUY0MmxCbmw3Mmo0YUpUQWgzOVU=
+uidNumber: 220007
+mail: tanyaHOD@cdac.in
+
+# 220008, People, PU, User, cdac.in.world
+dn: uid=220008,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Manish Sharma
+sn: Sharma
+# givenName: Manish (Original missing)
+uid: 220008
+gidNumber: 5001
+mail: manish@cdac.in
+homeDirectory: /home/220008
+userPassword:: e1NTSEF9S2pUaENqdWdxbDdzcC9ZbFpJNHVzbHpzd1ZaOVBBZGI=
+uidNumber: 220008
+
+# 220009, People, PU, User, cdac.in.world
+dn: uid=220009,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Ankit Anand
+sn: Anand
+# givenName: Ankit (Original missing)
+uid: 220009
+uidNumber: 220009
+gidNumber: 5001
+mail: csb22052@tezu.ac.in
+homeDirectory: /home/220009
+userPassword:: e1NTSEF9V0pxQUpNbkJLNlhMWUhiOUtReTlId3oyeTdjaEtTV3Y=
+
+# 220010, People, PU, User, cdac.in.world
+dn: uid=220010,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Vikrant Kumar
+sn: Kumar
+# givenName: Vikrant (Original missing)
+uid: 220010
+uidNumber: 220010
+gidNumber: 5001
+mail: csb22062@tezu.ac.in
+homeDirectory: /home/220010
+userPassword:: e1NTSEF9bitPYmRwTmVUbkJnWElpMnRoNXVhbExhWUpQckpGSDY=
+
+# 220012, People, PU, User, cdac.in.world
+dn: uid=220012,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: 220012
+uidNumber: 220012
+gidNumber: 5001
+cn: Meera Joshi
+sn: Joshi
+givenName: Meera
+homeDirectory: /home/220012
+userPassword:: e1NTSEF9ckNoZ051Y2d0Z0FSdXF3ZS82ZGcwTzNCcm1Tb0lsNEw=
+mail: meeraHOD.joshi@cdac.in
+
+# 220013, People, PU, User, cdac.in.world
+dn: uid=220013,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: 220013
+uidNumber: 220013
+gidNumber: 5001
+cn: Ravi Kumar
+sn: Kumar
+givenName: Ravi
+homeDirectory: /home/220013
+userPassword:: e1NTSEF9NnBvYmNFSzZ3UCtFbDBUNjFFUmE1ZFc2T1lqc0Zta3I=
+mail: raviED.kumar@cdac.in
+
+# 6001, People, PU, User, cdac.in.world
+dn: uid=6001,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: 6001
+uidNumber: 6001
+gidNumber: 5001
+cn: Sneha Rane
+sn: Rane
+givenName: Sneha
+homeDirectory: /home/6001
+userPassword:: e1NTSEF9NUF2NDAxQnE3MjdsQ3FQQmRHRHhxWjdHZFplSk1lSUM=
+mail: snehaHODHPC.rane@cdac.in
+
+# 8001, People, PU, User, cdac.in.world
+dn: uid=8001,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: 8001
+uidNumber: 8001
+gidNumber: 5001
+cn: Neha Kulkarni
+sn: Kulkarni
+givenName: Neha
+homeDirectory: /home/8001
+userPassword:: e1NTSEF9OVFudzdIZTJUaTR0N3h4aHlLeW5HWVBMNlJNck9qSDQ=
+mail: nehaWEBMASTER.kulkarni@cdac.in
+
+# --- END: Original Users under PU/People ---
+
+# --- START: NEW Users under PU/People ---
+
+# newuser01pu, People, PU, User, cdac.in.world
+dn: uid=newuser01pu,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Alice Wonderland
+sn: Wonderland
+givenName: Alice
+uid: newuser01pu
+mail: alice.wonderland@cdac.in
+uidNumber: 230001
+gidNumber: 5001
+homeDirectory: /home/newuser01pu
+userPassword:: e1NTSEF9V3d4Z25hMkl3MlpVOWtIZ1lVOWVtdlpQVkx0U1FHT0Y=
+
+# newuser02pu, People, PU, User, cdac.in.world
+dn: uid=newuser02pu,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Bob Thebuilder
+sn: Thebuilder
+givenName: Bob
+uid: newuser02pu
+mail: bob.thebuilder@cdac.in
+uidNumber: 230002
+gidNumber: 5001
+homeDirectory: /home/newuser02pu
+userPassword:: e1NTSEF9UUtkZ0t0Qk5sYkVJb0VqU282bUZjV1VzZmpxSmV0b0s=
+
+# --- END: NEW Users under PU/People ---
+
+
+# GW, User, cdac.in.world
+dn: ou=GW,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: top
+objectClass: organizationalUnit
+ou: GW
+
+# Group, GW, User, cdac.in.world
+dn: ou=Group,ou=GW,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: top
+objectClass: organizationalUnit
+ou: Group
+
+# --- START: NEW Groups under GW/Group ---
+
+dn: cn=gwsupport,ou=Group,ou=GW,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: posixGroup
+objectClass: top
+cn: gwsupport
+gidNumber: 6003
+memberUid: 7001
+memberUid: newuser01gw
+
+# --- END: NEW Groups under GW/Group ---
+
+# People, GW, User, cdac.in.world
+dn: ou=People,ou=GW,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: top
+objectClass: organizationalUnit
+ou: People
+
+# --- START: Original Users under GW/People ---
+
+# 7001, People, GW, User, cdac.in.world
+dn: uid=7001,ou=People,ou=GW,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: 7001
+uidNumber: 7001
+gidNumber: 5002
+cn: Anil Patil
+sn: Patil
+givenName: Anil
+mail: anil.patil@cdac.in
+homeDirectory: /home/7001
+userPassword:: e1NTSEF9bm11V2RuMU1CTGRNaHdsKzdDcHZuVE8zYVRscjJHQkQ=
+
+# --- END: Original Users under GW/People ---
+
+# --- START: NEW Users under GW/People ---
+
+# newuser01gw, People, GW, User, cdac.in.world
+dn: uid=newuser01gw,ou=People,ou=GW,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Charlie Brown
+sn: Brown
+givenName: Charlie
+uid: newuser01gw
+mail: charlie.brown@cdac.in
+uidNumber: 230003
+gidNumber: 5002
+homeDirectory: /home/newuser01gw
+userPassword:: e1NTSEF9ZEJCVlZpYm51TXZ4V2J0TzBKaW5tck92UjQxVWJkTkc=
+
+# --- END: NEW Users under GW/People ---
+
+
+# --- START: NEW OU - BLR (Bangalore) ---
+
+# BLR, User, cdac.in.world
+dn: ou=BLR,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: top
+objectClass: organizationalUnit
+ou: BLR
+
+# Group, BLR, User, cdac.in.world
+dn: ou=Group,ou=BLR,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: top
+objectClass: organizationalUnit
+ou: Group
+
+# --- START: NEW Groups under BLR/Group ---
+
+dn: cn=blrresearch,ou=Group,ou=BLR,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: posixGroup
+objectClass: top
+cn: blrresearch
+gidNumber: 6004
+memberUid: user01blr
+
+dn: cn=blradmin,ou=Group,ou=BLR,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: posixGroup
+objectClass: top
+cn: blradmin
+gidNumber: 6005
+memberUid: user02blr
+
+# --- END: NEW Groups under BLR/Group ---
+
+# People, BLR, User, cdac.in.world
+dn: ou=People,ou=BLR,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: top
+objectClass: organizationalUnit
+ou: People
+
+# --- START: NEW Users under BLR/People ---
+
+# user01blr, People, BLR, User, cdac.in.world
+dn: uid=user01blr,ou=People,ou=BLR,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Diana Prince
+sn: Prince
+givenName: Diana
+uid: user01blr
+mail: diana.prince@cdac.in
+uidNumber: 240001
+gidNumber: 5003 # New GID for BLR default users
+homeDirectory: /home/user01blr
+userPassword:: e1NTSEF9MTJnYnF1R2tqV0x0WlZnNnp0cW15eEVqRkFMNkZ2cWU=
+
+# user02blr, People, BLR, User, cdac.in.world
+dn: uid=user02blr,ou=People,ou=BLR,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Edward Nygma
+sn: Nygma
+givenName: Edward
+uid: user02blr
+mail: edward.nygma@cdac.in
+uidNumber: 240002
+gidNumber: 5003
+homeDirectory: /home/user02blr
+userPassword:: e1NTSEF9eGZlUExsNjNsZThzSmlqY3N0RkE5SmN5Wmd5aGZ6d0E=
+
+# --- END: NEW Users under BLR/People ---
+
+# --- END: NEW OU - BLR (Bangalore) ---
+
+# search result
+# search: 2
+# result: 0 Success
+
+# numResponses: XX (this will be the total number of entries + 1 for the result line)
+# numEntries: YY (this will be the total number of actual entries added)

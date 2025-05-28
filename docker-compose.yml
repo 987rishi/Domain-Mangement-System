@@ -1,6 +1,7 @@
 
 services:
   service-registry:
+    container_name: service-registry
     build:
       context: ./ServiceRegistry
       dockerfile: Dockerfile
@@ -10,6 +11,7 @@ services:
       - application-network
 
   workflow-service:
+    container_name: workflow-service
     build:
       context: ./WorkFlowIpVaptService
       dockerfile: Dockerfile
@@ -22,6 +24,7 @@ services:
       - service-registry
 
   notification-service:
+    container_name: notification-service
     build:
       context: ./NotificationMicroservice
       dockerfile: Dockerfile
@@ -38,6 +41,7 @@ services:
       - notification-service-db
   
   renewal-service:
+    container_name: renewal-service
     build:
       context: ./RenewalAndTransferMicroService
       dockerfile: Dockerfile
@@ -54,6 +58,7 @@ services:
       - renewal-service-db
     
   user-management-service:
+    container_name: user-management-service
     build:
       context: ./UserManagementMicroservice/server
       dockerfile: Dockerfile
@@ -73,6 +78,7 @@ services:
 
 
   api-gateway:
+    container_name: api_gateway
     build:
       context: ./ApiGateway
       dockerfile: Dockerfile
@@ -154,22 +160,37 @@ services:
       - user-management-service-db-network
 
   openldap:
-    image: versatile7programmer/my-cdac-ldap:latest
-    container_name: ldap-server
+    image: osixia/openldap:latest
+    container_name: openldap
     environment:
-      - LDAP_ADMIN_PASSWORD:"raju"
-      - LDAP_CONFIG_ADMIN_PASSWORD:"raju"
-      - LDAP_ROOT:"dc=cdac,dc=in,dc=world"
-    ports:
-      - "1389:1389"
-      - "389:389"    # Standard LDAP
+      LDAP_BASE_DN: "dc=cdac,dc=in,dc=world"
+      LDAP_ORGANISATION: "CDAC"
+      LDAP_DOMAIN: "cdac.in.world"
+      LDAP_ADMIN_PASSWORD: "raju"
+      LDAP_TLS: "false"             # deactivate TLS for the LDAP server
     volumes:
-      - ldap_data:/var/lib/ldap
-      - ldap_config:/etc/ldap/slapd.d
-  
+      - ./ldap/ldap-initial-data/text.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/50-bootstrap.ldif
     networks:
       - ldap-net
+    ports:
+      - "389:389"                   # default port for unsecured LDAP
+    command: --copy-service
     restart: unless-stopped
+  
+  phpldapadmin:
+    image: osixia/phpldapadmin:latest
+    container_name: phpldapadmin
+    environment:
+      PHPLDAPADMIN_LDAP_HOSTS: openldap
+      PHPLDAPADMIN_HTTPS: "false"   # deactivate HTTPS
+    networks:
+      - ldap-net
+    ports:
+      - "8081:80"
+    restart: unless-stopped
+    depends_on:
+      - openldap
+
 volumes:
   sonarqube_data:
   sonarqube_extensions:

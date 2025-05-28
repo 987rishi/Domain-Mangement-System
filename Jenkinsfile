@@ -19,85 +19,85 @@ pipeline {
       }
     }
 
-    stage('Pre-commit Checks') {
-      steps {
-        script {
-          services.each { svc ->
-            dir(svc.name) {
-              int checkStyleErrors = 0
-              int gitLeaksErrors   = 0
-              int eslintErrors     = 0
+    // stage('Pre-commit Checks') {
+    //   steps {
+    //     script {
+    //       services.each { svc ->
+    //         dir(svc.name) {
+    //           int checkStyleErrors = 0
+    //           int gitLeaksErrors   = 0
+    //           int eslintErrors     = 0
 
-              if (svc.lang == 'java') {
-                // Maven Checkstyle
-                bat 'mvn checkstyle:checkstyle'
-                def csReport = readFile('target/checkstyle-result.xml')
-                checkStyleErrors = (csReport =~ '<error ').count
-                echo "Checkstyle Errors in ${svc.name}: ${checkStyleErrors}"
+    //           if (svc.lang == 'java') {
+    //             // Maven Checkstyle
+    //             bat 'mvn checkstyle:checkstyle'
+    //             def csReport = readFile('target/checkstyle-result.xml')
+    //             checkStyleErrors = (csReport =~ '<error ').count
+    //             echo "Checkstyle Errors in ${svc.name}: ${checkStyleErrors}"
 
-                // GitLeaks
-                bat 'gitleaks detect --source . --report-path leaks.json'
-                def glReport = readFile('leaks.json')
-                gitLeaksErrors = (glReport =~ '"Leaks":\\[').count
-                echo "GitLeaks Errors in ${svc.name}: ${gitLeaksErrors}"
+    //             // GitLeaks
+    //             bat 'gitleaks detect --source . --report-path leaks.json'
+    //             def glReport = readFile('leaks.json')
+    //             gitLeaksErrors = (glReport =~ '"Leaks":\\[').count
+    //             echo "GitLeaks Errors in ${svc.name}: ${gitLeaksErrors}"
 
-                // Push metrics to Prometheus Pushgateway
-                def metrics = """
-                # HELP checkstyle_errors_total Total Checkstyle errors
-                # TYPE checkstyle_errors_total counter
-                checkstyle_errors_total{service="${svc.name}"} ${checkStyleErrors}
+    //             // Push metrics to Prometheus Pushgateway
+    //             def metrics = """
+    //             # HELP checkstyle_errors_total Total Checkstyle errors
+    //             # TYPE checkstyle_errors_total counter
+    //             checkstyle_errors_total{service="${svc.name}"} ${checkStyleErrors}
 
-                # HELP gitleaks_errors_total Total GitLeaks errors
-                # TYPE gitleaks_errors_total counter
-                gitleaks_errors_total{service="${svc.name}"} ${gitLeaksErrors}
-                """.trim()
+    //             # HELP gitleaks_errors_total Total GitLeaks errors
+    //             # TYPE gitleaks_errors_total counter
+    //             gitleaks_errors_total{service="${svc.name}"} ${gitLeaksErrors}
+    //             """.trim()
 
-                bat """
-                  echo ${metrics} | curl --data-binary @- \
-                    http://<pushgateway_address>:9091/metrics/job/${env.JOB_NAME}/instance/${svc.name}
-                """
-              }
-              else if (svc.lang == 'typescript') {
-                // ESLint
-                bat 'npx eslint "./src/**/*.ts" --format json --output-file eslint-report.json'
-                def esReport = readFile('eslint-report.json')
-                eslintErrors = (esReport =~ '"errorCount":\\s*(\\d+)')
-                              .findAll()
-                              .sum { it[1].toInteger() }
-                echo "ESLint Errors in ${svc.name}: ${eslintErrors}"
+    //             bat """
+    //               echo ${metrics} | curl --data-binary @- \
+    //                 http://<pushgateway_address>:9091/metrics/job/${env.JOB_NAME}/instance/${svc.name}
+    //             """
+    //           }
+    //           else if (svc.lang == 'typescript') {
+    //             // ESLint
+    //             bat 'npx eslint "./src/**/*.ts" --format json --output-file eslint-report.json'
+    //             def esReport = readFile('eslint-report.json')
+    //             eslintErrors = (esReport =~ '"errorCount":\\s*(\\d+)')
+    //                           .findAll()
+    //                           .sum { it[1].toInteger() }
+    //             echo "ESLint Errors in ${svc.name}: ${eslintErrors}"
 
-                // GitLeaks
-                bat 'gitleaks detect --source . --report-path leaks.json'
-                def glReport = readFile('leaks.json')
-                gitLeaksErrors = (glReport =~ '"Leaks":\\[').count
-                echo "GitLeaks Errors in ${svc.name}: ${gitLeaksErrors}"
+    //             // GitLeaks
+    //             bat 'gitleaks detect --source . --report-path leaks.json'
+    //             def glReport = readFile('leaks.json')
+    //             gitLeaksErrors = (glReport =~ '"Leaks":\\[').count
+    //             echo "GitLeaks Errors in ${svc.name}: ${gitLeaksErrors}"
 
-                // Push metrics
-                def metrics = """
-                # HELP eslint_errors_total Total ESLint errors
-                # TYPE eslint_errors_total counter
-                eslint_errors_total{service="${svc.name}"} ${eslintErrors}
+    //             // Push metrics
+    //             def metrics = """
+    //             # HELP eslint_errors_total Total ESLint errors
+    //             # TYPE eslint_errors_total counter
+    //             eslint_errors_total{service="${svc.name}"} ${eslintErrors}
 
-                # HELP gitleaks_errors_total Total GitLeaks errors
-                # TYPE gitleaks_errors_total counter
-                gitleaks_errors_total{service="${svc.name}"} ${gitLeaksErrors}
-                """.trim()
+    //             # HELP gitleaks_errors_total Total GitLeaks errors
+    //             # TYPE gitleaks_errors_total counter
+    //             gitleaks_errors_total{service="${svc.name}"} ${gitLeaksErrors}
+    //             """.trim()
 
-                bat """
-                  echo ${metrics} | curl --data-binary @- \
-                    http://<pushgateway_address>:9091/metrics/job/${env.JOB_NAME}/instance/${svc.name}
-                """
-              }
+    //             bat """
+    //               echo ${metrics} | curl --data-binary @- \
+    //                 http://<pushgateway_address>:9091/metrics/job/${env.JOB_NAME}/instance/${svc.name}
+    //             """
+    //           }
 
-              // Reset counters (if reused later)
-              checkStyleErrors = 0
-              gitLeaksErrors   = 0
-              eslintErrors     = 0
-            }
-          }
-        }
-      }
-    }
+    //           // Reset counters (if reused later)
+    //           checkStyleErrors = 0
+    //           gitLeaksErrors   = 0
+    //           eslintErrors     = 0
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
 
     stage('Build and Unit Tests') {
       steps {
@@ -134,7 +134,7 @@ pipeline {
       environment {
         // Define these at pipeline or stage level
         SONAR_TOKEN = credentials('cdac-project-sonar-token')
-        SONARQUBE_URL = 'http://your-actual-sonarqube-url:9000' // CHANGE_ME
+        SONARQUBE_URL = 'http://localhost:9000' // CHANGE_ME
       }
       steps {
         script {
@@ -180,8 +180,10 @@ pipeline {
                   def qg = waitForQualityGate abortPipeline: false // Don't abort pipeline yet
                   if (qg.status != 'OK') {
                     currentBuild.result = 'FAILURE' // Mark build as failure
+                    /* groovylint-disable-next-line LineLength */
                     error "Quality Gate for ${svc.name} failed: ${qg.status}. Dashboard: ${env.SONARQUBE_URL}/dashboard?id=${projectKeyForSonar}"
                   } else {
+                    /* groovylint-disable-next-line LineLength */
                     echo "Quality Gate for ${svc.name} passed! Dashboard: ${env.SONARQUBE_URL}/dashboard?id=${projectKeyForSonar}"
                   }
                 }

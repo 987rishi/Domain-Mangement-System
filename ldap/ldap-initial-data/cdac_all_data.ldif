@@ -6,8 +6,17 @@
 # requesting: ALL
 #
 
+dn: cn=admin,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: simpleSecurityObject
+objectClass: organizationalRole
+cn: admin
+userPassword: adminpassword
+description: LDAP Administrator
+
 # cdac.in.world
 dn: dc=cdac,dc=in,dc=world
+changetype: add
 objectClass: top
 objectClass: dcObject
 objectClass: organization
@@ -16,30 +25,35 @@ dc: cdac
 
 # User, cdac.in.world
 dn: ou=User,dc=cdac,dc=in,dc=world
+changetype: add
 objectClass: organizationalUnit
 objectClass: top
 ou: User
 
 # PU, User, cdac.in.world
 dn: ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
 objectClass: organizationalUnit
 objectClass: top
 ou: PU
 
 # Group, PU, User, cdac.in.world
 dn: ou=Group,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
 objectClass: organizationalUnit
 objectClass: top
 ou: Group
 
 # People, PU, User, cdac.in.world
 dn: ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
 objectClass: organizationalUnit
 objectClass: top
 ou: People
 
 # csb22067, People, PU, User, cdac.in.world
 dn: uid=csb22067,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
 objectClass: inetOrgPerson
 objectClass: posixAccount
 objectClass: top
@@ -55,6 +69,7 @@ userPassword:: e1NTSEF9bXJ4UWxBM0d6dGRLd0VKSVpscXBSd1BISUUrVHQ3VWQ=
 
 # 220067, People, PU, User, cdac.in.world
 dn: uid=220067,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
 objectClass: inetOrgPerson
 objectClass: posixAccount
 objectClass: top
@@ -69,6 +84,7 @@ uidNumber: 220067
 
 # 220055, People, PU, User, cdac.in.world
 dn: uid=220055,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
 objectClass: inetOrgPerson
 objectClass: posixAccount
 objectClass: top
@@ -83,6 +99,7 @@ uidNumber: 220055
 
 # 220005, People, PU, User, cdac.in.world
 dn: uid=220005,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
 objectClass: inetOrgPerson
 objectClass: posixAccount
 objectClass: top
@@ -97,6 +114,7 @@ uidNumber: 220005
 
 # 220001, People, PU, User, cdac.in.world
 dn: uid=220001,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
 objectClass: inetOrgPerson
 objectClass: posixAccount
 objectClass: top
@@ -111,6 +129,7 @@ mail: ankitNETOPS@cdac.in
 
 # 220002, People, PU, User, cdac.in.world
 dn: uid=220002,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
 objectClass: inetOrgPerson
 objectClass: posixAccount
 objectClass: top
@@ -125,6 +144,7 @@ mail: nidhiARM@cdac.in
 
 # 220003, People, PU, User, cdac.in.world
 dn: uid=220003,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
 objectClass: inetOrgPerson
 objectClass: posixAccount
 objectClass: top
@@ -139,6 +159,7 @@ mail: arjunDRM@cdac.in
 
 # 220004, People, PU, User, cdac.in.world
 dn: uid=220004,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
 objectClass: inetOrgPerson
 objectClass: posixAccount
 objectClass: top
@@ -153,6 +174,7 @@ uidNumber: 220004
 
 # 220006, People, PU, User, cdac.in.world
 dn: uid=220006,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
 objectClass: inetOrgPerson
 objectClass: posixAccount
 objectClass: top
@@ -167,6 +189,7 @@ uidNumber: 220006
 
 # 220007, People, PU, User, cdac.in.world
 dn: uid=220007,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
 objectClass: inetOrgPerson
 objectClass: posixAccount
 objectClass: top
@@ -181,6 +204,7 @@ mail: tanyaHOD@cdac.in
 
 # 220008, People, PU, User, cdac.in.world
 dn: uid=220008,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
 objectClass: inetOrgPerson
 objectClass: posixAccount
 objectClass: top
@@ -195,6 +219,7 @@ uidNumber: 220008
 
 # 220009, People, PU, User, cdac.in.world
 dn: uid=220009,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
 objectClass: inetOrgPerson
 objectClass: posixAccount
 objectClass: top
@@ -209,6 +234,7 @@ userPassword:: e1NTSEF9V0pxQUpNbkJLNlhMWUhiOUtReTlId3oyeTdjaEtTV3Y=
 
 # 220010, People, PU, User, cdac.in.world
 dn: uid=220010,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
 objectClass: inetOrgPerson
 objectClass: posixAccount
 objectClass: top
@@ -223,6 +249,7 @@ userPassword:: e1NTSEF9bitPYmRwTmVUbkJnWElpMnRoNXVhbExhWUpQckpGSDY=
 
 # 220012, People, PU, User, cdac.in.world
 dn: uid=220012,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
 objectClass: top
 objectClass: person
 objectClass: organizationalPerson
@@ -240,6 +267,7 @@ mail: meeraHOD.joshi@cdac.in
 
 # 220013, People, PU, User, cdac.in.world
 dn: uid=220013,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
 objectClass: top
 objectClass: person
 objectClass: organizationalPerson
@@ -257,6 +285,7 @@ mail: raviED.kumar@cdac.in
 
 # 6001, People, PU, User, cdac.in.world
 dn: uid=6001,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
 objectClass: top
 objectClass: person
 objectClass: organizationalPerson
@@ -274,6 +303,7 @@ mail: snehaHODHPC.rane@cdac.in
 
 # 8001, People, PU, User, cdac.in.world
 dn: uid=8001,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
 objectClass: top
 objectClass: person
 objectClass: organizationalPerson
@@ -291,24 +321,28 @@ mail: nehaWEBMASTER.kulkarni@cdac.in
 
 # GW, User, cdac.in.world
 dn: ou=GW,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
 objectClass: top
 objectClass: organizationalUnit
 ou: GW
 
 # Group, GW, User, cdac.in.world
 dn: ou=Group,ou=GW,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
 objectClass: top
 objectClass: organizationalUnit
 ou: Group
 
 # People, GW, User, cdac.in.world
 dn: ou=People,ou=GW,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
 objectClass: top
 objectClass: organizationalUnit
 ou: People
 
 # 7001, People, GW, User, cdac.in.world
 dn: uid=7001,ou=People,ou=GW,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
 objectClass: top
 objectClass: person
 objectClass: organizationalPerson
