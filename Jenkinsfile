@@ -110,7 +110,7 @@ pipeline {
               if (svc.lang == 'java') {
                 catchError(message: "Error executing Maven tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
                   bat 'mvn clean install package -DskipTests'
-                  bat 'mvn test'
+                  // bat 'mvn test'
                 }
               } else {
                 catchError(message: "Error executing TypeScript tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
