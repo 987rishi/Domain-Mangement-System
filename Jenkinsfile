@@ -220,7 +220,7 @@ pipeline {
     stage('DAST Scanning using Zed ZAP'){
       steps{
         bat(label: 'Running ZAP Baseline scan',
-        script: 'docker run -dt zaproxy/zap-stable zap-baseline.py -t http://localhost:5173 -r reports\zap.html')
+        script: 'docker run -dt zaproxy/zap-stable zap-baseline.py -t http://localhost:5173 -r ./reports/zap.html')
       }
       post{
           always {
