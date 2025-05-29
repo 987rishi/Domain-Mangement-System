@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install all dependencies (including devDependencies)
-RUN npm install
+RUN npm install 
 
 # Install global dev tools (optional, since you use npm scripts)
 RUN npm install -g typescript nodemon concurrently

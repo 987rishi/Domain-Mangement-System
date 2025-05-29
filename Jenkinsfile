@@ -8,6 +8,7 @@ def services = [
   [name: 'ServiceRegistry',            lang: 'java']
 ]
 
+
 pipeline {
   agent any
    environment {
@@ -296,10 +297,10 @@ pipeline {
                   if (qg.status != 'OK') {
                     currentBuild.result = 'FAILURE' // Mark build as failure
                     /* groovylint-disable-next-line LineLength */
-                    error "Quality Gate for ${svc.name} failed: ${qg.status}. Dashboard: ${env.SONARQUBE_URL}/dashboard?id=${projectKeyForSonar}"
+                    error "Quality Gate for ${svc.name} failed: ${qg.status}. Dashboard: ${env.SONARQUBE_HOST_URL}/dashboard?id=${projectKeyForSonar}"
                   } else {
                     /* groovylint-disable-next-line LineLength */
-                    echo "Quality Gate for ${svc.name} passed! Dashboard: ${env.SONARQUBE_URL}/dashboard?id=${projectKeyForSonar}"
+                    echo "Quality Gate for ${svc.name} passed! Dashboard: ${env.SONARQUBE_HOST_URL}/dashboard?id=${projectKeyForSonar}"
                   }
                 }
               } catch (e) {
@@ -312,6 +313,26 @@ pipeline {
         }
       }
     }
+
+    stage('Build and Push Docker Images') {
+      steps {
+          script {
+              services.each { svc ->
+                  if (new File("${svc.name}/Dockerfile").exists()) { // Check if Dockerfile exists
+                      dir(svc.name) {
+                          echo "Building Docker image for ${svc.name}"
+                          // Example: Replace 'your-docker-registry'
+                          // Ensure you are logged into your Docker registry
+                          bat "docker build -t weakpassword/${svc.name.toLowerCase()}:${env.BUILD_NUMBER} ."
+                          bat "docker push weakpassword/${svc.name.toLowerCase()}:${env.BUILD_NUMBER}"
+                      }
+                  }
+              }
+          }
+      }
+    }
+
+
     stage('Dockerization of services and putting them in same network')
     {
       steps{
