@@ -224,7 +224,7 @@
 services:
   service-registry:
     container_name: service-registry
-    image: weakpassword/serviceregistry:${IMAGE_TAG:-latest}
+    image: weakpassword/serviceregistry:${IMAGE_TAG:-32}
     env_file:
       - .env
     networks:
@@ -232,7 +232,7 @@ services:
 
   workflow-service:
     container_name: workflow-service
-    image: weakpassword/workflowipvaptservice:${IMAGE_TAG:-latest}
+    image: weakpassword/workflowipvaptservice:${IMAGE_TAG:-32}
     env_file:
       - .env
     networks:
@@ -243,7 +243,7 @@ services:
 
   notification-service:
     container_name: notification-service
-    image: weakpassword/notificationmicroservice:${IMAGE_TAG:-latest}
+    image: weakpassword/notificationmicroservice:${IMAGE_TAG:-32}
     env_file:
       - .env
     environment:
@@ -258,7 +258,7 @@ services:
   
   renewal-service:
     container_name: renewal-service
-    image: weakpassword/renewalandtransfermicroservice:${IMAGE_TAG:-latest}
+    image: weakpassword/renewalandtransfermicroservice:${IMAGE_TAG:-32}
     env_file:
       - .env
     environment:
@@ -273,7 +273,7 @@ services:
     
   user-management-service:
     container_name: user-management-service
-    image: weakpassword/usermanagementmicroservice:${IMAGE_TAG:-latest}
+    image: weakpassword/usermanagementmicroservice:${IMAGE_TAG:-32}
     env_file:
       - .env
     environment:
@@ -291,7 +291,7 @@ services:
 
   api-gateway:
     container_name: api_gateway
-    image: weakpassword/apigateway:${IMAGE_TAG:-latest}
+    image: weakpassword/apigateway:${IMAGE_TAG:-32}
     ports:
       - "8085:8085"
     env_file:
