@@ -16,25 +16,14 @@ RUN npm install -g typescript nodemon concurrently
 # Copy rest of the code (after deps are cached)
 COPY . .
 
-<<<<<<< HEAD
 # Prisma generate
 RUN npx prisma generate
 # This creates the dist/ directory and dist/server.js
 RUN npx tsc
-=======
-# This creates the dist/ directory and dist/server.js
-RUN npm run build
->>>>>>> origin/main
 
 # Set environment variable for Prisma (needed during generate)
 ENV NODE_ENV=production
 
-<<<<<<< HEAD
-
-=======
-# Prisma generate
-RUN npx prisma generate
->>>>>>> origin/main
 
 # Expose port (change to your backend's actual port)
 EXPOSE 5000
