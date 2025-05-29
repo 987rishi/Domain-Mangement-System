@@ -246,11 +246,11 @@ pipeline {
     }
 
     stage('SAST Analysis using SonarQube') {
-      environment {
-        // Define these at pipeline or stage level
-        // SONAR_TOKEN = credentials('cdac-project-sonar-server')
-        // SONARQUBE_URL = 'http://localhost:9000' // CHANGE_ME
-      }
+      // environment {
+      //   // Define these at pipeline or stage level
+      //   // SONAR_TOKEN = credentials('cdac-project-sonar-server')
+      //   // SONARQUBE_URL = 'http://localhost:9000' // CHANGE_ME
+      // }
       steps {
         script {
           // Optional: Install @sonar/scan once if not a devDependency or globally on agent
