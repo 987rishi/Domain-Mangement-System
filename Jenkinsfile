@@ -292,7 +292,7 @@ pipeline {
 
                 // Quality Gate check, now correctly associated with the scan inside withSonarQubeEnv
                 echo "SonarQube analysis submitted for ${svc.name}. Waiting for Quality Gate..."
-                timeout(time: 10, unit: 'MINUTES') {
+                timeout(time: 4, unit: 'MINUTES') {
                   def qg = waitForQualityGate abortPipeline: false // Don't abort pipeline yet
                   if (qg.status != 'OK') {
                     currentBuild.result = 'FAILURE' // Mark build as failure
