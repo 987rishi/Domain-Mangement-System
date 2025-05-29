@@ -1,0 +1,43 @@
+-------------------------------------------------------------------------------
+Test set: com.springApiGateway.ApiGateway.gatewaytests.GatewayApplicationTests
+-------------------------------------------------------------------------------
+Tests run: 3, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 4.728 s <<< FAILURE! -- in com.springApiGateway.ApiGateway.gatewaytests.GatewayApplicationTests
+com.springApiGateway.ApiGateway.gatewaytests.GatewayApplicationTests.testCentreRoute -- Time elapsed: 0.680 s <<< FAILURE!
+java.lang.AssertionError: Status expected:<200 OK> but was:<401 UNAUTHORIZED>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:61)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:128)
+	at org.springframework.test.web.reactive.server.StatusAssertions.lambda$assertStatusAndReturn$4(StatusAssertions.java:236)
+	at org.springframework.test.web.reactive.server.ExchangeResult.assertWithDiagnostics(ExchangeResult.java:232)
+	at org.springframework.test.web.reactive.server.StatusAssertions.assertStatusAndReturn(StatusAssertions.java:236)
+	at org.springframework.test.web.reactive.server.StatusAssertions.isOk(StatusAssertions.java:68)
+	at com.springApiGateway.ApiGateway.gatewaytests.GatewayApplicationTests.testCentreRoute(GatewayApplicationTests.java:130)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+com.springApiGateway.ApiGateway.gatewaytests.GatewayApplicationTests.testUserDrmRoute -- Time elapsed: 0.018 s <<< FAILURE!
+java.lang.AssertionError: Status expected:<200 OK> but was:<401 UNAUTHORIZED>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:61)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:128)
+	at org.springframework.test.web.reactive.server.StatusAssertions.lambda$assertStatusAndReturn$4(StatusAssertions.java:236)
+	at org.springframework.test.web.reactive.server.ExchangeResult.assertWithDiagnostics(ExchangeResult.java:232)
+	at org.springframework.test.web.reactive.server.StatusAssertions.assertStatusAndReturn(StatusAssertions.java:236)
+	at org.springframework.test.web.reactive.server.StatusAssertions.isOk(StatusAssertions.java:68)
+	at com.springApiGateway.ApiGateway.gatewaytests.GatewayApplicationTests.testUserDrmRoute(GatewayApplicationTests.java:82)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+com.springApiGateway.ApiGateway.gatewaytests.GatewayApplicationTests.testGroupRoute -- Time elapsed: 0.024 s <<< FAILURE!
+java.lang.AssertionError: Status expected:<200 OK> but was:<401 UNAUTHORIZED>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:61)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:128)
+	at org.springframework.test.web.reactive.server.StatusAssertions.lambda$assertStatusAndReturn$4(StatusAssertions.java:236)
+	at org.springframework.test.web.reactive.server.ExchangeResult.assertWithDiagnostics(ExchangeResult.java:232)
+	at org.springframework.test.web.reactive.server.StatusAssertions.assertStatusAndReturn(StatusAssertions.java:236)
+	at org.springframework.test.web.reactive.server.StatusAssertions.isOk(StatusAssertions.java:68)
+	at com.springApiGateway.ApiGateway.gatewaytests.GatewayApplicationTests.testGroupRoute(GatewayApplicationTests.java:157)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+

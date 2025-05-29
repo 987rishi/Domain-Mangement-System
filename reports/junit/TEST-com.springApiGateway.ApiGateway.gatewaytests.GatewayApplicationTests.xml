@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.springApiGateway.ApiGateway.ApiGatewayApplicationTests" time="12.791" tests="1" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.springApiGateway.ApiGateway.gatewaytests.GatewayApplicationTests" time="4.728" tests="3" errors="0" skipped="0" failures="3">
   <properties>
     <property name="sonar.projectName" value="ApiGateway"/>
     <property name="java.specification.version" value="21"/>
@@ -48,8 +48,11 @@
     <property name="file.encoding" value="UTF-8"/>
     <property name="java.vm.name" value="Java HotSpot(TM) 64-Bit Server VM"/>
     <property name="localRepository" value="C:\Users\Rishi\.m2\repository"/>
+    <property name="javax.xml.xpath.XPathFactory:http://java.sun.com/jaxp/xpath/dom" value="com.sun.org.apache.xpath.internal.jaxp.XPathFactoryImpl"/>
     <property name="java.vendor.url.bug" value="https://bugreport.java.com/bugreport/"/>
+    <property name="jetty.git.hash" value="4231a3b2e4cb8548a412a789936d640a97b1aa0a"/>
     <property name="java.io.tmpdir" value="C:\Users\Rishi\AppData\Local\Temp\"/>
+    <property name="wiremock.org.eclipse.jetty.http.HttpGenerator.STRICT" value="true"/>
     <property name="sonar.token" value="sqa_081bcd3af1a377ed7b45c3a3d73bf1518897034b"/>
     <property name="java.version" value="21.0.6"/>
     <property name="user.dir" value="C:\Users\Rishi\Desktop\Projects\CdacDnsManagementSystem\ApiGateway"/>
@@ -66,12 +69,25 @@
     <property name="java.vendor" value="Oracle Corporation"/>
     <property name="java.vm.version" value="21.0.6+8-LTS-188"/>
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="javax.xml.transform.TransformerFactory" value="com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl"/>
     <property name="java.class.version" value="65.0"/>
     <property name="LOGGED_APPLICATION_NAME" value="[api-gateway] "/>
   </properties>
-  <testcase name="contextLoads" classname="com.springApiGateway.ApiGateway.ApiGatewayApplicationTests" time="2.226">
-    <system-out><![CDATA[12:05:45.047 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.springApiGateway.ApiGateway.ApiGatewayApplicationTests]: ApiGatewayApplicationTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-12:05:45.489 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.springApiGateway.ApiGateway.ApiGatewayApplication for test class com.springApiGateway.ApiGateway.ApiGatewayApplicationTests
+  <testcase name="testCentreRoute" classname="com.springApiGateway.ApiGateway.gatewaytests.GatewayApplicationTests" time="0.68">
+    <failure message="Status expected:&lt;200 OK&gt; but was:&lt;401 UNAUTHORIZED&gt;" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: Status expected:<200 OK> but was:<401 UNAUTHORIZED>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:61)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:128)
+	at org.springframework.test.web.reactive.server.StatusAssertions.lambda$assertStatusAndReturn$4(StatusAssertions.java:236)
+	at org.springframework.test.web.reactive.server.ExchangeResult.assertWithDiagnostics(ExchangeResult.java:232)
+	at org.springframework.test.web.reactive.server.StatusAssertions.assertStatusAndReturn(StatusAssertions.java:236)
+	at org.springframework.test.web.reactive.server.StatusAssertions.isOk(StatusAssertions.java:68)
+	at com.springApiGateway.ApiGateway.gatewaytests.GatewayApplicationTests.testCentreRoute(GatewayApplicationTests.java:130)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure>
+    <system-out><![CDATA[2025-05-29T12:05:57.390+05:30  INFO 4080 --- [api-gateway] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.springApiGateway.ApiGateway.gatewaytests.GatewayApplicationTests]: GatewayApplicationTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2025-05-29T12:05:57.413+05:30  INFO 4080 --- [api-gateway] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.springApiGateway.ApiGateway.ApiGatewayApplication for test class com.springApiGateway.ApiGateway.gatewaytests.GatewayApplicationTests
 
   .   ____          _            __ _ _
  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
@@ -82,43 +98,45 @@
 
  :: Spring Boot ::                (v3.4.4)
 
-2025-05-29T12:05:47.291+05:30  INFO 4080 --- [api-gateway] [           main] c.s.A.ApiGatewayApplicationTests         : Starting ApiGatewayApplicationTests using Java 21.0.6 with PID 4080 (started by Rishi in C:\Users\Rishi\Desktop\Projects\CdacDnsManagementSystem\ApiGateway)
-2025-05-29T12:05:47.295+05:30  INFO 4080 --- [api-gateway] [           main] c.s.A.ApiGatewayApplicationTests         : No active profile set, falling back to 1 default profile: "default"
-2025-05-29T12:05:50.711+05:30  INFO 4080 --- [api-gateway] [           main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=dfe3fb09-ee15-3509-b081-b6eae39f977a
-2025-05-29T12:05:51.252+05:30  INFO 4080 --- [api-gateway] [           main] ctiveUserDetailsServiceAutoConfiguration : 
+2025-05-29T12:05:57.549+05:30  INFO 4080 --- [api-gateway] [           main] c.s.A.g.GatewayApplicationTests          : Starting GatewayApplicationTests using Java 21.0.6 with PID 4080 (started by Rishi in C:\Users\Rishi\Desktop\Projects\CdacDnsManagementSystem\ApiGateway)
+2025-05-29T12:05:57.549+05:30  INFO 4080 --- [api-gateway] [           main] c.s.A.g.GatewayApplicationTests          : No active profile set, falling back to 1 default profile: "default"
+2025-05-29T12:05:57.971+05:30  INFO 4080 --- [api-gateway] [           main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=a69b13c9-6a99-386b-b1a0-a5273fc98994
+2025-05-29T12:05:59.756+05:30  INFO 4080 --- [api-gateway] [           main] ctiveUserDetailsServiceAutoConfiguration : 
 
-Using generated security password: 8eb16675-9e94-4a7d-8dcd-478ac1d462ba
+Using generated security password: cc4681e9-5b99-4eff-9b23-ba41103b53a9
 
-2025-05-29T12:05:53.879+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [After]
-2025-05-29T12:05:53.880+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Before]
-2025-05-29T12:05:53.880+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Between]
-2025-05-29T12:05:53.880+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Cookie]
-2025-05-29T12:05:53.880+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Header]
-2025-05-29T12:05:53.880+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Host]
-2025-05-29T12:05:53.881+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Method]
-2025-05-29T12:05:53.881+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Path]
-2025-05-29T12:05:53.881+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Query]
-2025-05-29T12:05:53.881+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [ReadBody]
-2025-05-29T12:05:53.881+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [RemoteAddr]
-2025-05-29T12:05:53.882+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [XForwardedRemoteAddr]
-2025-05-29T12:05:53.882+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Weight]
-2025-05-29T12:05:53.882+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [CloudFoundryRouteService]
-2025-05-29T12:05:54.615+05:30  INFO 4080 --- [api-gateway] [           main] DiscoveryClientOptionalArgsConfiguration : Eureka HTTP Client uses RestTemplate.
-2025-05-29T12:05:54.756+05:30  WARN 4080 --- [api-gateway] [           main] iguration$LoadBalancerCaffeineWarnLogger : Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
-2025-05-29T12:05:54.897+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.n.eureka.InstanceInfoFactory       : Setting initial instance status as: STARTING
-2025-05-29T12:05:54.964+05:30  INFO 4080 --- [api-gateway] [           main] com.netflix.discovery.DiscoveryClient    : Initializing Eureka in region us-east-1
-2025-05-29T12:05:54.976+05:30  INFO 4080 --- [api-gateway] [           main] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
-2025-05-29T12:05:54.981+05:30  WARN 4080 --- [api-gateway] [           main] c.n.d.s.r.aws.ConfigClusterResolver      : Invalid eureka server URI: ${EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE}/; removing from the server pool
-2025-05-29T12:05:54.982+05:30 ERROR 4080 --- [api-gateway] [           main] c.n.d.s.r.aws.ConfigClusterResolver      : Cannot resolve to any endpoints from provided configuration: {defaultZone=[${EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE}/]}
-2025-05-29T12:05:54.982+05:30 ERROR 4080 --- [api-gateway] [           main] c.n.d.s.transport.EurekaHttpClients      : Initial resolution of Eureka server endpoints failed. Check ConfigClusterResolver logs for more info
-2025-05-29T12:05:55.006+05:30  INFO 4080 --- [api-gateway] [           main] com.netflix.discovery.DiscoveryClient    : Disable delta property : false
-2025-05-29T12:05:55.006+05:30  INFO 4080 --- [api-gateway] [           main] com.netflix.discovery.DiscoveryClient    : Single vip registry refresh property : null
-2025-05-29T12:05:55.007+05:30  INFO 4080 --- [api-gateway] [           main] com.netflix.discovery.DiscoveryClient    : Force full registry fetch : false
-2025-05-29T12:05:55.007+05:30  INFO 4080 --- [api-gateway] [           main] com.netflix.discovery.DiscoveryClient    : Application is null : false
-2025-05-29T12:05:55.007+05:30  INFO 4080 --- [api-gateway] [           main] com.netflix.discovery.DiscoveryClient    : Registered Applications size is zero : true
-2025-05-29T12:05:55.007+05:30  INFO 4080 --- [api-gateway] [           main] com.netflix.discovery.DiscoveryClient    : Application version is -1: true
-2025-05-29T12:05:55.007+05:30  INFO 4080 --- [api-gateway] [           main] com.netflix.discovery.DiscoveryClient    : Getting all instance registry info from the eureka server
-2025-05-29T12:05:55.018+05:30  INFO 4080 --- [api-gateway] [           main] com.netflix.discovery.DiscoveryClient    : DiscoveryClient_API-GATEWAY/LAPTOP-8QGET7VC:api-gateway:8085 - was unable to refresh its cache! This periodic background refresh will be retried in 30 seconds. status = There is no known eureka server; cluster server list is empty stacktrace = com.netflix.discovery.shared.transport.TransportException: There is no known eureka server; cluster server list is empty
+2025-05-29T12:05:59.953+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [After]
+2025-05-29T12:05:59.953+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Before]
+2025-05-29T12:05:59.954+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Between]
+2025-05-29T12:05:59.954+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Cookie]
+2025-05-29T12:05:59.954+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Header]
+2025-05-29T12:05:59.954+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Host]
+2025-05-29T12:05:59.954+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Method]
+2025-05-29T12:05:59.955+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Path]
+2025-05-29T12:05:59.955+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Query]
+2025-05-29T12:05:59.955+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [ReadBody]
+2025-05-29T12:05:59.955+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [RemoteAddr]
+2025-05-29T12:05:59.955+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [XForwardedRemoteAddr]
+2025-05-29T12:05:59.955+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Weight]
+2025-05-29T12:05:59.955+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [CloudFoundryRouteService]
+2025-05-29T12:06:00.127+05:30  INFO 4080 --- [api-gateway] [           main] DiscoveryClientOptionalArgsConfiguration : Eureka HTTP Client uses RestTemplate.
+2025-05-29T12:06:00.159+05:30  WARN 4080 --- [api-gateway] [           main] iguration$LoadBalancerCaffeineWarnLogger : Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2025-05-29T12:06:01.119+05:30  INFO 4080 --- [api-gateway] [           main] o.s.b.web.embedded.netty.NettyWebServer  : Netty started on port 51236 (http)
+2025-05-29T12:06:01.121+05:30  INFO 4080 --- [api-gateway] [           main] .s.c.n.e.s.EurekaAutoServiceRegistration : Updating port to 51236
+2025-05-29T12:06:01.123+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.n.eureka.InstanceInfoFactory       : Setting initial instance status as: STARTING
+2025-05-29T12:06:01.126+05:30  INFO 4080 --- [api-gateway] [           main] com.netflix.discovery.DiscoveryClient    : Initializing Eureka in region us-east-1
+2025-05-29T12:06:01.127+05:30  INFO 4080 --- [api-gateway] [           main] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2025-05-29T12:06:01.127+05:30  WARN 4080 --- [api-gateway] [           main] c.n.d.s.r.aws.ConfigClusterResolver      : Invalid eureka server URI: ${EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE}/; removing from the server pool
+2025-05-29T12:06:01.128+05:30 ERROR 4080 --- [api-gateway] [           main] c.n.d.s.r.aws.ConfigClusterResolver      : Cannot resolve to any endpoints from provided configuration: {defaultZone=[${EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE}/]}
+2025-05-29T12:06:01.128+05:30 ERROR 4080 --- [api-gateway] [           main] c.n.d.s.transport.EurekaHttpClients      : Initial resolution of Eureka server endpoints failed. Check ConfigClusterResolver logs for more info
+2025-05-29T12:06:01.128+05:30  INFO 4080 --- [api-gateway] [           main] com.netflix.discovery.DiscoveryClient    : Disable delta property : false
+2025-05-29T12:06:01.128+05:30  INFO 4080 --- [api-gateway] [           main] com.netflix.discovery.DiscoveryClient    : Single vip registry refresh property : null
+2025-05-29T12:06:01.128+05:30  INFO 4080 --- [api-gateway] [           main] com.netflix.discovery.DiscoveryClient    : Force full registry fetch : false
+2025-05-29T12:06:01.128+05:30  INFO 4080 --- [api-gateway] [           main] com.netflix.discovery.DiscoveryClient    : Application is null : false
+2025-05-29T12:06:01.128+05:30  INFO 4080 --- [api-gateway] [           main] com.netflix.discovery.DiscoveryClient    : Registered Applications size is zero : true
+2025-05-29T12:06:01.128+05:30  INFO 4080 --- [api-gateway] [           main] com.netflix.discovery.DiscoveryClient    : Application version is -1: true
+2025-05-29T12:06:01.129+05:30  INFO 4080 --- [api-gateway] [           main] com.netflix.discovery.DiscoveryClient    : Getting all instance registry info from the eureka server
+2025-05-29T12:06:01.130+05:30  INFO 4080 --- [api-gateway] [           main] com.netflix.discovery.DiscoveryClient    : DiscoveryClient_API-GATEWAY/LAPTOP-8QGET7VC:api-gateway:0 - was unable to refresh its cache! This periodic background refresh will be retried in 30 seconds. status = There is no known eureka server; cluster server list is empty stacktrace = com.netflix.discovery.shared.transport.TransportException: There is no known eureka server; cluster server list is empty
 	at com.netflix.discovery.shared.transport.decorator.RetryableEurekaHttpClient.execute(RetryableEurekaHttpClient.java:108)
 	at com.netflix.discovery.shared.transport.decorator.EurekaHttpClientDecorator.getApplications(EurekaHttpClientDecorator.java:134)
 	at com.netflix.discovery.shared.transport.decorator.EurekaHttpClientDecorator$6.execute(EurekaHttpClientDecorator.java:137)
@@ -160,6 +178,15 @@ Using generated security password: 8eb16675-9e94-4a7d-8dcd-478ac1d462ba
 	at org.springframework.cloud.netflix.eureka.serviceregistry.EurekaServiceRegistry.maybeInitializeClient(EurekaServiceRegistry.java:83)
 	at org.springframework.cloud.netflix.eureka.serviceregistry.EurekaServiceRegistry.register(EurekaServiceRegistry.java:66)
 	at org.springframework.cloud.netflix.eureka.serviceregistry.EurekaAutoServiceRegistration.start(EurekaAutoServiceRegistration.java:89)
+	at org.springframework.cloud.netflix.eureka.serviceregistry.EurekaAutoServiceRegistration.onApplicationEvent(EurekaAutoServiceRegistration.java:152)
+	at org.springframework.cloud.netflix.eureka.serviceregistry.EurekaAutoServiceRegistration.onApplicationEvent(EurekaAutoServiceRegistration.java:137)
+	at org.springframework.context.event.SimpleApplicationEventMulticaster.doInvokeListener(SimpleApplicationEventMulticaster.java:185)
+	at org.springframework.context.event.SimpleApplicationEventMulticaster.invokeListener(SimpleApplicationEventMulticaster.java:178)
+	at org.springframework.context.event.SimpleApplicationEventMulticaster.multicastEvent(SimpleApplicationEventMulticaster.java:156)
+	at org.springframework.context.support.AbstractApplicationContext.publishEvent(AbstractApplicationContext.java:454)
+	at org.springframework.context.support.AbstractApplicationContext.publishEvent(AbstractApplicationContext.java:387)
+	at org.springframework.boot.web.reactive.context.WebServerManager.start(WebServerManager.java:57)
+	at org.springframework.boot.web.reactive.context.WebServerStartStopLifecycle.start(WebServerStartStopLifecycle.java:41)
 	at org.springframework.context.support.DefaultLifecycleProcessor.doStart(DefaultLifecycleProcessor.java:323)
 	at org.springframework.context.support.DefaultLifecycleProcessor$LifecycleGroup.start(DefaultLifecycleProcessor.java:510)
 	at java.base/java.lang.Iterable.forEach(Iterable.java:75)
@@ -167,6 +194,7 @@ Using generated security password: 8eb16675-9e94-4a7d-8dcd-478ac1d462ba
 	at org.springframework.context.support.DefaultLifecycleProcessor.onRefresh(DefaultLifecycleProcessor.java:240)
 	at org.springframework.context.support.AbstractApplicationContext.finishRefresh(AbstractApplicationContext.java:1006)
 	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:630)
+	at org.springframework.boot.web.reactive.context.ReactiveWebServerApplicationContext.refresh(ReactiveWebServerApplicationContext.java:66)
 	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:752)
 	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:439)
 	at org.springframework.boot.SpringApplication.run(SpringApplication.java:318)
@@ -255,16 +283,16 @@ Using generated security password: 8eb16675-9e94-4a7d-8dcd-478ac1d462ba
 	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
 	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
 
-2025-05-29T12:05:55.020+05:30  INFO 4080 --- [api-gateway] [           main] com.netflix.discovery.DiscoveryClient    : Initial registry fetch from primary servers failed
-2025-05-29T12:05:55.020+05:30  WARN 4080 --- [api-gateway] [           main] com.netflix.discovery.DiscoveryClient    : Using default backup registry implementation which does not do anything.
-2025-05-29T12:05:55.021+05:30  INFO 4080 --- [api-gateway] [           main] com.netflix.discovery.DiscoveryClient    : Initial registry fetch from backup servers failed
-2025-05-29T12:05:55.024+05:30  INFO 4080 --- [api-gateway] [           main] com.netflix.discovery.DiscoveryClient    : Starting heartbeat executor: renew interval is: 30
-2025-05-29T12:05:55.028+05:30  INFO 4080 --- [api-gateway] [           main] c.n.discovery.InstanceInfoReplicator     : InstanceInfoReplicator onDemand update allowed rate per min is 4
-2025-05-29T12:05:55.032+05:30  INFO 4080 --- [api-gateway] [           main] com.netflix.discovery.DiscoveryClient    : Discovery Client initialized at timestamp 1748500555030 with initial instances count: 0
-2025-05-29T12:05:55.040+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.n.e.s.EurekaServiceRegistry        : Registering application API-GATEWAY with eureka with status UP
-2025-05-29T12:05:55.043+05:30  INFO 4080 --- [api-gateway] [           main] com.netflix.discovery.DiscoveryClient    : Saw local status change event StatusChangeEvent [timestamp=1748500555043, current=UP, previous=STARTING]
-2025-05-29T12:05:55.047+05:30  INFO 4080 --- [api-gateway] [foReplicator-%d] com.netflix.discovery.DiscoveryClient    : DiscoveryClient_API-GATEWAY/LAPTOP-8QGET7VC:api-gateway:8085: registering service...
-2025-05-29T12:05:55.048+05:30  WARN 4080 --- [api-gateway] [foReplicator-%d] com.netflix.discovery.DiscoveryClient    : DiscoveryClient_API-GATEWAY/LAPTOP-8QGET7VC:api-gateway:8085 - registration failed There is no known eureka server; cluster server list is empty
+2025-05-29T12:06:01.131+05:30  INFO 4080 --- [api-gateway] [           main] com.netflix.discovery.DiscoveryClient    : Initial registry fetch from primary servers failed
+2025-05-29T12:06:01.132+05:30  WARN 4080 --- [api-gateway] [           main] com.netflix.discovery.DiscoveryClient    : Using default backup registry implementation which does not do anything.
+2025-05-29T12:06:01.132+05:30  INFO 4080 --- [api-gateway] [           main] com.netflix.discovery.DiscoveryClient    : Initial registry fetch from backup servers failed
+2025-05-29T12:06:01.132+05:30  INFO 4080 --- [api-gateway] [           main] com.netflix.discovery.DiscoveryClient    : Starting heartbeat executor: renew interval is: 30
+2025-05-29T12:06:01.133+05:30  INFO 4080 --- [api-gateway] [           main] c.n.discovery.InstanceInfoReplicator     : InstanceInfoReplicator onDemand update allowed rate per min is 4
+2025-05-29T12:06:01.133+05:30  INFO 4080 --- [api-gateway] [           main] com.netflix.discovery.DiscoveryClient    : Discovery Client initialized at timestamp 1748500561133 with initial instances count: 0
+2025-05-29T12:06:01.134+05:30  INFO 4080 --- [api-gateway] [           main] o.s.c.n.e.s.EurekaServiceRegistry        : Registering application API-GATEWAY with eureka with status UP
+2025-05-29T12:06:01.134+05:30  INFO 4080 --- [api-gateway] [           main] com.netflix.discovery.DiscoveryClient    : Saw local status change event StatusChangeEvent [timestamp=1748500561134, current=UP, previous=STARTING]
+2025-05-29T12:06:01.142+05:30  INFO 4080 --- [api-gateway] [foReplicator-%d] com.netflix.discovery.DiscoveryClient    : DiscoveryClient_API-GATEWAY/LAPTOP-8QGET7VC:api-gateway:0: registering service...
+2025-05-29T12:06:01.142+05:30  WARN 4080 --- [api-gateway] [foReplicator-%d] com.netflix.discovery.DiscoveryClient    : DiscoveryClient_API-GATEWAY/LAPTOP-8QGET7VC:api-gateway:0 - registration failed There is no known eureka server; cluster server list is empty
 
 com.netflix.discovery.shared.transport.TransportException: There is no known eureka server; cluster server list is empty
 	at com.netflix.discovery.shared.transport.decorator.RetryableEurekaHttpClient.execute(RetryableEurekaHttpClient.java:108) ~[eureka-client-2.0.4.jar:2.0.4]
@@ -282,7 +310,7 @@ com.netflix.discovery.shared.transport.TransportException: There is no known eur
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642) ~[na:na]
 	at java.base/java.lang.Thread.run(Thread.java:1583) ~[na:na]
 
-2025-05-29T12:05:55.059+05:30  WARN 4080 --- [api-gateway] [foReplicator-%d] c.n.discovery.InstanceInfoReplicator     : There was a problem with the instance info replicator
+2025-05-29T12:06:01.142+05:30  WARN 4080 --- [api-gateway] [foReplicator-%d] c.n.discovery.InstanceInfoReplicator     : There was a problem with the instance info replicator
 
 com.netflix.discovery.shared.transport.TransportException: There is no known eureka server; cluster server list is empty
 	at com.netflix.discovery.shared.transport.decorator.RetryableEurekaHttpClient.execute(RetryableEurekaHttpClient.java:108) ~[eureka-client-2.0.4.jar:2.0.4]
@@ -300,13 +328,116 @@ com.netflix.discovery.shared.transport.TransportException: There is no known eur
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642) ~[na:na]
 	at java.base/java.lang.Thread.run(Thread.java:1583) ~[na:na]
 
-2025-05-29T12:05:55.125+05:30  INFO 4080 --- [api-gateway] [           main] c.s.A.ApiGatewayApplicationTests         : Started ApiGatewayApplicationTests in 8.884 seconds (process running for 12.713)
+2025-05-29T12:06:01.190+05:30  INFO 4080 --- [api-gateway] [           main] c.s.A.g.GatewayApplicationTests          : Started GatewayApplicationTests in 3.768 seconds (process running for 18.778)
+2025-05-29T12:06:01.530+05:30  WARN 4080 --- [api-gateway] [           main] .d.DefaultDnsServerAddressStreamProvider : Default DNS servers: [/[2001:4860:4860:0:0:0:0:8888]:53, /[2001:4860:4860:0:0:0:0:8844]:53] (Google Public DNS as a fallback)
+Request path: /api/users/centre/1, Secured: true
+2025-05-29T12:06:01.992+05:30 ERROR 4080 --- [api-gateway] [           main] o.s.t.w.reactive.server.ExchangeResult   : Request details for assertion failure:
+
+> GET http://localhost:51236/api/users/centre/1
+> accept-encoding: [gzip]
+> user-agent: [ReactorNetty/1.2.4]
+> host: [localhost:51236]
+> accept: [*/*]
+> WebTestClient-Request-Id: [1]
+
+No content
+
+< 401 UNAUTHORIZED Unauthorized
+< Vary: [Origin, Access-Control-Request-Method, Access-Control-Request-Headers]
+< Content-Type: [application/json]
+< Cache-Control: [no-cache, no-store, max-age=0, must-revalidate]
+< Pragma: [no-cache]
+< Expires: [0]
+< X-Content-Type-Options: [nosniff]
+< X-Frame-Options: [DENY]
+< X-XSS-Protection: [0]
+< Referrer-Policy: [no-referrer]
+< content-length: [83]
+
+{"success":false,"message":"Missing Authorization Header","token":null,"user":null}
+
 ]]></system-out>
-    <system-err><![CDATA[Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build what is described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/Mockito.html#0.3
-WARNING: A Java agent has been loaded dynamically (C:\Users\Rishi\.m2\repository\net\bytebuddy\byte-buddy-agent\1.15.11\byte-buddy-agent-1.15.11.jar)
-WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
-WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
-WARNING: Dynamic loading of agents will be disallowed by default in a future release
-]]></system-err>
+  </testcase>
+  <testcase name="testUserDrmRoute" classname="com.springApiGateway.ApiGateway.gatewaytests.GatewayApplicationTests" time="0.018">
+    <failure message="Status expected:&lt;200 OK&gt; but was:&lt;401 UNAUTHORIZED&gt;" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: Status expected:<200 OK> but was:<401 UNAUTHORIZED>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:61)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:128)
+	at org.springframework.test.web.reactive.server.StatusAssertions.lambda$assertStatusAndReturn$4(StatusAssertions.java:236)
+	at org.springframework.test.web.reactive.server.ExchangeResult.assertWithDiagnostics(ExchangeResult.java:232)
+	at org.springframework.test.web.reactive.server.StatusAssertions.assertStatusAndReturn(StatusAssertions.java:236)
+	at org.springframework.test.web.reactive.server.StatusAssertions.isOk(StatusAssertions.java:68)
+	at com.springApiGateway.ApiGateway.gatewaytests.GatewayApplicationTests.testUserDrmRoute(GatewayApplicationTests.java:82)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure>
+    <system-out><![CDATA[Request path: /api/users/details/DRM/1, Secured: true
+2025-05-29T12:06:02.023+05:30 ERROR 4080 --- [api-gateway] [           main] o.s.t.w.reactive.server.ExchangeResult   : Request details for assertion failure:
+
+> GET http://localhost:51236/api/users/details/DRM/1
+> accept-encoding: [gzip]
+> user-agent: [ReactorNetty/1.2.4]
+> host: [localhost:51236]
+> accept: [*/*]
+> WebTestClient-Request-Id: [2]
+
+No content
+
+< 401 UNAUTHORIZED Unauthorized
+< Vary: [Origin, Access-Control-Request-Method, Access-Control-Request-Headers]
+< Content-Type: [application/json]
+< Cache-Control: [no-cache, no-store, max-age=0, must-revalidate]
+< Pragma: [no-cache]
+< Expires: [0]
+< X-Content-Type-Options: [nosniff]
+< X-Frame-Options: [DENY]
+< X-XSS-Protection: [0]
+< Referrer-Policy: [no-referrer]
+< content-length: [83]
+
+{"success":false,"message":"Missing Authorization Header","token":null,"user":null}
+
+]]></system-out>
+  </testcase>
+  <testcase name="testGroupRoute" classname="com.springApiGateway.ApiGateway.gatewaytests.GatewayApplicationTests" time="0.024">
+    <failure message="Status expected:&lt;200 OK&gt; but was:&lt;401 UNAUTHORIZED&gt;" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: Status expected:<200 OK> but was:<401 UNAUTHORIZED>
+	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:61)
+	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:128)
+	at org.springframework.test.web.reactive.server.StatusAssertions.lambda$assertStatusAndReturn$4(StatusAssertions.java:236)
+	at org.springframework.test.web.reactive.server.ExchangeResult.assertWithDiagnostics(ExchangeResult.java:232)
+	at org.springframework.test.web.reactive.server.StatusAssertions.assertStatusAndReturn(StatusAssertions.java:236)
+	at org.springframework.test.web.reactive.server.StatusAssertions.isOk(StatusAssertions.java:68)
+	at com.springApiGateway.ApiGateway.gatewaytests.GatewayApplicationTests.testGroupRoute(GatewayApplicationTests.java:157)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></failure>
+    <system-out><![CDATA[Request path: /api/users/group/1, Secured: true
+2025-05-29T12:06:02.047+05:30 ERROR 4080 --- [api-gateway] [           main] o.s.t.w.reactive.server.ExchangeResult   : Request details for assertion failure:
+
+> GET http://localhost:51236/api/users/group/1
+> accept-encoding: [gzip]
+> user-agent: [ReactorNetty/1.2.4]
+> host: [localhost:51236]
+> accept: [*/*]
+> WebTestClient-Request-Id: [3]
+
+No content
+
+< 401 UNAUTHORIZED Unauthorized
+< Vary: [Origin, Access-Control-Request-Method, Access-Control-Request-Headers]
+< Content-Type: [application/json]
+< Cache-Control: [no-cache, no-store, max-age=0, must-revalidate]
+< Pragma: [no-cache]
+< Expires: [0]
+< X-Content-Type-Options: [nosniff]
+< X-Frame-Options: [DENY]
+< X-XSS-Protection: [0]
+< Referrer-Policy: [no-referrer]
+< content-length: [83]
+
+{"success":false,"message":"Missing Authorization Header","token":null,"user":null}
+
+]]></system-out>
   </testcase>
 </testsuite>

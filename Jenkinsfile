@@ -236,7 +236,7 @@ pipeline {
                 withSonarQubeEnv('cdac-project-sonar-server') {
                   if (svc.lang == 'java') {
                     bat(label: "Sonar Scan for ${svc.name}", script: """
-                      mvn sonar:sonar \
+                      mvn clean install -DskipTests sonar:sonar \
                         -Dsonar.projectKey=${projectKeyForSonar} \
                         -Dsonar.projectName=${svc.name} \
                         -Dsonar.host.url=${env.SONARQUBE_URL} \
