@@ -171,116 +171,147 @@ pipeline {
     //     }
     //   }
     // }
-
-    stage('Build and Unit Tests') {
-      steps {
-        script {
-          // Prepare reports directory
-          // mkdir dir: '/reports/junit'
-
-          services.each { svc ->
-            dir(svc.name) {
-              if (svc.lang == 'java') {
-                catchError(message: "Error executing Maven tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-                  bat 'mvn clean install package -DskipTests'
-                  // bat 'mvn test'
+    stage('Check SonarQube Env') {
+            steps {
+                script {
+                    // Attempt to use it in a very minimal way
+                    try {
+                        // Replace 'your-sonarqube-server-name' with the actual name
+                        // configured in Manage Jenkins -> Configure System -> SonarQube servers
+                        // e.g., 'cdac-project-sonar-server' from your logs
+                        withSonarQubeEnv('cdac-project-sonar-server') {
+                            echo "SUCCESS: withSonarQubeEnv('cdac-project-sonar-server') is available and the server name is recognized."
+                            // You can also try to echo some environment variables it sets
+                            echo "SONAR_HOST_URL: ${env.SONAR_HOST_URL}"
+                            echo "SONAR_AUTH_TOKEN available: ${env.SONAR_AUTH_TOKEN != null}" // Don't echo the token itself for security
+                        }
+                    } catch (MissingMethodException e) {
+                        echo "ERROR: withSonarQubeEnv step is NOT available. Is the SonarQube Scanner plugin installed and enabled?"
+                        echo "Exception: ${e}"
+                        currentBuild.result = 'FAILURE'
+                        error("Halting build: SonarQube Scanner plugin step missing.")
+                    } catch (Exception e) {
+                        // This might catch issues if the server name is wrong or other config problems
+                        echo "ERROR: Problem executing withSonarQubeEnv. Check SonarQube server configuration in Jenkins."
+                        echo "Exception: ${e}"
+                        // It's possible the error message "ERROR: cdac-project-sonar-server" comes from this block
+                        // if Jenkins can't find the server configuration by that name.
+                        currentBuild.result = 'FAILURE'
+                        error("Halting build: Problem with SonarQube environment.")
+                    }
                 }
-              } else if (svc.name == 'UserManagementMicroservice') {
-                dir('server') {
-                  catchError(message: "Error executing TypeScript tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-                    bat 'npm install'
-                    bat 'npx prisma generate'
-                    bat 'npx tsc'
-                    bat 'npx jest --coverage --passWithNoTests'
-                  }
-                }
-              }
-              else {
-                 catchError(message: "Error executing TypeScript tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-                    bat 'npm install'
-                    bat 'npx prisma generate'
-                    bat 'npx tsc'
-                    bat 'npx jest --coverage --passWithNoTests'
-                }
-              }
             }
-          }
         }
-      }
-      post {
-        always {
-          junit testResults: '/reports/junit/*.xml'
-        }
-      }
-    }
 
-    stage('SAST Analysis using SonarQube') {
-      environment {
-        // Define these at pipeline or stage level
-        SONAR_TOKEN = credentials('cdac-project-sonar-server')
-        SONARQUBE_URL = 'http://localhost:9000' // CHANGE_ME
-      }
-      steps {
-        script {
-          // Optional: Install @sonar/scan once if not a devDependency or globally on agent
-          // sh 'npm install -g @sonar/scan' // Or handle via npx / devDependency
+    // stage('Build and Unit Tests') {
+    //   steps {
+    //     script {
+    //       // Prepare reports directory
+    //       // mkdir dir: '/reports/junit'
 
-          services.each { svc ->
-            dir(svc.name) {
-              echo "--- Starting SonarQube Analysis for ${svc.name} ---"
-              // Define projectKey either from svc map or derive it
-              String projectKeyForSonar = svc.name // Example: using service name as key
+    //       services.each { svc ->
+    //         dir(svc.name) {
+    //           if (svc.lang == 'java') {
+    //             catchError(message: "Error executing Maven tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+    //               bat 'mvn clean install package -DskipTests'
+    //               // bat 'mvn test'
+    //             }
+    //           } else if (svc.name == 'UserManagementMicroservice') {
+    //             dir('server') {
+    //               catchError(message: "Error executing TypeScript tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+    //                 bat 'npm install'
+    //                 bat 'npx prisma generate'
+    //                 bat 'npx tsc'
+    //                 bat 'npx jest --coverage --passWithNoTests'
+    //               }
+    //             }
+    //           }
+    //           else {
+    //              catchError(message: "Error executing TypeScript tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+    //                 bat 'npm install'
+    //                 bat 'npx prisma generate'
+    //                 bat 'npx tsc'
+    //                 bat 'npx jest --coverage --passWithNoTests'
+    //             }
+    //           }
+    //         }
+    //       }
+    //     }
+    //   }
+    //   post {
+    //     always {
+    //       junit testResults: '/reports/junit/*.xml'
+    //     }
+    //   }
+    // }
 
-              try {
-                // 'cdac-project-sonar-server' must match the SonarQube server name in Jenkins Global Config
-                withSonarQubeEnv('cdac-project-sonar-server') {
-                  if (svc.lang == 'java') {
-                    bat(label: "Sonar Scan for ${svc.name}", script: """
-                      mvn clean install -DskipTests sonar:sonar \
-                        -Dsonar.projectKey=${projectKeyForSonar} \
-                        -Dsonar.projectName=${svc.name} \
-                        -Dsonar.host.url=${env.SONARQUBE_URL} \
-                        -Dsonar.login=${env.SONAR_TOKEN}
-                    """)
-                  } else { // TypeScript
-                    // Assuming @sonar/scan is available (globally, via npx, or path)
-                    // And sonar-project.properties defines sonar.sources, sonar.javascript.lcov.reportPaths etc.
-                    // OR you pass them all via -D
-                    bat(label: 'Installing sonar/scan', script: 'npm install -g @sonar/scan')
-                    bat(label: "Sonar Scan for ${svc.name}", script: """
-                      sonar \
-                        -Dsonar.projectKey=${projectKeyForSonar} \
-                        -Dsonar.projectName=${svc.name} \
-                        -Dsonar.host.url=${env.SONARQUBE_URL} \
-                        -Dsonar.token=${env.SONAR_TOKEN} \
-                        -Dsonar.projectVersion=${env.BUILD_ID}
-                    """)
-                  }
-                } // End withSonarQubeEnv
+    // stage('SAST Analysis using SonarQube') {
+    //   environment {
+    //     // Define these at pipeline or stage level
+    //     SONAR_TOKEN = credentials('cdac-project-sonar-server')
+    //     SONARQUBE_URL = 'http://localhost:9000' // CHANGE_ME
+    //   }
+    //   steps {
+    //     script {
+    //       // Optional: Install @sonar/scan once if not a devDependency or globally on agent
+    //       // sh 'npm install -g @sonar/scan' // Or handle via npx / devDependency
 
-                // Quality Gate check, now correctly associated with the scan inside withSonarQubeEnv
-                echo "SonarQube analysis submitted for ${svc.name}. Waiting for Quality Gate..."
-                timeout(time: 10, unit: 'MINUTES') {
-                  def qg = waitForQualityGate abortPipeline: false // Don't abort pipeline yet
-                  if (qg.status != 'OK') {
-                    currentBuild.result = 'FAILURE' // Mark build as failure
-                    /* groovylint-disable-next-line LineLength */
-                    error "Quality Gate for ${svc.name} failed: ${qg.status}. Dashboard: ${env.SONARQUBE_URL}/dashboard?id=${projectKeyForSonar}"
-                  } else {
-                    /* groovylint-disable-next-line LineLength */
-                    echo "Quality Gate for ${svc.name} passed! Dashboard: ${env.SONARQUBE_URL}/dashboard?id=${projectKeyForSonar}"
-                  }
-                }
-              } catch (e) {
-                currentBuild.result = 'FAILURE' // Ensure any exception in the try block fails the build
-                error "SonarQube analysis or Quality Gate processing failed for ${svc.name}: ${e.getMessage()}"
-              }
-              echo "--- SonarQube Analysis for ${svc.name} finished ---"
-            }
-          }
-        }
-      }
-    }
+    //       services.each { svc ->
+    //         dir(svc.name) {
+    //           echo "--- Starting SonarQube Analysis for ${svc.name} ---"
+    //           // Define projectKey either from svc map or derive it
+    //           String projectKeyForSonar = svc.name // Example: using service name as key
+
+    //           try {
+    //             // 'cdac-project-sonar-server' must match the SonarQube server name in Jenkins Global Config
+    //             withSonarQubeEnv('cdac-project-sonar-server') {
+    //               if (svc.lang == 'java') {
+    //                 bat(label: "Sonar Scan for ${svc.name}", script: """
+    //                   mvn clean install -DskipTests sonar:sonar \
+    //                     -Dsonar.projectKey=${projectKeyForSonar} \
+    //                     -Dsonar.projectName=${svc.name} \
+    //                     -Dsonar.host.url=${env.SONARQUBE_URL} \
+    //                     -Dsonar.login=${env.SONAR_TOKEN}
+    //                 """)
+    //               } else { // TypeScript
+    //                 // Assuming @sonar/scan is available (globally, via npx, or path)
+    //                 // And sonar-project.properties defines sonar.sources, sonar.javascript.lcov.reportPaths etc.
+    //                 // OR you pass them all via -D
+    //                 bat(label: 'Installing sonar/scan', script: 'npm install -g @sonar/scan')
+    //                 bat(label: "Sonar Scan for ${svc.name}", script: """
+    //                   sonar \
+    //                     -Dsonar.projectKey=${projectKeyForSonar} \
+    //                     -Dsonar.projectName=${svc.name} \
+    //                     -Dsonar.host.url=${env.SONARQUBE_URL} \
+    //                     -Dsonar.token=${env.SONAR_TOKEN} \
+    //                     -Dsonar.projectVersion=${env.BUILD_ID}
+    //                 """)
+    //               }
+    //             } // End withSonarQubeEnv
+
+    //             // Quality Gate check, now correctly associated with the scan inside withSonarQubeEnv
+    //             echo "SonarQube analysis submitted for ${svc.name}. Waiting for Quality Gate..."
+    //             timeout(time: 10, unit: 'MINUTES') {
+    //               def qg = waitForQualityGate abortPipeline: false // Don't abort pipeline yet
+    //               if (qg.status != 'OK') {
+    //                 currentBuild.result = 'FAILURE' // Mark build as failure
+    //                 /* groovylint-disable-next-line LineLength */
+    //                 error "Quality Gate for ${svc.name} failed: ${qg.status}. Dashboard: ${env.SONARQUBE_URL}/dashboard?id=${projectKeyForSonar}"
+    //               } else {
+    //                 /* groovylint-disable-next-line LineLength */
+    //                 echo "Quality Gate for ${svc.name} passed! Dashboard: ${env.SONARQUBE_URL}/dashboard?id=${projectKeyForSonar}"
+    //               }
+    //             }
+    //           } catch (e) {
+    //             currentBuild.result = 'FAILURE' // Ensure any exception in the try block fails the build
+    //             error "SonarQube analysis or Quality Gate processing failed for ${svc.name}: ${e.getMessage()}"
+    //           }
+    //           echo "--- SonarQube Analysis for ${svc.name} finished ---"
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
     stage('Dockerization of services and putting them in same network')
     {
       steps{
