@@ -322,12 +322,26 @@ pipeline {
                   // if (new File("${svc.name}/Dockerfile").exists()) { // Check if Dockerfile exists
                   
                       dir(svc.name) {
-                        if (fileExists('Dockerfile')) {
+                        if(svc.name == 'UserManagementMicroservice') {
+                          dir('server') {
+                             echo "Building Docker image for ${svc.name}"
+                          // Example: Replace 'your-docker-registry'
+                          // Ensure you are logged into your Docker registry
+                          // bat "docker build -t weakpassword/${svc.name.toLowerCase()}:${env.BUILD_NUMBER} ."
+                          // bat "docker push weakpassword/${svc.name.toLowerCase()}:${env.BUILD_NUMBER}"
+                          bat "docker build -t weakpassword/${svc.name.toLowerCase()}:latest ."
+                          bat "docker push weakpassword/${svc.name.toLowerCase()}:latest"
+
+                          }
+                        }
+                        else (fileExists('Dockerfile')) {
                           echo "Building Docker image for ${svc.name}"
                           // Example: Replace 'your-docker-registry'
                           // Ensure you are logged into your Docker registry
-                          bat "docker build -t weakpassword/${svc.name.toLowerCase()}:${env.BUILD_NUMBER} ."
-                          bat "docker push weakpassword/${svc.name.toLowerCase()}:${env.BUILD_NUMBER}"
+                          // bat "docker build -t weakpassword/${svc.name.toLowerCase()}:${env.BUILD_NUMBER} ."
+                          // bat "docker push weakpassword/${svc.name.toLowerCase()}:${env.BUILD_NUMBER}"
+                           bat "docker build -t weakpassword/${svc.name.toLowerCase()}:latest ."
+                          bat "docker push weakpassword/${svc.name.toLowerCase()}:latest"
                       }
                   // }
                 }
