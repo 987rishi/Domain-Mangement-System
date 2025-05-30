@@ -334,7 +334,7 @@ pipeline {
 
                           }
                         }
-                        else (fileExists('Dockerfile')) {
+                        else if (fileExists('Dockerfile')) {
                           echo "Building Docker image for ${svc.name}"
                           // Example: Replace 'your-docker-registry'
                           // Ensure you are logged into your Docker registry
