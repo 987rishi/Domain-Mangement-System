@@ -21,11 +21,11 @@ const getMyNotifications = (req, res) => __awaiter(void 0, void 0, void 0, funct
         // Get count of unread notifications
         const unreadCount = yield (0, notificationDb_service_1.getUnreadNotificationCount)(userEmpNo);
         console.log(notifications);
-        const messages = notifications.map(msg => [
+        const messages = notifications.map((msg) => [
             msg.notification_id,
             msg.message,
             msg.event_type,
-            msg.created_at
+            msg.created_at,
         ]);
         console.log("messages are: ", messages);
         res.status(200).json({ messages, unreadCount });
@@ -39,13 +39,31 @@ exports.getMyNotifications = getMyNotifications;
 // Controller to mark a single notification as read
 const markNotificationRead = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     if (!req.user) {
-        res
-            .status(401)
-            .json({ message: "Unauthorized: User not authenticated" });
+        res.status(401).json({ message: "Unauthorized: User not authenticated" });
         return;
     }
     const userEmpNo = req.user.id;
-    const notificationId = BigInt(req.params.id);
+    const stringId = req.params.id;
+    let notificationId;
+    try {
+        notificationId = BigInt(stringId);
+    }
+    catch (conversionError) {
+        if (conversionError instanceof SyntaxError) {
+            console.error(`Invalid notification ID format '${stringId}':`, conversionError);
+            res
+                .status(400)
+                .json({
+                message: `Invalid notification ID format: '${stringId}'. Must be a numeric ID.`,
+            });
+            return;
+        }
+        console.error("Unexpected error during BigInt conversion for notification ID:", conversionError);
+        res
+            .status(500)
+            .json({ message: "Internal server error processing notification ID." });
+        return;
+    }
     try {
         const success = yield (0, notificationDb_service_1.markDbNotificationAsRead)(notificationId, userEmpNo);
         if (success) {
@@ -67,9 +85,7 @@ exports.markNotificationRead = markNotificationRead;
 // Controller to mark all unread notifications as read
 const markAllNotificationsRead = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     if (!req.user) {
-        res
-            .status(401)
-            .json({ message: "Unauthorized: User not authenticated" });
+        res.status(401).json({ message: "Unauthorized: User not authenticated" });
         return;
     }
     const userEmpNo = req.user.emp_no;

@@ -121,7 +121,11 @@ const assignmentController = (req, res) => __awaiter(void 0, void 0, void 0, fun
                 // If the user doesn't exist, fetch from LDAP and create as usual
                 const ldapData = yield (0, ldapAuth_1.findUserByIdentifier)(emp_no);
                 if (!ldapData)
-                    throw new Error(`${role} not found in LDAP.`);
+                    throw new Error(`${emp_no} not found in LDAP.`);
+                // if(!ldapData) {
+                //   res.status(500).json({message:`${role} not found in LDAP.`});
+                //   return;
+                // }
                 // Split the full name into first name and last name
                 const [firstName, ...rest] = ldapData.fullName.split(" ");
                 const lastName = rest.join(" ") || "";
@@ -185,7 +189,12 @@ const assignmentController = (req, res) => __awaiter(void 0, void 0, void 0, fun
             return assignment;
         }));
         // Return the result of the transaction
-        res.status(201).json({ message: "Project assigned successfully", result: (0, userController_helper_1.stringifyBigInts)(result) });
+        res
+            .status(201)
+            .json({
+            message: "Project assigned successfully",
+            result: (0, userController_helper_1.stringifyBigInts)(result),
+        });
     }
     catch (error) {
         console.error("Assignment error:", error);

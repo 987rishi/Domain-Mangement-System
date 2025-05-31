@@ -74,7 +74,7 @@ function getLocalIpAddress() {
     if (candidates.length > 0) {
         // Return the first candidate (which might have been prioritized)
         console.log(`🌍 Automatically detected IP Address: ${candidates[0]}. Candidates: ${candidates.join(", ")}`);
-        return candidates[1];
+        return candidates[0];
     }
     // 3. Fallback if no suitable IP is found
     console.warn("⚠️ Could not automatically determine a suitable non-internal IPv4 address. Falling back to '127.0.0.1'. " +

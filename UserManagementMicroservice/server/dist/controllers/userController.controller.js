@@ -13,8 +13,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getProjectDetails = exports.getProjectList = exports.getResponsibleOfficials = exports.getAllCentreList = exports.getAllGroupList = exports.getGroupList = exports.getCentreList = exports.getUserListByRole = exports.getUserDetailsByRole = exports.getUserDetails = void 0;
-const database_config_js_1 = __importDefault(require("../config/database.config.js"));
-const userController_helper_js_1 = require("../utils/userController.helper.js");
+const database_config_1 = __importDefault(require("../config/database.config"));
+const userController_helper_1 = require("../utils/userController.helper");
 const getUserDetails = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const emp_no = req.params.empNo;
     if (!emp_no) {
@@ -22,7 +22,7 @@ const getUserDetails = (req, res) => __awaiter(void 0, void 0, void 0, function*
         return;
     }
     try {
-        const userData = yield database_config_js_1.default.appUser.findUnique({
+        const userData = yield database_config_1.default.appUser.findUnique({
             where: {
                 emp_no: BigInt(emp_no),
             },
@@ -33,10 +33,14 @@ const getUserDetails = (req, res) => __awaiter(void 0, void 0, void 0, function*
             });
             return;
         }
-        res.status(200).json((0, userController_helper_js_1.stringifyBigInts)(userData));
+        res.status(200).json((0, userController_helper_1.stringifyBigInts)(userData));
     }
     catch (error) {
-        res.status(400).json({ message: "Internal Server error in fetching details from user service" });
+        res
+            .status(500)
+            .json({
+            message: "Internal Server error in fetching details from user service",
+        });
         console.log(error);
         return;
     }
@@ -56,7 +60,7 @@ const getUserDetailsByRole = (req, res, next) => __awaiter(void 0, void 0, void 
     const { role, empNo } = req.params;
     const empNoBigInt = BigInt(empNo); // Convert param string to BigInt
     try {
-        const roleInfo = (0, userController_helper_js_1.getRoleInfo)(role);
+        const roleInfo = (0, userController_helper_1.getRoleInfo)(role);
         if (!roleInfo) {
             // This check is technically redundant due to express-validator, but good practice
             res.status(400).json({ message: "Invalid role specified." });
@@ -82,7 +86,7 @@ const getUserDetailsByRole = (req, res, next) => __awaiter(void 0, void 0, void 
             return;
         }
         // Serialize BigInts to strings before sending
-        res.status(200).json((0, userController_helper_js_1.stringifyBigInts)(userDetails));
+        res.status(200).json((0, userController_helper_1.stringifyBigInts)(userDetails));
     }
     catch (error) {
         // Catch potential BigInt conversion errors or other issues
@@ -107,7 +111,7 @@ const getUserListByRole = (req, res, next) => __awaiter(void 0, void 0, void 0, 
     const { role } = req.params;
     try {
         // Get the role info object from the role enum value
-        const roleInfo = (0, userController_helper_js_1.getRoleInfo)(role);
+        const roleInfo = (0, userController_helper_1.getRoleInfo)(role);
         if (!roleInfo) {
             // If not found, return a 400 error with a user-friendly message
             res.status(400).json({ message: "Invalid role specified." });
@@ -128,7 +132,7 @@ const getUserListByRole = (req, res, next) => __awaiter(void 0, void 0, void 0, 
             // TODO: Add pagination later if needed (using skip, take)
         });
         // Serialize BigInts before sending
-        res.status(200).json((0, userController_helper_js_1.stringifyBigInts)(userList));
+        res.status(200).json((0, userController_helper_1.stringifyBigInts)(userList));
     }
     catch (error) {
         // Catch any errors and pass them to the next function
@@ -149,7 +153,7 @@ const getCentreList = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     const { centreid } = req.params;
     try {
         // Get the centre from the database by its ID
-        const centre = yield database_config_js_1.default.centre.findUnique({
+        const centre = yield database_config_1.default.centre.findUnique({
             where: {
                 // Use the centre_id as the lookup key
                 centre_id: parseInt(centreid),
@@ -183,7 +187,7 @@ const getGroupList = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     const { groupid } = req.params;
     try {
         // Query the database to find the group department by its ID
-        const group = yield database_config_js_1.default.groupDepartment.findUnique({
+        const group = yield database_config_1.default.groupDepartment.findUnique({
             where: {
                 // Use the dept_id as the lookup key
                 dept_id: parseInt(groupid),
@@ -215,10 +219,10 @@ exports.getGroupList = getGroupList;
 const getAllGroupList = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Retrieve all group departments from the database, ordered by department ID in ascending order
-        const allGroups = yield database_config_js_1.default.groupDepartment.findMany({
+        const allGroups = yield database_config_1.default.groupDepartment.findMany({
             // Sort the results by department ID in ascending order
             orderBy: {
-                dept_id: 'asc',
+                dept_id: "asc",
             },
         });
         // Check if the query returned no results
@@ -248,10 +252,10 @@ exports.getAllGroupList = getAllGroupList;
 const getAllCentreList = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Retrieve all centres from the database, ordered by centre ID in ascending order
-        const allGroups = yield database_config_js_1.default.centre.findMany({
+        const allGroups = yield database_config_1.default.centre.findMany({
             // Sort the results by centre ID in ascending order
             orderBy: {
-                centre_id: 'asc',
+                centre_id: "asc",
             },
         });
         // Check if the query returned no results
@@ -283,7 +287,7 @@ const getResponsibleOfficials = (req, res) => __awaiter(void 0, void 0, void 0, 
     const { empNo } = req.params;
     try {
         // Find the user in the appUser table by their employee number
-        const user = yield database_config_js_1.default.appUser.findUnique({
+        const user = yield database_config_1.default.appUser.findUnique({
             where: { emp_no: BigInt(empNo) },
         });
         // If user is not found, return a 404 error response
@@ -297,7 +301,7 @@ const getResponsibleOfficials = (req, res) => __awaiter(void 0, void 0, void 0, 
         // Check the role of the user and fetch corresponding details
         if (user.role === "DRM") {
             // If role is DRM, find the DRM record by employee number
-            const drm = yield database_config_js_1.default.drm.findUnique({
+            const drm = yield database_config_1.default.drm.findUnique({
                 where: { emp_no: BigInt(empNo) },
                 select: {
                     centre_id: true,
@@ -316,7 +320,7 @@ const getResponsibleOfficials = (req, res) => __awaiter(void 0, void 0, void 0, 
         }
         else if (user.role === "ARM") {
             // If role is ARM, find the ARM record by employee number
-            const arm = yield database_config_js_1.default.arm.findUnique({
+            const arm = yield database_config_1.default.arm.findUnique({
                 where: { emp_no: BigInt(empNo) },
                 select: {
                     centre_id: true,
@@ -341,17 +345,22 @@ const getResponsibleOfficials = (req, res) => __awaiter(void 0, void 0, void 0, 
         // Find the HOD for the centre and department
         const [hod, netops, ed, webmaster, hodHpcIandE] = yield Promise.all([
             // Find HOD for the specific department and centre
-            database_config_js_1.default.hod.findFirst({
+            database_config_1.default.hod.findFirst({
                 // Assuming model name HodList
                 where: {
                     grp_id: deptId,
                     centre_id: centreId,
                     is_active: true,
                 },
-                select: { emp_no: true, hod_fname: true, hod_lname: true, email_id: true }, // Use specific HOD fields
+                select: {
+                    emp_no: true,
+                    hod_fname: true,
+                    hod_lname: true,
+                    email_id: true,
+                }, // Use specific HOD fields
             }),
             // Find NetOps for the specific centre
-            database_config_js_1.default.memberNetops.findUnique({
+            database_config_1.default.memberNetops.findUnique({
                 // Assuming model name MemberNetops
                 // The schema implies centre_id is unique on MemberNetops, so findUnique is appropriate
                 where: { centre_id: centreId /* , is_active: true */ }, // is_active might not be on the where unique clause
@@ -364,7 +373,7 @@ const getResponsibleOfficials = (req, res) => __awaiter(void 0, void 0, void 0, 
                 },
             }),
             // Find ED (Centre Head) for the specific centre
-            database_config_js_1.default.edCentreHead.findUnique({
+            database_config_1.default.edCentreHead.findUnique({
                 // Assuming model name EdCentreHead
                 where: { centre_id: centreId /* , is_active: true */ },
                 select: {
@@ -376,13 +385,13 @@ const getResponsibleOfficials = (req, res) => __awaiter(void 0, void 0, void 0, 
                 },
             }),
             // Find Webmaster for the specific centre
-            database_config_js_1.default.webMaster.findFirst({
+            database_config_1.default.webMaster.findFirst({
                 // Using findFirst for safety, assuming model name WebMaster
                 where: { centre_id: centreId, is_active: true },
                 select: { emp_no: true, fname: true, lname: true, email_id: true },
             }),
             // Find the specific HOD HPC I&E (assuming only one active system-wide based on schema)
-            database_config_js_1.default.hodHpcIandE.findFirst({
+            database_config_1.default.hodHpcIandE.findFirst({
                 // Assuming model name HodHpcIandE
                 where: { is_active: true },
                 select: { emp_no: true, fname: true, lname: true, email_id: true },
@@ -395,7 +404,7 @@ const getResponsibleOfficials = (req, res) => __awaiter(void 0, void 0, void 0, 
         // 4. Respond with all fetched details
         // Convert BigInt emp_no to strings for JSON compatibility before sending
         const stringifyEmpNo = (official) => official ? Object.assign(Object.assign({}, official), { emp_no: official.emp_no.toString() }) : null;
-        res.json({
+        res.status(200).json({
             requestingUserRole: user.role, // Role of the user making the request
             hod: stringifyEmpNo(hod), // HOD of the specific Group/Centre
             netops: stringifyEmpNo(activeNetops), // NetOps of the specific Centre
@@ -436,7 +445,7 @@ const getProjectList = (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
     try {
         // Find all projects where the employee number matches one of the roles
-        const projects = yield database_config_js_1.default.projectAssignment.findMany({
+        const projects = yield database_config_1.default.projectAssignment.findMany({
             where: {
                 // Use the OR operator to match any of the following conditions
                 OR: [
@@ -456,11 +465,13 @@ const getProjectList = (req, res) => __awaiter(void 0, void 0, void 0, function*
             },
         });
         if (projects.length === 0) {
-            res.status(404).json({ message: "No projects found for employee number" });
+            res
+                .status(404)
+                .json({ message: "No projects found for employee number" });
             return;
         }
         // Return the list of projects
-        res.status(200).json((0, userController_helper_js_1.stringifyBigInts)(projects));
+        res.status(200).json((0, userController_helper_1.stringifyBigInts)(projects));
         return;
     }
     catch (error) {
@@ -486,7 +497,7 @@ const getProjectDetails = (req, res) => __awaiter(void 0, void 0, void 0, functi
     const { projectId } = req.params;
     try {
         // Find the project assignment record by its project ID
-        const projectDetails = yield database_config_js_1.default.projectAssignment.findUnique({
+        const projectDetails = yield database_config_1.default.projectAssignment.findUnique({
             // Use the project ID as the lookup key
             where: { project_id: BigInt(projectId) },
             // Include the DRM, ARM, and HOD details in the response
@@ -500,15 +511,13 @@ const getProjectDetails = (req, res) => __awaiter(void 0, void 0, void 0, functi
             },
         });
         // If the project assignment record is not found, return a 404 error with a message
-        if (!exports.getProjectDetails) {
+        if (!projectDetails) {
             res.status(404).json({ error: "Project not found." });
             return;
         }
         if (!(projectDetails === null || projectDetails === void 0 ? void 0 : projectDetails.hod) || !projectDetails.hod.centre_id) {
             console.error(`HOD details or Centre ID missing for project ${projectId}`);
-            res
-                .status(404)
-                .json({
+            res.status(404).json({
                 error: "Associated HOD or Centre information missing for the project.",
             });
             return;
@@ -524,22 +533,22 @@ const getProjectDetails = (req, res) => __awaiter(void 0, void 0, void 0, functi
         // Using Promise.all for efficiency
         const [edInfo, netopsInfo, webmasterInfo, hodHpcInfo] = yield Promise.all([
             // ED for the centre
-            database_config_js_1.default.edCentreHead.findUnique({
+            database_config_1.default.edCentreHead.findUnique({
                 where: { centre_id: centreId },
                 select: { emp_no: true, is_active: true }, // Only fetch emp_no and active status
             }),
             // NetOps for the centre
-            database_config_js_1.default.memberNetops.findUnique({
+            database_config_1.default.memberNetops.findUnique({
                 where: { centre_id: centreId },
                 select: { emp_no: true, is_active: true },
             }),
             // Webmaster for the centre (finding the first active one)
-            database_config_js_1.default.webMaster.findFirst({
+            database_config_1.default.webMaster.findFirst({
                 where: { centre_id: centreId, is_active: true },
                 select: { emp_no: true }, // Assume already filtered by active
             }),
             // HodHpcIandE (finding the first active one globally)
-            database_config_js_1.default.hodHpcIandE.findFirst({
+            database_config_1.default.hodHpcIandE.findFirst({
                 where: { is_active: true },
                 select: { emp_no: true },
             }),
@@ -558,7 +567,7 @@ const getProjectDetails = (req, res) => __awaiter(void 0, void 0, void 0, functi
                 hod_hpc_iande_emp_no: (hodHpcInfo === null || hodHpcInfo === void 0 ? void 0 : hodHpcInfo.emp_no) || null, // Use optional chaining
             } });
         // Return the project assignment record, including the DRM, ARM, and HOD details
-        res.status(200).json((0, userController_helper_js_1.stringifyBigInts)(responseData));
+        res.status(200).json((0, userController_helper_1.stringifyBigInts)(responseData));
     }
     catch (error) {
         // If there's an error, log it and return a 404 error with a message
