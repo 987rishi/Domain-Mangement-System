@@ -96,80 +96,164 @@ pipeline {
     stage('Pre-commit Checks') {
       steps {
         script {
-          services.each { svc ->
-            dir(svc.name) {
-              int checkStyleErrors = 0
-              int gitLeaksErrors   = 0
-              int eslintErrors     = 0
+        boolean anyServiceFailedChecks = false
 
-              if (svc.lang == 'java') {
-                // Maven Checkstyle
-                bat 'mvn checkstyle:checkstyle'
+        services.each { svc ->
+        echo "--- Running Pre-commit Checks for ${svc.name} ---"
+        dir(svc.name) {
+          int checkStyleErrors = 0
+          int gitLeaksErrorsCount = 0
+          int eslintErrorCount = 0 // Corrected variable name from previous example
+
+          // --- GitLeaks (Common for both Java and TypeScript) ---
+          try {
+            echo "Running GitLeaks for ${svc.name}..."
+            bat script: 'gitleaks detect --source . --report-path gitleaks-report.json --report-format json --exit-code 0 --verbose', label: "GitLeaks for ${svc.name}"
+            if (fileExists('gitleaks-report.json')) {
+              def glReportContent = readFile('gitleaks-report.json')
+              if (glReportContent.trim()) {
+                def matcher = (glReportContent =~ /"RuleID":\s*"/) // Example: counts occurrences of RuleID
+                gitLeaksErrorsCount = matcher.findAll().size()
+              } else {
+                gitLeaksErrorsCount = 0
+              }
+              echo "GitLeaks Found in ${svc.name}: ${gitLeaksErrorsCount}"
+            } else {
+              echo "WARN: GitLeaks report (gitleaks-report.json) not found for ${svc.name}."
+              // gitLeaksErrorsCount = 1 // Optionally treat as error
+            }
+          } catch (e) {
+            echo "ERROR running GitLeaks for ${svc.name}: ${e.getMessage()}"
+            gitLeaksErrorsCount = 1
+            anyServiceFailedChecks = true
+            currentBuild.result = 'FAILURE'
+          }
+
+          // --- Language-Specific Checks ---
+          if (svc.lang == 'java') {
+            try {
+              echo "Running Checkstyle for ${svc.name}..."
+              // Use checkstyle:check and let it fail, or checkstyle:checkstyle and parse report
+              // For parsing, make sure it doesn't fail the 'bat' step if errors are found by maven itself
+              bat script: 'mvn checkstyle:checkstyle -Dcheckstyle.failOnViolation=false', label: "Checkstyle for ${svc.name}" // Generates report
+              // Or: bat script: 'mvn checkstyle:check -Dcheckstyle.failsOnError=false', label: "Checkstyle for ${svc.name}"
+
+              if (fileExists('target/checkstyle-result.xml')) {
                 def csReport = readFile('target/checkstyle-result.xml')
-                checkStyleErrors = (csReport =~ '<error ').count
+                def errorMatcher = (csReport =~ /<error /)
+                checkStyleErrors = errorMatcher.findAll().size()
                 echo "Checkstyle Errors in ${svc.name}: ${checkStyleErrors}"
-
-                // GitLeaks
-                bat 'gitleaks detect --source . --report-path leaks.json'
-                def glReport = readFile('leaks.json')
-                gitLeaksErrors = (glReport =~ '"Leaks":\\[').count
-                echo "GitLeaks Errors in ${svc.name}: ${gitLeaksErrors}"
-
-                // Push metrics to Prometheus Pushgateway
-                def metrics = """
-                # HELP checkstyle_errors_total Total Checkstyle errors
-                # TYPE checkstyle_errors_total counter
-                checkstyle_errors_total{service="${svc.name}"} ${checkStyleErrors}
-
-                # HELP gitleaks_errors_total Total GitLeaks errors
-                # TYPE gitleaks_errors_total counter
-                gitleaks_errors_total{service="${svc.name}"} ${gitLeaksErrors}
-                """.trim()
-
-                bat """
-                  echo ${metrics} | curl --data-binary @- \
-                    http://<pushgateway_address>:9091/metrics/job/${env.JOB_NAME}/instance/${svc.name}
-                """
+              } else {
+                echo "WARN: Checkstyle report (target/checkstyle-result.xml) not found for ${svc.name}."
+                // checkStyleErrors = 1 // Optionally treat as error
               }
-              else if (svc.lang == 'typescript') {
-                // ESLint
-                bat 'npx eslint "./src/**/*.ts" --format json --output-file eslint-report.json'
-                def esReport = readFile('eslint-report.json')
-                eslintErrors = (esReport =~ '"errorCount":\\s*(\\d+)')
-                              .findAll()
-                              .sum { it[1].toInteger() }
-                echo "ESLint Errors in ${svc.name}: ${eslintErrors}"
+            } catch (e) {
+              echo "ERROR running Checkstyle for ${svc.name}: ${e.getMessage()}"
+              checkStyleErrors = 1
+              anyServiceFailedChecks = true
+              currentBuild.result = 'FAILURE'
+            }
 
-                // GitLeaks
-                bat 'gitleaks detect --source . --report-path leaks.json'
-                def glReport = readFile('leaks.json')
-                gitLeaksErrors = (glReport =~ '"Leaks":\\[').count
-                echo "GitLeaks Errors in ${svc.name}: ${gitLeaksErrors}"
+            // --- Prometheus Push for Java ---
+            def metricsJava = """
+            # HELP checkstyle_errors_total Total Checkstyle errors
+            # TYPE checkstyle_errors_total gauge
+            checkstyle_errors_total{service="${svc.name}",job="${env.JOB_NAME}"} ${checkStyleErrors}
+            # HELP gitleaks_findings_total Total GitLeaks findings
+            # TYPE gitleaks_findings_total gauge
+            gitleaks_findings_total{service="${svc.name}",job="${env.JOB_NAME}"} ${gitLeaksErrorsCount}
+            """.stripIndent().trim()
+            def metricsFileJava = "metrics_java_${svc.name}.prom"
+            writeFile file: metricsFileJava, text: metricsJava
+            try {
+                bat script: """
+                    echo Pushing Java metrics for ${svc.name} to Pushgateway...
+                    curl --data-binary "@${metricsFileJava}" http://localhost:9091/metrics/job/jenkins_${env.JOB_NAME}/instance/${svc.name}
+                """, label: "Push Java Metrics for ${svc.name}" // Ensure localhost:9091 is correct
+            } catch (e) {
+                echo "WARN: Failed to push Java metrics for ${svc.name} to Pushgateway: ${e.getMessage()}"
+            } finally {
+                // Use a simple del command for Windows if 'bat' is used throughout
+                bat script: "del /F /Q \"${metricsFileJava}\"", label: "Clean up Java metrics file for ${svc.name}"
+            }
 
-                // Push metrics
-                def metrics = """
-                # HELP eslint_errors_total Total ESLint errors
-                # TYPE eslint_errors_total counter
-                eslint_errors_total{service="${svc.name}"} ${eslintErrors}
-
-                # HELP gitleaks_errors_total Total GitLeaks errors
-                # TYPE gitleaks_errors_total counter
-                gitleaks_errors_total{service="${svc.name}"} ${gitLeaksErrors}
-                """.trim()
-
-                bat """
-                  echo ${metrics} | curl --data-binary @- \
-                    http://<pushgateway_address>:9091/metrics/job/${env.JOB_NAME}/instance/${svc.name}
-                """
+          } else if (svc.lang == 'typescript') {
+            try {
+              echo "Running ESLint for ${svc.name}..."
+              // if (!fileExists('node_modules')) { bat 'npm install' } // If needed
+              bat script: 'npx eslint "./src/**/*.ts" --format json --output-file eslint-report.json || exit 0', label: "ESLint for ${svc.name}"
+              if (fileExists('eslint-report.json')) {
+                def esReportContent = readFile('eslint-report.json')
+                if (esReportContent.trim()) {
+                    def esReportJson = new groovy.json.JsonSlurperClassic().parseText(esReportContent)
+                    eslintErrorCount = esReportJson.sum { fileResult ->
+                        (fileResult != null && fileResult.errorCount != null) ? fileResult.errorCount.toInteger() : 0
+                    }
+                } else {
+                    eslintErrorCount = 0
+                }
+                echo "ESLint Errors in ${svc.name}: ${eslintErrorCount}"
+              } else {
+                echo "WARN: ESLint report (eslint-report.json) not found for ${svc.name}."
+                // eslintErrorCount = 1 // Optionally treat as error
               }
+            } catch (e) {
+              echo "ERROR running ESLint for ${svc.name}: ${e.getMessage()}"
+              eslintErrorCount = 1
+              anyServiceFailedChecks = true
+              currentBuild.result = 'FAILURE'
+            }
 
-              // Reset counters (if reused later)
-              checkStyleErrors = 0
-              gitLeaksErrors   = 0
-              eslintErrors     = 0
+            // --- Prometheus Push for TypeScript ---
+            def metricsTs = """
+            # HELP eslint_errors_total Total ESLint errors
+            # TYPE eslint_errors_total gauge
+            eslint_errors_total{service="${svc.name}",job="${env.JOB_NAME}"} ${eslintErrorCount}
+            # HELP gitleaks_findings_total Total GitLeaks findings
+            # TYPE gitleaks_findings_total gauge
+            gitleaks_findings_total{service="${svc.name}",job="${env.JOB_NAME}"} ${gitLeaksErrorsCount}
+            """.stripIndent().trim()
+            def metricsFileTs = "metrics_ts_${svc.name}.prom"
+            writeFile file: metricsFileTs, text: metricsTs
+            try {
+                bat script: """
+                    echo Pushing TypeScript metrics for ${svc.name} to Pushgateway...
+                    curl --data-binary "@${metricsFileTs}" http://localhost:9091/metrics/job/jenkins_${env.JOB_NAME}/instance/${svc.name}
+                """, label: "Push TS Metrics for ${svc.name}" // Ensure localhost:9091 is correct
+            } catch (e) {
+                echo "WARN: Failed to push TypeScript metrics for ${svc.name} to Pushgateway: ${e.getMessage()}"
+            } finally {
+                 bat script: "del /F /Q \"${metricsFileTs}\"", label: "Clean up TS metrics file for ${svc.name}"
             }
           }
-        }
+
+          // --- Decision Point: Fail service if checks found errors ---
+          if (gitLeaksErrorsCount > 0) {
+            echo "FAILURE: ${svc.name} has ${gitLeaksErrorsCount} GitLeaks findings."
+            anyServiceFailedChecks = true
+            currentBuild.result = 'FAILURE'
+          }
+          if (svc.lang == 'java' && checkStyleErrors > 0) {
+            echo "FAILURE: ${svc.name} has ${checkStyleErrors} Checkstyle errors."
+            anyServiceFailedChecks = true
+            currentBuild.result = 'FAILURE'
+          }
+          if (svc.lang == 'typescript' && eslintErrorCount > 0) {
+            echo "FAILURE: ${svc.name} has ${eslintErrorCount} ESLint errors."
+            anyServiceFailedChecks = true
+            currentBuild.result = 'FAILURE'
+          }
+          echo "--- Pre-commit Checks for ${svc.name} Finished ---"
+        } // End dir(svc.name)
+      } // End services.each
+
+      // --- Final Decision: Fail pipeline if any service failed ---
+      if (anyServiceFailedChecks) {
+        error("One or more services failed pre-commit checks. See console output for details.")
+      } else {
+        echo "All services passed pre-commit checks."
+      }
+        } // End script
       }
     }
     // stage('Check SonarQube Env') {
