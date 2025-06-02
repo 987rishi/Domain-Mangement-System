@@ -383,12 +383,12 @@ pipeline {
   //     }
   //   }
 
-  // } // stages
-  // post{
-  //     always{
-  //       bat(label: 'Clearing docker containers', script: 'docker-compose down')
-  //     }
-  // }
+  } // stages
+  post{
+      always{
+        bat(label: 'Clearing docker containers', script: 'docker-compose down')
+      }
+  }
 }
 
 //
