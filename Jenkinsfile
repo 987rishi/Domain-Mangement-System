@@ -95,7 +95,7 @@ pipeline {
 
     stage('Pre-commit Checks') {
       steps {
-        script {
+          script {
       boolean anyServiceFailedChecks = false
 
       services.each { svc ->
@@ -104,15 +104,17 @@ pipeline {
           int checkStyleErrors = 0
           int gitLeaksErrorsCount = 0
           int eslintErrorCount = 0
+          String serviceWorkspacePath = pwd() // Path to the service's root directory
 
           // --- GitLeaks (Common for both Java and TypeScript) ---
           try {
             echo "Running GitLeaks for ${svc.name}..."
             bat script: 'gitleaks detect --source . --report-path gitleaks-report.json --report-format json --exit-code 0 --verbose', label: "GitLeaks for ${svc.name}"
-            if (fileExists('gitleaks-report.json')) {
-              def glReportContent = readFile('gitleaks-report.json').trim()
+            String gitleaksReportFilePath = "${serviceWorkspacePath}/gitleaks-report.json"
+            if (fileExists(gitleaksReportFilePath)) {
+              def glReportContent = readFile(gitleaksReportFilePath).trim()
               if (glReportContent) {
-                def matcher = (glReportContent =~ /"RuleID":\s*"/) // Example
+                def matcher = (glReportContent =~ /"RuleID":\s*"/)
                 gitLeaksErrorsCount = 0
                 while (matcher.find()) {
                     gitLeaksErrorsCount++
@@ -126,7 +128,7 @@ pipeline {
             }
           } catch (e) {
             echo "ERROR running GitLeaks for ${svc.name}: ${e.getMessage()}"
-            gitLeaksErrorsCount = 1 // Indicate failure
+            gitLeaksErrorsCount = 1 
             anyServiceFailedChecks = true
             currentBuild.result = 'FAILURE'
           }
@@ -136,8 +138,9 @@ pipeline {
             try {
               echo "Running Checkstyle for ${svc.name}..."
               bat script: 'mvn checkstyle:checkstyle -Dcheckstyle.failOnViolation=false', label: "Checkstyle for ${svc.name}"
-              if (fileExists('target/checkstyle-result.xml')) {
-                def csReport = readFile('target/checkstyle-result.xml')
+              String checkstyleReportFilePath = "${serviceWorkspacePath}/target/checkstyle-result.xml"
+              if (fileExists(checkstyleReportFilePath)) {
+                def csReport = readFile(checkstyleReportFilePath)
                 def errorMatcher = (csReport =~ /<error /)
                 checkStyleErrors = 0
                 while (errorMatcher.find()) {
@@ -149,7 +152,7 @@ pipeline {
               }
             } catch (e) {
               echo "ERROR running Checkstyle for ${svc.name}: ${e.getMessage()}"
-              checkStyleErrors = 1 // Indicate failure
+              checkStyleErrors = 1
               anyServiceFailedChecks = true
               currentBuild.result = 'FAILURE'
             }
@@ -162,13 +165,10 @@ pipeline {
             # TYPE gitleaks_findings_total gauge
             gitleaks_findings_total{service="${svc.name}",job="${env.JOB_NAME}"} ${gitLeaksErrorsCount}
             """.stripIndent().trim()
-            def metricsFileJava = "metrics_java_${svc.name}.prom"
+            def metricsFileJava = "${serviceWorkspacePath}/metrics_java_${svc.name}.prom" // Write in service dir
             writeFile file: metricsFileJava, text: metricsJava
             try {
-                bat script: """
-                    echo Pushing Java metrics for ${svc.name} to Pushgateway...
-                    curl --data-binary "@${metricsFileJava}" http://localhost:9091/metrics/job/jenkins_${env.JOB_NAME}/instance/${svc.name}
-                """, label: "Push Java Metrics for ${svc.name}"
+                bat script: "curl --data-binary \"@${metricsFileJava}\" http://localhost:9091/metrics/job/jenkins_${env.JOB_NAME}/instance/${svc.name}", label: "Push Java Metrics for ${svc.name}"
             } catch (e) {
                 echo "WARN: Failed to push Java metrics for ${svc.name} to Pushgateway: ${e.getMessage()}"
             } finally {
@@ -176,52 +176,70 @@ pipeline {
             }
 
           } else if (svc.lang == 'typescript') {
+            // ESLint
             try {
                 echo "Running ESLint for ${svc.name}..."
-                String eslintCommand = 'npx eslint "./src/**/*.ts" --format json --output-file eslint-report.json || exit 0'
-                String eslintReportPath = 'eslint-report.json'
+                // Define paths relative to the service's root directory (current 'dir' context)
+                String eslintOutputFile = "eslint-report.json" // Name of the output file
+                String eslintCommand = "npx eslint \"./src/**/*.ts\" --format json --output-file \"${eslintOutputFile}\" || exit 0"
+                String effectiveEslintReportPath = eslintOutputFile // Default path within current dir
 
                 if (svc.name == 'UserManagementMicroservice') {
                     dir('server') {
-                        // if (!fileExists('node_modules')) { bat 'npm install' }
+                        echo "Running npm install in ${pwd()} for ${svc.name}"
+                        bat 'npm install'
+                        echo "Running ESLint in ${pwd()} for ${svc.name}"
                         bat script: eslintCommand, label: "ESLint for ${svc.name}"
                     }
-                    // Report will be in server/eslint-report.json relative to service root
-                    // but current dir for readFile is service root, so adjust path.
-                    if (fileExists('server/eslint-report.json')) { // Check if the file was created in the subdir
-                        eslintReportPath = 'server/eslint-report.json'
-                    } else {
-                        // If not in subdir, check current dir (though it shouldn't be if dir() was used for bat)
-                        eslintReportPath = 'eslint-report.json'
-                    }
+                    // After dir('server'), pwd() is back to service root. Report is in 'server/eslint-report.json'
+                    effectiveEslintReportPath = "server/${eslintOutputFile}"
                 } else {
-                    // if (!fileExists('node_modules')) { bat 'npm install' }
+                    echo "Running npm install in ${pwd()} for ${svc.name}"
+                    bat 'npm install'
+                    echo "Running ESLint in ${pwd()} for ${svc.name}"
                     bat script: eslintCommand, label: "ESLint for ${svc.name}"
+                    // effectiveEslintReportPath remains eslintOutputFile (relative to service root)
                 }
                 
-                if (fileExists(eslintReportPath)) {
-                    def esReportContent = readFile(eslintReportPath).trim()
-                    if (esReportContent) {
-                        def esReportJson = new groovy.json.JsonSlurperClassic().parseText(esReportContent)
-                        eslintErrorCount = esReportJson.sum { fileResult ->
-                            (fileResult != null && fileResult.errorCount != null) ? fileResult.errorCount.toInteger() : 0
+                if (fileExists(effectiveEslintReportPath)) {
+                    try {
+                        def esReportJson = readJSON(file: effectiveEslintReportPath)
+                        if (esReportJson instanceof List) {
+                            eslintErrorCount = esReportJson.sum { fileResult ->
+                                (fileResult != null && fileResult.errorCount != null) ? fileResult.errorCount.toInteger() : 0
+                            }
+                        } else if (esReportJson instanceof Map && esReportJson.errorCount != null) {
+                             eslintErrorCount = esReportJson.errorCount.toInteger()
+                        } else {
+                            echo "WARN: ESLint report for ${svc.name} (${effectiveEslintReportPath}) has an unexpected format or no errorCount. Content: ${readFile(effectiveEslintReportPath)}"
+                            eslintErrorCount = 0
                         }
-                    } else {
-                        eslintErrorCount = 0
+                    } catch (jsonEx) {
+                        echo "ERROR parsing ESLint report JSON for ${svc.name} from ${effectiveEslintReportPath}: ${jsonEx.getMessage()}"
+                        def reportContentForDebug = readFile(file: effectiveEslintReportPath).trim()
+                        echo "DEBUG: Content of ${effectiveEslintReportPath}: '${reportContentForDebug}'"
+                        if (reportContentForDebug == "") {
+                            echo "ESLint report file is empty."
+                            eslintErrorCount = 0
+                        } else {
+                            eslintErrorCount = 1 // Indicate a parsing failure
+                            anyServiceFailedChecks = true
+                            // currentBuild.result = 'FAILURE' // Do not fail here, let the sum decide
+                        }
                     }
                     echo "ESLint Errors in ${svc.name}: ${eslintErrorCount}"
                 } else {
-                    echo "WARN: ESLint report (${eslintReportPath}) not found for ${svc.name}. This might be due to ESLint config issues or no .ts files."
-                    // No report means 0 errors for counting, but it's a warning.
+                    echo "WARN: ESLint report (${effectiveEslintReportPath}) not found for ${svc.name}. Check ESLint config, file paths, or if any .ts files exist in src."
                     eslintErrorCount = 0
                 }
             } catch (e) {
-                echo "ERROR running ESLint for ${svc.name}: ${e.getMessage()}"
-                eslintErrorCount = 1 // Indicate failure
+                echo "ERROR during ESLint execution for ${svc.name}: ${e.getMessage()}"
+                eslintErrorCount = 1 
                 anyServiceFailedChecks = true
-                currentBuild.result = 'FAILURE'
+                // currentBuild.result = 'FAILURE'
             }
 
+            // Prometheus Push for TypeScript
             def metricsTs = """
             # HELP eslint_errors_total Total ESLint errors
             # TYPE eslint_errors_total gauge
@@ -230,15 +248,10 @@ pipeline {
             # TYPE gitleaks_findings_total gauge
             gitleaks_findings_total{service="${svc.name}",job="${env.JOB_NAME}"} ${gitLeaksErrorsCount}
             """.stripIndent().trim()
-            def metricsFileTs = "metrics_ts_${svc.name}.prom"
-            // Handle if UserManagementMicroservice and metrics file should be in 'server' dir
-            // However, writeFile will write relative to current dir() context (service root)
+            def metricsFileTs = "${serviceWorkspacePath}/metrics_ts_${svc.name}.prom"
             writeFile file: metricsFileTs, text: metricsTs
             try {
-                bat script: """
-                    echo Pushing TypeScript metrics for ${svc.name} to Pushgateway...
-                    curl --data-binary "@${metricsFileTs}" http://localhost:9091/metrics/job/jenkins_${env.JOB_NAME}/instance/${svc.name}
-                """, label: "Push TS Metrics for ${svc.name}"
+                bat script: "curl --data-binary \"@${metricsFileTs}\" http://localhost:9091/metrics/job/jenkins_${env.JOB_NAME}/instance/${svc.name}", label: "Push TS Metrics for ${svc.name}"
             } catch (e) {
                 echo "WARN: Failed to push TypeScript metrics for ${svc.name} to Pushgateway: ${e.getMessage()}"
             } finally {
