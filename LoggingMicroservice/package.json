@@ -21,12 +21,16 @@
     "zod": "^3.24.4"
   },
   "devDependencies": {
+    "@eslint/js": "^9.28.0",
     "@types/eureka-js-client": "^4.5.9",
     "@types/express": "^5.0.1",
     "@types/node": "^22.15.17",
+    "eslint": "^9.28.0",
+    "globals": "^16.2.0",
     "nodemon": "^3.1.10",
     "rimraf": "^6.0.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.33.0"
   }
 }
