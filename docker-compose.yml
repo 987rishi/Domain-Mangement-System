@@ -311,6 +311,24 @@ services:
   #     - sonarqube_data:/opt/sonarqube/data
   #     - sonarqube_extensions:/opt/sonarqube/extensions
   #     - sonarqube_logs:/opt/sonarqube/logs
+  # prometheus:
+  #   image: prom/prometheus
+  #   container_name: prometheus
+  #   ports:
+  #     - "9090:9090"
+  #   volumes:
+  #     - ./:/config
+  #     - prometheus-data:/prometheus
+  #   command:
+  #     - "--config.file=/config/prometheus.yml"
+
+  # grafana:
+  #   image: grafana/grafana
+  #   container_name: grafana
+  #   ports:
+  #     - "3000:3000"
+  #   volumes:
+  #     - grafana-data:/var/lib/grafana
 
 
   workflow-service-db:
@@ -411,6 +429,8 @@ volumes:
   user-management-service-db-volume:
   ldap_data:
   ldap_config:
+  prometheus-data:
+  grafana-data:
 
 
 networks:
