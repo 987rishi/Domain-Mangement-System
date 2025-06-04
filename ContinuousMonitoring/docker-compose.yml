@@ -1,0 +1,32 @@
+
+services:
+  
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ../:/config
+      - prometheus-data:/prometheus
+    command:
+      - "--config.file=/config/prometheus.yml"
+    networks:
+      - monitoring-net
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - monitoring-net
+
+networks:
+    monitoring-net:
+      driver: bridge
+volumes:
+    grafana-data:
+    prometheus-data:

@@ -93,6 +93,10 @@ export const eurekaClient = new Eureka({
     hostName: localIP, // ✅ Use actual network IP
     ipAddr: localIP, // ✅ Use actual network IP
     statusPageUrl: `http://${localIP}:${PORT}`, // ✅ Use actual network IP
+    metadata: {
+        'prometheus.path': '/metrics',  // 👈 Prometheus can detect this!
+        'management.port': PORT.toString(),
+    },
     port: {
       "@enabled": true,
       $: Number(PORT),

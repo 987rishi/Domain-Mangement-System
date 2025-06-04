@@ -35,12 +35,23 @@ eureka:
   instance:
 #    prefer-ip-address: true
 #    ip-address: 100.75.10.81
+    metadata-map:
+      prometheus.path: /actuator/prometheus
 
 resilience4j:
   timelimiter:
     configs:
       default:
         timeout-duration: 120s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,eureka,prometheus
+  endpoint:
+    prometheus:
+      enabled: true
 
 
 

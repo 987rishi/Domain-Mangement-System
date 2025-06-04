@@ -305,6 +305,8 @@ services:
   # sonarqube:
   #   image: 4f01870f15a6
   #   container_name: sonarqube
+  #   environment:
+  #     - SONAR_WEB_HOST=0.0.0.0
   #   ports:
   #     - "9000:9000"
   #   volumes:

@@ -10,6 +10,7 @@ import com.dnsManagement.WorkFlowIpVaptService.repo.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,9 @@ import java.util.NoSuchElementException;
 
 @Service
 public class DomainNameService {
+
+  @Value("${WEBHOOK_SECRET}")
+  String webhookSecret;
 
   @Autowired
   private DomainNameRepo domainNameRepo;
@@ -155,7 +159,7 @@ public class DomainNameService {
       vaptRepo.save(vapt);
       domainVerificationRepo.save(domainVerification);
 //      RAJ HAS NOT WRITTEN LOGIC FOR IT YET
-//      notificationClient.sendNotification(buildNotification(domainName));
+      notificationClient.sendNotification(webhookSecret, buildNotification(domainName));
 
       return new ResponseEntity<>(dn, HttpStatus.CREATED);
     } catch (Exception e) {
@@ -939,4 +943,8 @@ public class DomainNameService {
     return new ResponseEntity<>(response,HttpStatus.OK);
 
   }
+
+
 }
+
+

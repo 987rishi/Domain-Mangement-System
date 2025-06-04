@@ -14,6 +14,7 @@ import com.dnsManagement.WorkFlowIpVaptService.repo.DomainRenewalRepo;
 import com.dnsManagement.WorkFlowIpVaptService.repo.DomainVerificationRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,10 @@ import java.util.function.Consumer;
 
 @Service
 public class ApprovalService {
+
+    @Value("${WEBHOOK_SECRET}")
+    String webhookSecret;
+
     @Autowired
     private DomainVerificationRepo domainVerificationRepo;
 
@@ -108,7 +113,7 @@ public class ApprovalService {
                     role,
                     remarks);
 //  ON WHEN RAJ HAS FINSIHED IT
-//            client.sendNotification(notificationWebhook);
+            client.sendNotification(webhookSecret , notificationWebhook);
 
             return ResponseEntity.ok(domainVerification);
         } catch (Exception e) {

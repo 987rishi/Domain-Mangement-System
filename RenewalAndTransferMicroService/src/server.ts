@@ -6,6 +6,7 @@ import routeIndex from "./routes/index";
 import logger from "./middlewares/loggerMiddleware";
 import errorHandler from "./middlewares/errorMiddleware";
 import eurekaClient from "./integrations/eureka/eurekaClient";
+import client from 'prom-client';
 
 const app = express();
 const PORT = process.env.PORT;
@@ -31,6 +32,21 @@ connectDB();
 app.listen(PORT, () =>
   console.log(`Server local: http://localhost:${PORT}`.cyan.bold)
 );
+
+/**
+ * BELOW IS THE CONFIGURATION FOR PROMETHEUS SCRAPING OF METRICS
+ * PLEASE DO NO TOUCH IT 
+ */
+const registry = new client.Registry();
+client.collectDefaultMetrics({ register:registry });
+
+//EXPOSING API FOR METRICS
+app.get('/metrics', async (req, res) => {
+    res.set('Content-Type', registry.contentType);
+    res.end(await registry.metrics());
+});
+// -------------X-------------X-----------------------
+
 
 const intId = setInterval(() => {
   // Registering with eureka service reg
@@ -101,3 +117,5 @@ app.get("/renewl-transfer-service", (req, res) => {
   res.send({ service, port: service.port });
   console.log(service);
 });
+
+

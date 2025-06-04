@@ -26,6 +26,10 @@ public class DomainName {
   @Column(name = "expiry_date", nullable = true)
   private LocalDateTime expiryDate;
 
+  @Column(name = "last_notification_period_sent", nullable = true)
+//  @Enumerated(EnumType.STRING
+  private Integer lastNotificationDateSentForDays;
+
   @Column(name = "d_o_apl", nullable = true)
   private LocalDateTime dateOfApplication; // Date of Application
 

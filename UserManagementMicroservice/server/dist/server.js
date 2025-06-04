@@ -17,6 +17,7 @@ const index_config_js_1 = require("./config/index.config.js");
 const database_config_js_1 = __importDefault(require("./config/database.config.js"));
 const PORT = index_config_js_1.config.port;
 const serviceDiscovery_js_1 = require("./utils/serviceDiscovery.js");
+const prom_client_1 = __importDefault(require("prom-client"));
 /**
  * Establishes a connection to the database using Prisma.
  * Logs a success message upon successful connection.
@@ -52,6 +53,15 @@ connectServer();
 /**
  * Trying to connect with eureka
 */
+/*
+  EXPOSING DEFAULT METRICS FOR PROMETHEUS SCRAPING
+ */
+const registry = new prom_client_1.default.Registry();
+prom_client_1.default.collectDefaultMetrics({ register: registry });
+app_js_1.default.get('/metrics', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    res.set('Content-Type', registry.contentType);
+    res.end(yield registry.metrics());
+}));
 serviceDiscovery_js_1.eurekaClient.start((error) => {
     if (error) {
         console.log("❌ Eureka registration failed:", error);

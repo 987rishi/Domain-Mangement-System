@@ -11,6 +11,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -156,4 +158,15 @@ public interface DomainNameRepo extends JpaRepository<DomainName, Long> {
           (dn.webmaster_emp_no = :webmasterId) 
           """, nativeQuery = true)
   List<DomainNameDto> findDomainToPurchaseByWebmasterId(Long webmasterId);
+
+
+  @Query("SELECT dn from DomainName dn WHERE dn.expiryDate IS NOT NULL AND dn" +
+          ".expiryDate >= :targetExpirationDateStart AND " +
+          "dn.expiryDate < :targetExpirationDateEnd AND " +
+          "(dn.lastNotificationDateSentForDays IS NULL OR dn" +
+          ".lastNotificationDateSentForDays>:daysUntilExpiration)")
+  List<DomainName> findByExpirationDateAndNotificationNeeded(
+          LocalDateTime targetExpirationDateStart,
+          LocalDateTime targetExpirationDateEnd,
+          int daysUntilExpiration);
 }

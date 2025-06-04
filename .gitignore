@@ -2,6 +2,8 @@
 /shelf/
 /workspace.xml
 /.idea
-.log
+*.log
 dump_files/
-UserManagementMicroservice\.scannerwork
+/**/.scannerwork
+/**/.env
+/.vscode
