@@ -52,11 +52,23 @@ app_1.default.get('/metrics', (req, res) => __awaiter(void 0, void 0, void 0, fu
     res.end(yield registry.metrics());
 }));
 // -------------X-------------X-----------------------
-serviceDiscovery_1.eurekaClient.start((error) => {
-    if (error) {
-        console.log("❌ Eureka registration failed:", error);
-    }
-    else {
-        console.log("✅ Registered with Eureka!");
-    }
-});
+// eurekaClient.start((error: unknown) => {
+//   if (error) {
+//     console.log("❌ Eureka registration failed:", error);
+//   } else {
+//     console.log("✅ Registered with Eureka!");
+//   }
+// });
+// 
+const intId = setInterval(() => {
+    // Registering with eureka service reg
+    serviceDiscovery_1.eurekaClient.start((error) => {
+        if (error) {
+            console.log("❌ Eureka registration failed:", error);
+        }
+        else {
+            console.log("✅ Registered with Eureka!");
+            clearInterval(intId);
+        }
+    });
+}, 100000);

@@ -46,10 +46,10 @@ const registry = new client.Registry();
 client.collectDefaultMetrics({ register:registry });
 
 
-app.get('/metrics', async (req, res) => {
-    res.set('Content-Type', registry.contentType);
-    res.end(await registry.metrics());
-});
+// app.get('/metrics', async (req, res) => {
+//     res.set('Content-Type', registry.contentType);
+//     res.end(await registry.metrics());
+// });
 
 
 // eurekaClient.start((error: unknown) => {

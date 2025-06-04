@@ -3,6 +3,7 @@ import authRoutes from "./auth.routes.js";
 import userRoutes from "./user.routes.js";
 import assignRoutes from "./assign.routes.js";
 import updateRoutes from "./update.routes.js";
+import client from "prom-client";
 
 const mainRouter = Router();
 
@@ -20,6 +21,16 @@ const mainRouter = Router();
  */
 mainRouter.get("/health", (req, res) => {
   res.status(200).json({ status: "UP", timestamp: new Date().toISOString() });
+});
+/*
+  EXPOSING DEFAULT METRICS FOR PROMETHEUS SCRAPING
+ */
+const registry = new client.Registry();
+client.collectDefaultMetrics({ register:registry });
+
+mainRouter.get("/metrics", async (req, res) => {
+  res.set("Content-Type", registry.contentType);
+  res.end(await registry.metrics());
 });
 
 /**

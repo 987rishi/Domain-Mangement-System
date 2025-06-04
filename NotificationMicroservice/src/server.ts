@@ -30,14 +30,14 @@ connectServer();
  * BELOW IS THE CONFIGURATION FOR PROMETHEUS SCRAPING OF METRICS
  * PLEASE DO NO TOUCH IT 
  */
-const registry = new client.Registry();
-client.collectDefaultMetrics({ register:registry });
+// const registry = new client.Registry();
+// client.collectDefaultMetrics({ register:registry });
 
-//EXPOSING API FOR METRICS
-app.get('/metrics', async (req, res) => {
-    res.set('Content-Type', registry.contentType);
-    res.end(await registry.metrics());
-});
+// //EXPOSING API FOR METRICS
+// app.get('/metrics', async (req, res) => {
+//     res.set('Content-Type', registry.contentType);
+//     res.end(await registry.metrics());
+// });
 // -------------X-------------X-----------------------
 
 // eurekaClient.start((error: unknown) => {
