@@ -5,3 +5,4 @@ node_modules
 container.env
 ./dist
 ./vscode
+./docs
