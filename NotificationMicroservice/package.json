@@ -9,7 +9,8 @@
     "start": "node ./dist/server.js",
     "server": "nodemon ./dist/server.js",
     "watch": "tsc -w",
-    "dev": "concurrently \"npm run watch\" \"npm run server\" "
+    "dev": "concurrently \"npm run watch\" \"npm run server\" ",
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
@@ -28,14 +29,16 @@
     "@eslint/js": "^9.28.0",
     "@types/eureka-js-client": "^4.5.9",
     "@types/express": "^5.0.1",
+    "@types/jest": "^29.5.14",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22.13.17",
     "@types/nodemailer": "^6.4.17",
     "concurrently": "^9.1.2",
     "eslint": "^9.28.0",
     "eureka-js-client": "^4.5.0",
-    "globals": "^16.2.0",
-    "typescript": "^5.8.3",
-    "typescript-eslint": "^8.33.0"
+    "jest": "^29.7.0",
+    "ts-jest": "^29.3.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
   }
 }
