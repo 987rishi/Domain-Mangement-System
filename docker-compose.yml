@@ -302,17 +302,17 @@ services:
       - service-registry
 
   
-  # sonarqube:
-  #   image: 4f01870f15a6
-  #   container_name: sonarqube
-  #   environment:
-  #     - SONAR_WEB_HOST=0.0.0.0
-  #   ports:
-  #     - "9000:9000"
-  #   volumes:
-  #     - sonarqube_data:/opt/sonarqube/data
-  #     - sonarqube_extensions:/opt/sonarqube/extensions
-  #     - sonarqube_logs:/opt/sonarqube/logs
+  sonarqube:
+    image: 4f01870f15a6
+    container_name: sonarqube
+    environment:
+      - SONAR_WEB_HOST=0.0.0.0
+    ports:
+      - "9000:9000"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
   # prometheus:
   #   image: prom/prometheus
   #   container_name: prometheus

@@ -12,10 +12,10 @@ import com.dnsManagement.WorkFlowIpVaptService.openfeign.NotificationClient;
 import com.dnsManagement.WorkFlowIpVaptService.repo.DomainNameRepo;
 import com.dnsManagement.WorkFlowIpVaptService.repo.DomainRenewalRepo;
 import com.dnsManagement.WorkFlowIpVaptService.repo.DomainVerificationRepo;
+import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,20 +28,27 @@ import java.util.function.Consumer;
 @Service
 public class ApprovalService {
 
-    @Value("${WEBHOOK_SECRET}")
+
+  @Value("${WEBHOOK_SECRET}")
     String webhookSecret;
 
-    @Autowired
-    private DomainVerificationRepo domainVerificationRepo;
 
-    @Autowired
-    private DomainRenewalRepo domainRenewalRepo;
+    private final DomainVerificationRepo domainVerificationRepo;
 
-    @Autowired
-    private DomainNameRepo domainNameRepo;
+    private final DomainRenewalRepo domainRenewalRepo;
 
-    @Autowired
-    private NotificationClient client;
+    private final DomainNameRepo domainNameRepo;
+
+    private final NotificationClient client;
+
+
+  @Autowired
+  public ApprovalService(DomainVerificationRepo domainVerificationRepo, DomainRenewalRepo domainRenewalRepo, DomainNameRepo domainNameRepo, NotificationClient client) {
+    this.domainVerificationRepo = domainVerificationRepo;
+    this.domainRenewalRepo = domainRenewalRepo;
+    this.domainNameRepo = domainNameRepo;
+    this.client = client;
+  }
 
     private final Map<Role, Consumer<DomainVerification>> roleHandlers = Map.of(
             Role.ARM, dv -> {
@@ -83,7 +90,8 @@ public class ApprovalService {
     );
 
     @Transactional
-    public ResponseEntity<?> approve(Long domainNameId, String remarks, Role role) {
+    public ResponseEntity<DomainVerification> approve(Long domainNameId, String remarks,
+                                     Role role) {
         DomainVerification domainVerification = domainVerificationRepo
                 .findByDomainNameId(domainNameId)
                 .orElseThrow(() ->
@@ -193,10 +201,12 @@ public class ApprovalService {
             case NETOPS -> dv.setNetopsRemarks(remarks);
             case WEBMASTER -> dv.setWebmasterRemarks(remarks);
             case HODHPC -> dv.setHpcRemarks(remarks);
+            default -> throw new IllegalArgumentException("ILLEGAL ROLE:" + role);
         }
     }
 
-    private void hodRenewalVerify(DomainVerification dv){
+    @Transactional
+    public void hodRenewalVerify(DomainVerification dv) {
         DomainName domainName = dv.getDomainName();
 
         if(!domainName.isRenewal())
@@ -215,13 +225,8 @@ public class ApprovalService {
 
         renewal.setHodApprovalDate(LocalDateTime.now());
 
-        try{
-            domainRenewalRepo.save(renewal);
-        }catch(Exception e)
-        {
-            throw new RuntimeException("ERROR WHILE SAVING SAVING RENEWAL " +
-                    "RECORD. " +
-                    e.getMessage());
-        }
+
+        domainRenewalRepo.save(renewal);
+
     }
 }

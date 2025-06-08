@@ -20,11 +20,14 @@ public class DomainExpirationScheduler {
   private static final Logger logger =
           LoggerFactory.getLogger(DomainExpirationScheduler.class);
 
-  @Autowired
-  private EmailService emailService;
+  private final EmailService emailService;
 
-  @Autowired
-  private DomainNameRepo domainRepository;
+  private final DomainNameRepo domainRepository;
+
+  public DomainExpirationScheduler(EmailService emailService, DomainNameRepo domainRepository) {
+    this.emailService = emailService;
+    this.domainRepository = domainRepository;
+  }
 
   @Scheduled(cron = "${scheduler.cron.expression}")
   @Transactional
