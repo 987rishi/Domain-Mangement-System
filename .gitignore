@@ -5,5 +5,5 @@
 *.log
 dump_files/
 /**/.scannerwork
-**/.env
+**/*.env
 .vscode
