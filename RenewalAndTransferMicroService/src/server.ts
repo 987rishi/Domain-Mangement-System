@@ -44,13 +44,13 @@ const intId = setInterval(() => {
   });
 }, 100000);
 
-// eurekaClient.start((error: unknown) => {
-//   if (error) {
-//     console.log("❌ Eureka registration failed:", error);
-//   } else {
-//     console.log("✅ Registered with Eureka!");
-//   }
-// });
+eurekaClient.start((error: unknown) => {
+  if (error) {
+    console.log("❌ Eureka registration failed:", error);
+  } else {
+    console.log("✅ Registered with Eureka!");
+  }
+});
 
 // Deregistering from eureka service reg
 process.on("SIGINT", () => eurekaClient.stop());

@@ -26,25 +26,25 @@ app.use(errorMiddleware_1.default);
 (0, methods_1.connectDB)();
 // Start the server
 app.listen(PORT, () => console.log(`Server local: http://localhost:${PORT}`.cyan.bold));
-const intId = setInterval(() => {
-    // Registering with eureka service reg
-    eurekaClient_1.default.start((error) => {
-        if (error) {
-            console.log("❌ Eureka registration failed:", error);
-        }
-        else {
-            console.log("✅ Registered with Eureka!");
-            clearInterval(intId);
-        }
-    });
-}, 100000);
-// eurekaClient.start((error: unknown) => {
-//   if (error) {
-//     console.log("❌ Eureka registration failed:", error);
-//   } else {
-//     console.log("✅ Registered with Eureka!");
-//   }
-// });
+// const intId = setInterval(() => {
+//   // Registering with eureka service reg
+//   eurekaClient.start((error: unknown) => {
+//     if (error) {
+//       console.log("❌ Eureka registration failed:", error);
+//     } else {
+//       console.log("✅ Registered with Eureka!");
+//       clearInterval(intId);
+//     }
+//   });
+// }, 1000);
+eurekaClient_1.default.start((error) => {
+    if (error) {
+        console.log("❌ Eureka registration failed:", error);
+    }
+    else {
+        console.log("✅ Registered with Eureka!");
+    }
+});
 // Deregistering from eureka service reg
 process.on("SIGINT", () => eurekaClient_1.default.stop());
 // Setup database disconnect on exit
