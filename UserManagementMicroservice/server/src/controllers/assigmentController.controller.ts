@@ -5,7 +5,8 @@ import { Role } from "@prisma/client";
 import { stringifyBigInts } from "../utils/userController.helper";
 import { assignmentSchemaValidation } from "../middleware/schemaValidation";
 import { formatError } from "../utils/helper";
-
+import { findNotificationServiceUrl } from "../services/notificationSender";
+import axios from "axios";
 /**
      * This is the transaction that creates the project assignment. If any of the
      * operations inside the transaction throw an error, the entire transaction
@@ -64,6 +65,7 @@ export const assignmentController = async (
 ): Promise<void> => {
   // const { project_name, project_remarks,drm_emp_no,arm_emp_no} = req.body;
   const assignDrmArmBody = req.body;
+  const webhookAPI = await findNotificationServiceUrl();
   const payload = assignmentSchemaValidation.safeParse(assignDrmArmBody);
   if (!payload.success) {
     const errors = formatError(payload.error);
@@ -206,6 +208,35 @@ export const assignmentController = async (
         message: "Project assigned successfully",
         result: stringifyBigInts(result),
       });
+   try {
+     // send the notification
+     await axios.post(
+       webhookAPI,
+       {
+         eventType: "PROJECT_ASSIGNED",
+         timestamp: new Date().toISOString(),
+         triggeredBy: {
+           emp_no: Number(hod_emp_no),
+           role: "HOD",
+         },
+         data: {
+           domainName: project_name,
+           remarks: project_remarks,
+         },
+         recipients: {
+           drm_emp_no: Number(drm_emp_no),
+           arm_emp_no: Number(arm_emp_no),
+         },
+       },
+       {
+         headers: {
+           "X-Webhook-Secret": "cdac@notificationSecret789",
+         },
+       }
+     );
+   } catch (error) {
+    console.warn("Webhook notification failed:", error);
+   }
   } catch (error: any) {
     console.error("Assignment error:", error);
     res

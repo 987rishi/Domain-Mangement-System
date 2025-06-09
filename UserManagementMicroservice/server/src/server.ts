@@ -52,13 +52,13 @@ client.collectDefaultMetrics({ register:registry });
 // });
 
 
-// eurekaClient.start((error: unknown) => {
-//   if (error) {
-//     console.log("❌ Eureka registration failed:", error);
-//   } else {
-//     console.log("✅ Registered with Eureka!");
-//   }
-// });
+eurekaClient.start((error: unknown) => {
+  if (error) {
+    console.log("❌ Eureka registration failed:", error);
+  } else {
+    console.log("✅ Registered with Eureka!");
+  }
+});
 const intId = setInterval(() => {
   // Registering with eureka service reg
   eurekaClient.start((error: unknown) => {

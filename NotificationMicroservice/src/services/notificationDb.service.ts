@@ -133,8 +133,35 @@ export const markAllDbNotificationsAsRead = async (
   }
 };
 
+export const markBulkDbNotificationsAsRead = async (
+  notificationIds: bigint[],
+  userEmpNo: bigint
+): Promise<number> => {
+  try {
+    const result = await prisma.notification.updateMany({
+      where: {
+        notification_id: {
+          in: notificationIds,
+        },
+        recipient_emp_no: userEmpNo, // Crucial: User can only mark their own notifications
+        is_read: false, // Optional: Only update those that are currently unread
+      },
+      data: {
+        is_read: true,
+        read_at: new Date(),
+      },
+    });
+    return result.count; // Returns the number of records updated
+  } catch (error) {
+    console.error("Error in markBulkDbNotificationsAsRead service:", error);
+    // You might want to throw a custom error or handle specific Prisma errors
+    throw new Error("Database error while marking bulk notifications as read.");
+  }
+};
+
 // Graceful shutdown for Prisma Client
 process.on("beforeExit", async () => {
   console.log("Disconnecting Prisma Client...");
   await prisma.$disconnect();
 });
+

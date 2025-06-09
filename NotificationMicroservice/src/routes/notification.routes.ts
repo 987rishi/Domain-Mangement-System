@@ -5,6 +5,7 @@ import {
   getMyNotifications,
   markNotificationRead,
   markAllNotificationsRead,
+  markBulkNotificationsRead,
 } from "../controllers/notificationApi.controller";
 import { authMiddleware } from "../middleware/authMiddleware";
 import { Request,Response } from "express";
@@ -23,6 +24,8 @@ notificationRouter.patch("/:id/read", authMiddleware, markNotificationRead);
 // POST /api/v1/notifications/mark-all-read
 notificationRouter.post("/mark-all-read", authMiddleware, markAllNotificationsRead);
 
+// POST /api/v1/notifications/mark-bulk-read
+notificationRouter.post("/mark-bulk-read", authMiddleware, markBulkNotificationsRead);
 
 
 export default notificationRouter;
