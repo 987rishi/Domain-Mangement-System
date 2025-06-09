@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 
@@ -99,5 +100,19 @@ public class GlobalExceptionHandler {
     );
     return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
   }
+  @ExceptionHandler(SQLException.class)
+  public ResponseEntity<ExceptionResponse> handleSQLExceptions(
+          HttpServletRequest request,
+          Exception exception
+  ) {
+    ExceptionResponse response = new ExceptionResponse(
+            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            LocalDateTime.now(),
+            exception.getMessage(),
+            request.getRequestURI()
+    );
+    return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+
 
 }

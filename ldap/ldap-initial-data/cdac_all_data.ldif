@@ -1,0 +1,366 @@
+# extended LDIF
+#
+# LDAPv3
+# base <dc=cdac,dc=in,dc=world> with scope subtree
+# filter: (objectClass=*)
+# requesting: ALL
+#
+
+dn: cn=admin,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: simpleSecurityObject
+objectClass: organizationalRole
+cn: admin
+userPassword: adminpassword
+description: LDAP Administrator
+
+# cdac.in.world
+dn: dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: top
+objectClass: dcObject
+objectClass: organization
+o: CDAC
+dc: cdac
+
+# User, cdac.in.world
+dn: ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: organizationalUnit
+objectClass: top
+ou: User
+
+# PU, User, cdac.in.world
+dn: ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: organizationalUnit
+objectClass: top
+ou: PU
+
+# Group, PU, User, cdac.in.world
+dn: ou=Group,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: organizationalUnit
+objectClass: top
+ou: Group
+
+# People, PU, User, cdac.in.world
+dn: ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: organizationalUnit
+objectClass: top
+ou: People
+
+# csb22067, People, PU, User, cdac.in.world
+dn: uid=csb22067,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Hansraj Singh
+sn: Singh
+givenName: Hansraj
+uid: csb22067
+mail: csb22067@tezu.ac.in
+uidNumber: 10000
+gidNumber: 500
+homeDirectory: /home/csb22067
+userPassword:: e1NTSEF9bXJ4UWxBM0d6dGRLd0VKSVpscXBSd1BISUUrVHQ3VWQ=
+
+# 220067, People, PU, User, cdac.in.world
+dn: uid=220067,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Aryan Sharma
+sn: Sharma
+uid: 220067
+gidNumber: 5001
+mail: csb22067@cdac.in
+homeDirectory: /home/220067
+userPassword:: e1NTSEF9R21JWW5MVWhXSDhycllobnBKSThkWHBBUzBwdUtOYkg=
+uidNumber: 220067
+
+# 220055, People, PU, User, cdac.in.world
+dn: uid=220055,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Raj Raushan
+sn: Raushan
+uid: 220055
+gidNumber: 5001
+mail: csb22055@tezu.ac.in
+homeDirectory: /home/220055
+userPassword:: e1NTSEF9eVdRd0NQNzNSbDdaL3lRMEtmblk1dlN3L0taVlpGRGg=
+uidNumber: 220055
+
+# 220005, People, PU, User, cdac.in.world
+dn: uid=220005,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Rishi Sarkar
+sn: Sarkar
+uid: 220005
+gidNumber: 5001
+mail: csb22005@tezu.ac.in
+homeDirectory: /home/220005
+userPassword:: e1NTSEF9bW9zYnNCSDUweEJ1cVhwQ0JqMDNVek84RytSczJCbXo=
+uidNumber: 220005
+
+# 220001, People, PU, User, cdac.in.world
+dn: uid=220001,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Ankit Mishra
+sn: Mishra
+uid: 220001
+gidNumber: 5001
+homeDirectory: /home/220001
+userPassword:: e1NTSEF9V0p1ZHh6QThLUjFoZ3lUWHRTbHFySWt6YTZ2N1NYWkU=
+uidNumber: 220001
+mail: ankitNETOPS@cdac.in
+
+# 220002, People, PU, User, cdac.in.world
+dn: uid=220002,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Nidhi Kumari
+sn: Kumari
+uid: 220002
+gidNumber: 5001
+homeDirectory: /home/220002
+userPassword:: e1NTSEF9SmptRWZBdkQ5TVNmRnM5R1B5ejdrTWhPZEFIT0l1WEQ=
+uidNumber: 220002
+mail: nidhiARM@cdac.in
+
+# 220003, People, PU, User, cdac.in.world
+dn: uid=220003,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Arjun Singh
+sn: Singh
+uid: 220003
+gidNumber: 5001
+homeDirectory: /home/220003
+userPassword:: e1NTSEF9OFRRL2lWZHlWeTBEUW03bDdGbE1kODZReFdPa0N2WnU=
+uidNumber: 220003
+mail: arjunDRM@cdac.in
+
+# 220004, People, PU, User, cdac.in.world
+dn: uid=220004,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Priya Rani
+sn: Rani
+uid: 220004
+gidNumber: 5001
+mail: priya@cdac.in
+homeDirectory: /home/220004
+userPassword:: e1NTSEF9cE1Md2pWY1ZyZG1WQURWNmpIbDFNSEYyM0paakwxZEo=
+uidNumber: 220004
+
+# 220006, People, PU, User, cdac.in.world
+dn: uid=220006,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Saurav Kumar
+sn: Kumar
+uid: 220006
+gidNumber: 5001
+mail: saurav@cdac.in
+homeDirectory: /home/220006
+userPassword:: e1NTSEF9OWkyNVF3cTd6YUNXNHVJS1I1bmYzQWNJcUhZRzV1amY=
+uidNumber: 220006
+
+# 220007, People, PU, User, cdac.in.world
+dn: uid=220007,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Tanya Verma
+sn: Verma
+uid: 220007
+gidNumber: 5001
+homeDirectory: /home/220007
+userPassword:: e1NTSEF9RGRxZ2lTUXJicFRMQUY0MmxCbmw3Mmo0YUpUQWgzOVU=
+uidNumber: 220007
+mail: tanyaHOD@cdac.in
+
+# 220008, People, PU, User, cdac.in.world
+dn: uid=220008,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Manish Sharma
+sn: Sharma
+uid: 220008
+gidNumber: 5001
+mail: manish@cdac.in
+homeDirectory: /home/220008
+userPassword:: e1NTSEF9S2pUaENqdWdxbDdzcC9ZbFpJNHVzbHpzd1ZaOVBBZGI=
+uidNumber: 220008
+
+# 220009, People, PU, User, cdac.in.world
+dn: uid=220009,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Ankit Anand
+sn: Anand
+uid: 220009
+uidNumber: 220009
+gidNumber: 5001
+mail: csb22052@tezu.ac.in
+homeDirectory: /home/220009
+userPassword:: e1NTSEF9V0pxQUpNbkJLNlhMWUhiOUtReTlId3oyeTdjaEtTV3Y=
+
+# 220010, People, PU, User, cdac.in.world
+dn: uid=220010,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Vikrant Kumar
+sn: Kumar
+uid: 220010
+uidNumber: 220010
+gidNumber: 5001
+mail: csb22062@tezu.ac.in
+homeDirectory: /home/220010
+userPassword:: e1NTSEF9bitPYmRwTmVUbkJnWElpMnRoNXVhbExhWUpQckpGSDY=
+
+# 220012, People, PU, User, cdac.in.world
+dn: uid=220012,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: 220012
+uidNumber: 220012
+gidNumber: 5001
+cn: Meera Joshi
+sn: Joshi
+givenName: Meera
+homeDirectory: /home/220012
+userPassword:: e1NTSEF9ckNoZ051Y2d0Z0FSdXF3ZS82ZGcwTzNCcm1Tb0lsNEw=
+mail: meeraHOD.joshi@cdac.in
+
+# 220013, People, PU, User, cdac.in.world
+dn: uid=220013,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: 220013
+uidNumber: 220013
+gidNumber: 5001
+cn: Ravi Kumar
+sn: Kumar
+givenName: Ravi
+homeDirectory: /home/220013
+userPassword:: e1NTSEF9NnBvYmNFSzZ3UCtFbDBUNjFFUmE1ZFc2T1lqc0Zta3I=
+mail: raviED.kumar@cdac.in
+
+# 6001, People, PU, User, cdac.in.world
+dn: uid=6001,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: 6001
+uidNumber: 6001
+gidNumber: 5001
+cn: Sneha Rane
+sn: Rane
+givenName: Sneha
+homeDirectory: /home/6001
+userPassword:: e1NTSEF9NUF2NDAxQnE3MjdsQ3FQQmRHRHhxWjdHZFplSk1lSUM=
+mail: snehaHODHPC.rane@cdac.in
+
+# 8001, People, PU, User, cdac.in.world
+dn: uid=8001,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: 8001
+uidNumber: 8001
+gidNumber: 5001
+cn: Neha Kulkarni
+sn: Kulkarni
+givenName: Neha
+homeDirectory: /home/8001
+userPassword:: e1NTSEF9OVFudzdIZTJUaTR0N3h4aHlLeW5HWVBMNlJNck9qSDQ=
+mail: nehaWEBMASTER.kulkarni@cdac.in
+
+# GW, User, cdac.in.world
+dn: ou=GW,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: top
+objectClass: organizationalUnit
+ou: GW
+
+# Group, GW, User, cdac.in.world
+dn: ou=Group,ou=GW,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: top
+objectClass: organizationalUnit
+ou: Group
+
+# People, GW, User, cdac.in.world
+dn: ou=People,ou=GW,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: top
+objectClass: organizationalUnit
+ou: People
+
+# 7001, People, GW, User, cdac.in.world
+dn: uid=7001,ou=People,ou=GW,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: 7001
+uidNumber: 7001
+gidNumber: 5002
+cn: Anil Patil
+sn: Patil
+givenName: Anil
+mail: anil.patil@cdac.in
+homeDirectory: /home/7001
+userPassword:: e1NTSEF9bm11V2RuMU1CTGRNaHdsKzdDcHZuVE8zYVRscjJHQkQ=
+
+# search result
+search: 2
+result: 0 Success
+
+# numResponses: 27
+# numEntries: 26

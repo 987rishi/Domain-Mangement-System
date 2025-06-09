@@ -2,4 +2,8 @@
 /shelf/
 /workspace.xml
 /.idea
-.log
+*.log
+dump_files/
+/**/.scannerwork
+**/*.env
+.vscode

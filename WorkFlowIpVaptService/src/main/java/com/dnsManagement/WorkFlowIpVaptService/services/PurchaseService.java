@@ -9,6 +9,7 @@ import com.dnsManagement.WorkFlowIpVaptService.openfeign.NotificationClient;
 import com.dnsManagement.WorkFlowIpVaptService.repo.*;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,9 @@ import java.util.NoSuchElementException;
 
 @Service
 public class PurchaseService {
+
+    @Value("${WEBHOOK_SECRET}")
+    String webhookSecret;
 
     @Autowired
     private PurchasesRepo purchasesRepo;
@@ -132,7 +136,8 @@ public class PurchaseService {
             domainNameRepo.save(domainName);
 //            vaptRepo.save(vapt);
 //            ipRepo.save(ip);
-//            notificationClient.sendNotification(buildNotification(domainName));
+            notificationClient.sendNotification(webhookSecret,
+                    buildNotification(domainName));
 
             return new ResponseEntity<>(
                     purchasesRepo.save(purchases),

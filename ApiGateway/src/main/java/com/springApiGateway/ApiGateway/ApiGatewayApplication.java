@@ -25,16 +25,21 @@ public class ApiGatewayApplication {
   private static final String USER_MANAGEMENT_SERVICE_ID = "USER-MANAGEMENT-SERVICE";
   private static final String WORKFLOW_SERVICE_ID = "WORKFLOW-SERVICE";
   private static final String RENEWAL_TRANSFER_SERVICE_ID = "RENEWAL-TRANSFER-SERVICE";
+  private static final String NOTIFICATION_SERVICE_ID = "NOTIFICATION-SERVICE";
 
   private static final String USER_MANAGEMENT_ROUTE_ID = "user-management-routes";
   private static final String UNREAD_NOTIFICATIONS_ROUTE_ID = "unread-notifications-route";
   private static final String WORKFLOW_SERVICE_ROUTE_ID = "workflow-service-routes";
   private static final String RENEWAL_TRANSFER_ROUTE_ID = "renewal-transfer-service-routes";
+  private static final String NOTIFICATION_ROUTE_ID = "notification-service" +
+          "-routes";
 
   // --- Constants for Circuit Breaker Names ---
   private static final String USER_MANAGEMENT_CB = "user-management-service-circuit-breaker";
   private static final String WORKFLOW_SERVICE_CB = "workflow-service-circuit-breaker";
   private static final String RENEWAL_TRANSFER_CB = "renewal-transfer-service-circuit-breaker";
+  private static final String NOTIFICATION_SERVICE_CB = "notification-service" +
+          "-circuit-breaker";
 
   // --- Constants for Path Exclusions ---
   private static final String INTERNAL_EMP_PATH = "/api/users/emp";
@@ -69,7 +74,7 @@ public class ApiGatewayApplication {
                     .path(
                             "/api/users/**",
                             "/api/projects/**",
-                            "/api/v1/notifications/**",
+//                            "/api/v1/notifications/**",
                             "/api/auth/**"
                     )
                     .and()
@@ -84,15 +89,14 @@ public class ApiGatewayApplication {
                     .uri("lb://" + USER_MANAGEMENT_SERVICE_ID))
 
             // Route for unread notifications (requires `?unread=true` query param)
-            .route(UNREAD_NOTIFICATIONS_ROUTE_ID, r -> r
-                    .path("/api/v1/notifications")
-                    .and()
-                    .query("unread", "true")
+            .route(NOTIFICATION_ROUTE_ID, r -> r
+                    .path("/api/v1/notifications/**")
+//                    .query("unread", "true")
                     .filters(f -> f
                             .circuitBreaker(config ->
-                                    config.setName(USER_MANAGEMENT_CB))
+                                    config.setName(NOTIFICATION_SERVICE_CB))
                             .filter(authenticationFilter.apply(new AuthenticationFilter.Config())))
-                    .uri("lb://" + USER_MANAGEMENT_SERVICE_ID))
+                    .uri("lb://" + NOTIFICATION_SERVICE_ID))
 
             // Route group for Workflow, Domain Registration, Purchase and Renewal
             .route(WORKFLOW_SERVICE_ROUTE_ID, r -> r

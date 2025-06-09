@@ -3,4 +3,6 @@ node_modules
 .env
 .scannerwork
 container.env
-dist
+./dist
+./vscode
+docs/

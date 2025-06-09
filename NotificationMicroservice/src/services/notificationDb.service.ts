@@ -1,6 +1,7 @@
-import { PrismaClient, Notification } from "@prisma/client"; // Import generated client and types
+import { PrismaClient, Notification , WebhookEventType} from "@prisma/client"; // Import generated client and types
 import { ApiNotification } from "../types/webhook.types";
-import { WebhookEventType } from "../types/event.types";
+import { timeStamp } from "console";
+// import { WebhookEventType } from "../types/event.types";
 // Initialize Prisma Client (best practice: create one instance and reuse)
 const prisma = new PrismaClient();
 
@@ -8,7 +9,8 @@ const prisma = new PrismaClient();
 export const createDbNotification = async (
   recipientEmpNo: bigint,
   message: string,
-  eventType: any
+  eventType: any,
+  triggered_by_emp_no:bigint
 ): Promise<Notification | null> => {
   try {
     if (!Object.values(WebhookEventType).includes(eventType)) {
@@ -19,7 +21,8 @@ export const createDbNotification = async (
         recipient_emp_no: recipientEmpNo,
         message: message,
         event_type: eventType,
-        is_read: false, // Default is false anyway, but explicit
+        is_read: false,
+        triggered_by_emp_no:triggered_by_emp_no
       },
     });
     console.log(
@@ -78,7 +81,8 @@ export const markDbNotificationAsRead = async (
       },
       data: {
         is_read: true,
-      },
+        read_at: new Date(),
+      }
     });
     return result.count > 0; // Return true if at least one record was updated
   } catch (error) {
@@ -129,8 +133,35 @@ export const markAllDbNotificationsAsRead = async (
   }
 };
 
+export const markBulkDbNotificationsAsRead = async (
+  notificationIds: bigint[],
+  userEmpNo: bigint
+): Promise<number> => {
+  try {
+    const result = await prisma.notification.updateMany({
+      where: {
+        notification_id: {
+          in: notificationIds,
+        },
+        recipient_emp_no: userEmpNo, // Crucial: User can only mark their own notifications
+        is_read: false, // Optional: Only update those that are currently unread
+      },
+      data: {
+        is_read: true,
+        read_at: new Date(),
+      },
+    });
+    return result.count; // Returns the number of records updated
+  } catch (error) {
+    console.error("Error in markBulkDbNotificationsAsRead service:", error);
+    // You might want to throw a custom error or handle specific Prisma errors
+    throw new Error("Database error while marking bulk notifications as read.");
+  }
+};
+
 // Graceful shutdown for Prisma Client
 process.on("beforeExit", async () => {
   console.log("Disconnecting Prisma Client...");
   await prisma.$disconnect();
 });
+

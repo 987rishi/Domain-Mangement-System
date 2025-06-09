@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -25,6 +24,10 @@ public class DomainName {
 
   @Column(name = "expiry_date", nullable = true)
   private LocalDateTime expiryDate;
+
+  @Column(name = "last_notification_period_sent", nullable = true)
+//  @Enumerated(EnumType.STRING
+  private Integer lastNotificationDateSentForDays;
 
   @Column(name = "d_o_apl", nullable = true)
   private LocalDateTime dateOfApplication; // Date of Application

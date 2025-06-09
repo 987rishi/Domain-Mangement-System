@@ -140,10 +140,10 @@ export const handleWebhook = async (
 
         sendEmail({ to: emailHtml.to, subject, html: emailHtml.html });
 
-        const message = `Event: ${payload.eventType}. ${
+        const message = `${
           payload.data.remarks || ""
         }`;
-        createDbNotification(empNo, message.trim(), payload.eventType);
+        createDbNotification(empNo, message.trim(), payload.eventType,payload.triggeredBy.emp_no);
 
         successCount++;
       } catch (error) {

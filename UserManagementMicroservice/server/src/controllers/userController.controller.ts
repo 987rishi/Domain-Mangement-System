@@ -1,16 +1,16 @@
 // src/controllers/userController.ts
 import { Request, Response, NextFunction } from "express";
-import prisma from "../config/database.config.js";
+import prisma from "../config/database.config";
 import { Role } from "@prisma/client"; // Import the enum
-import {
-  getRoleInfo,
-  stringifyBigInts
-} from "../utils/userController.helper.js";
+import { getRoleInfo, stringifyBigInts } from "../utils/userController.helper";
 import { bigint } from "zod";
 
-export const getUserDetails = async (req:Request,res:Response):Promise<void> => {
+export const getUserDetails = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const emp_no = req.params.empNo;
-  if(!emp_no){
+  if (!emp_no) {
     res.status(400).json({ message: "Invalid employee number." });
     return;
   }
@@ -20,28 +20,30 @@ export const getUserDetails = async (req:Request,res:Response):Promise<void> => 
         emp_no: BigInt(emp_no),
       },
     });
-    
+
     if (!userData) {
       res.status(404).json({
         message: `User details not found for employee number '${emp_no}'.`,
       });
       return;
     }
-
     res.status(200).json(stringifyBigInts(userData));
   } catch (error) {
-    res.status(400).json({ message: "Internal Server error in fetching details from user service" });
+    res
+      .status(500)
+      .json({
+        message: "Internal Server error in fetching details from user service",
+      });
     console.log(error);
     return;
   }
-  
 };
 
 /**
  *  GET: /api/users/details/:role/:empNo
- * 
+ *
  *  Fetches full details for a specific user from their corresponding role table.
- * 
+ *
  * @param {Request} req - Express request object
  * @param {Response} res - Express response object
  * @param {NextFunction} next - Express middleware function
@@ -98,10 +100,9 @@ export const getUserDetailsByRole = async (
   }
 };
 
-
 /**
  * GET /api/users/list/:role
- * 
+ *
  * Fetches a list of all active users belonging to a specific role.
  *
  * @param {Request} req - Express request object
@@ -147,12 +148,11 @@ export const getUserListByRole = async (
   }
 };
 
-
 /**
  * GET /api/users/centre/:centreid
- * 
+ *
  * Fetches a single centre by its ID and provide all information of that centre
- * 
+ *
  * @param {Request} req - Express request object
  * @param {Response} res - Express response object
  * @returns {Promise<void>} - Promise indicating successful completion
@@ -185,11 +185,9 @@ export const getCentreList = async (
   }
 };
 
-
-
 /**
  * GET /api/users/group/:groupid
- * 
+ *
  * Fetches a single group department by its ID.
  *
  * @param {Request} req - Express request object
@@ -226,24 +224,25 @@ export const getGroupList = async (
   }
 };
 
-
-
 /**
  * GET /api/users/allgroups
- * 
+ *
  * Retrieves all group departments from the database in ascending order of department ID.
  *
  * @param {Request} req - Express request object
  * @param {Response} res - Express response object
  * @returns {Promise<void>} - Promise indicating successful completion
  */
-export const getAllGroupList = async (req: Request, res: Response): Promise<void> => {
+export const getAllGroupList = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     // Retrieve all group departments from the database, ordered by department ID in ascending order
     const allGroups = await prisma.groupDepartment.findMany({
       // Sort the results by department ID in ascending order
       orderBy: {
-        dept_id: 'asc',
+        dept_id: "asc",
       },
     });
 
@@ -262,23 +261,25 @@ export const getAllGroupList = async (req: Request, res: Response): Promise<void
   }
 };
 
-
 /**
  * GET /api/users/allcentres
- * 
+ *
  * Retrieves all centres from the database in ascending order of centre ID.
  *
  * @param {Request} req - Express request object
  * @param {Response} res - Express response object
  * @returns {Promise<void>} - Promise indicating successful completion
  */
-export const getAllCentreList = async (req: Request, res: Response): Promise<void> => {
+export const getAllCentreList = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     // Retrieve all centres from the database, ordered by centre ID in ascending order
     const allGroups = await prisma.centre.findMany({
       // Sort the results by centre ID in ascending order
       orderBy: {
-        centre_id: 'asc',
+        centre_id: "asc",
       },
     });
 
@@ -297,10 +298,9 @@ export const getAllCentreList = async (req: Request, res: Response): Promise<voi
   }
 };
 
-
 /**
  * GET /api/users/:empNo/officials
- * 
+ *
  * Retrieves the HOD and NetOps member responsible for the specified user.
  *
  * @param {Request} req - Express request object
@@ -378,74 +378,79 @@ export const getResponsibleOfficials = async (
     }
 
     // Find the HOD for the centre and department
-const [hod, netops, ed, webmaster, hodHpcIandE] = await Promise.all([
-  // Find HOD for the specific department and centre
-  prisma.hod.findFirst({
-    // Assuming model name HodList
-    where: {
-      grp_id: deptId,
-      centre_id: centreId,
-      is_active: true,
-    },
-    select: { emp_no: true, hod_fname: true, hod_lname: true, email_id: true }, // Use specific HOD fields
-  }),
-  // Find NetOps for the specific centre
-  prisma.memberNetops.findUnique({
-    // Assuming model name MemberNetops
-    // The schema implies centre_id is unique on MemberNetops, so findUnique is appropriate
-    where: { centre_id: centreId /* , is_active: true */ }, // is_active might not be on the where unique clause
-    select: {
-      emp_no: true,
-      fname: true,
-      lname: true,
-      email_id: true,
-      is_active: true,
-    },
-  }),
-  // Find ED (Centre Head) for the specific centre
-  prisma.edCentreHead.findUnique({
-    // Assuming model name EdCentreHead
-    where: { centre_id: centreId /* , is_active: true */ },
-    select: {
-      emp_no: true,
-      fname: true,
-      lname: true,
-      email_id: true,
-      is_active: true,
-    },
-  }),
-  // Find Webmaster for the specific centre
-  prisma.webMaster.findFirst({
-    // Using findFirst for safety, assuming model name WebMaster
-    where: { centre_id: centreId, is_active: true },
-    select: { emp_no: true, fname: true, lname: true, email_id: true },
-  }),
-  // Find the specific HOD HPC I&E (assuming only one active system-wide based on schema)
-  prisma.hodHpcIandE.findFirst({
-    // Assuming model name HodHpcIandE
-    where: { is_active: true },
-    select: { emp_no: true, fname: true, lname: true, email_id: true },
-  }),
-]);
+    const [hod, netops, ed, webmaster, hodHpcIandE] = await Promise.all([
+      // Find HOD for the specific department and centre
+      prisma.hod.findFirst({
+        // Assuming model name HodList
+        where: {
+          grp_id: deptId,
+          centre_id: centreId,
+          is_active: true,
+        },
+        select: {
+          emp_no: true,
+          hod_fname: true,
+          hod_lname: true,
+          email_id: true,
+        }, // Use specific HOD fields
+      }),
+      // Find NetOps for the specific centre
+      prisma.memberNetops.findUnique({
+        // Assuming model name MemberNetops
+        // The schema implies centre_id is unique on MemberNetops, so findUnique is appropriate
+        where: { centre_id: centreId /* , is_active: true */ }, // is_active might not be on the where unique clause
+        select: {
+          emp_no: true,
+          fname: true,
+          lname: true,
+          email_id: true,
+          is_active: true,
+        },
+      }),
+      // Find ED (Centre Head) for the specific centre
+      prisma.edCentreHead.findUnique({
+        // Assuming model name EdCentreHead
+        where: { centre_id: centreId /* , is_active: true */ },
+        select: {
+          emp_no: true,
+          fname: true,
+          lname: true,
+          email_id: true,
+          is_active: true,
+        },
+      }),
+      // Find Webmaster for the specific centre
+      prisma.webMaster.findFirst({
+        // Using findFirst for safety, assuming model name WebMaster
+        where: { centre_id: centreId, is_active: true },
+        select: { emp_no: true, fname: true, lname: true, email_id: true },
+      }),
+      // Find the specific HOD HPC I&E (assuming only one active system-wide based on schema)
+      prisma.hodHpcIandE.findFirst({
+        // Assuming model name HodHpcIandE
+        where: { is_active: true },
+        select: { emp_no: true, fname: true, lname: true, email_id: true },
+      }),
+    ]);
 
-// Filter out inactive officials before sending response (double-check)
-const activeNetops = netops?.is_active ? netops : null;
-const activeEd = ed?.is_active ? ed : null;
-// Assuming hod, webmaster, hodHpcIandE queries already filter by is_active
+    // Filter out inactive officials before sending response (double-check)
+    const activeNetops = netops?.is_active ? netops : null;
+    const activeEd = ed?.is_active ? ed : null;
+    // Assuming hod, webmaster, hodHpcIandE queries already filter by is_active
 
-// 4. Respond with all fetched details
-// Convert BigInt emp_no to strings for JSON compatibility before sending
-const stringifyEmpNo = (official: any) =>
-  official ? { ...official, emp_no: official.emp_no.toString() } : null;
+    // 4. Respond with all fetched details
+    // Convert BigInt emp_no to strings for JSON compatibility before sending
+    const stringifyEmpNo = (official: any) =>
+      official ? { ...official, emp_no: official.emp_no.toString() } : null;
 
-res.json({
-  requestingUserRole: user.role, // Role of the user making the request
-  hod: stringifyEmpNo(hod), // HOD of the specific Group/Centre
-  netops: stringifyEmpNo(activeNetops), // NetOps of the specific Centre
-  ed: stringifyEmpNo(activeEd), // ED of the specific Centre
-  webmaster: stringifyEmpNo(webmaster), // Webmaster of the specific Centre
-  hodHpcIandE: stringifyEmpNo(hodHpcIandE), // The specific HPC/I&E HOD role
-});
+    res.status(200).json({
+      requestingUserRole: user.role, // Role of the user making the request
+      hod: stringifyEmpNo(hod), // HOD of the specific Group/Centre
+      netops: stringifyEmpNo(activeNetops), // NetOps of the specific Centre
+      ed: stringifyEmpNo(activeEd), // ED of the specific Centre
+      webmaster: stringifyEmpNo(webmaster), // Webmaster of the specific Centre
+      hodHpcIandE: stringifyEmpNo(hodHpcIandE), // The specific HPC/I&E HOD role
+    });
     return;
   } catch (error) {
     // Log the error to the console and respond with a 500 error
@@ -457,15 +462,13 @@ res.json({
   }
 };
 
-
-
 /**
  * GET /api/projects/:empNo
- * 
+ *
  * Fetches a list of projects that the specified employee number is associated with.
- * 
+ *
  * The association is determined by the following conditions:
- * 
+ *
  * 1. The employee is the HOD of the project.
  * 2. The employee is the ARM of the project.
  * 3. The employee is the DRM of the project.
@@ -474,10 +477,13 @@ res.json({
  * @param {Response} res - Express response object
  * @returns {Promise<void>} - Promise indicating successful completion
  */
-export const getProjectList = async (req: Request, res: Response): Promise<void> => {
+export const getProjectList = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { empNo } = req.params;
   const employeeNo = BigInt(empNo);
-  if(!employeeNo){
+  if (!employeeNo) {
     res.status(400).json({ message: "Invalid employee number." });
     return;
   }
@@ -503,7 +509,9 @@ export const getProjectList = async (req: Request, res: Response): Promise<void>
       },
     });
     if (projects.length === 0) {
-      res.status(404).json({ message: "No projects found for employee number" });
+      res
+        .status(404)
+        .json({ message: "No projects found for employee number" });
       return;
     }
     // Return the list of projects
@@ -521,19 +529,21 @@ export const getProjectList = async (req: Request, res: Response): Promise<void>
   }
 };
 
-
 /**
  * GET /api/projects/:projectId
- * 
+ *
  * Retrieves the details of a project by its project ID.
- * 
+ *
  * The response will include the DRM, ARM, and HOD details associated with the project.
  *
  * @param {Request} req - Express request object
  * @param {Response} res - Express response object
  * @returns {Promise<void>} - Promise indicating successful completion
  */
-export const getProjectDetails = async (req: Request, res: Response): Promise<void> => {
+export const getProjectDetails = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { projectId } = req.params;
   try {
     // Find the project assignment record by its project ID
@@ -552,7 +562,7 @@ export const getProjectDetails = async (req: Request, res: Response): Promise<vo
     });
 
     // If the project assignment record is not found, return a 404 error with a message
-    if (!getProjectDetails) {
+    if (!projectDetails) {
       res.status(404).json({ error: "Project not found." });
       return;
     }
@@ -560,12 +570,9 @@ export const getProjectDetails = async (req: Request, res: Response): Promise<vo
       console.error(
         `HOD details or Centre ID missing for project ${projectId}`
       );
-      res
-        .status(404)
-        .json({
-          error:
-            "Associated HOD or Centre information missing for the project.",
-        });
+      res.status(404).json({
+        error: "Associated HOD or Centre information missing for the project.",
+      });
       return;
     }
     if (!projectDetails.hod.is_active) {

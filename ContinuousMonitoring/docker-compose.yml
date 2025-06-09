@@ -1,0 +1,111 @@
+
+services:
+  
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ../:/config
+      - prometheus-data:/prometheus
+    command:
+      - "--config.file=/config/prometheus.yml"
+    networks:
+      - monitoring-net
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    env_file:
+      - sonar.env
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - monitoring-net
+
+  sonarqube:
+    image: 4f01870f15a6
+    container_name: sonarqube
+    environment:
+      - SONAR_WEB_HOST=0.0.0.0
+    ports:
+      - "9000:9000"
+    volumes:
+      - cdacdnsmanagementsystem_sonarqube_data:/opt/sonarqube/data
+      - cdacdnsmanagementsystem_sonarqube_extensions:/opt/sonarqube/extensions
+      - cdacdnsmanagementsystem_sonarqube_logs:/opt/sonarqube/logs
+    networks:
+      - monitoring-net
+    
+  # alert-manager:
+  #   image: prom/alertmanager
+  #   container_name: prom-alert-manager
+  #   ports:
+  #     - "9093:9093"
+  #   volumes:
+  #     - alert-manager:/alertmanager-data
+  #     - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
+  #   networks:
+  #     - monitoring-net
+
+  cadvisor:
+    # The Docker image to use
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+
+    # Equivalent to --name=cadvisor. Ensures the container has a predictable name.
+    container_name: cadvisor
+    
+      
+
+    # Equivalent to --publish=8082:8080. Maps host port to container port.
+    ports:
+      - "8082:8080"
+
+    # A list of all the --volume mounts
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+
+    # Equivalent to --device=/dev/kmsg
+    devices:
+      - /dev/kmsg
+
+    # Equivalent to --privileged
+    privileged: true
+
+    # Best practice: Ensures the container restarts automatically if it crashes or the daemon restarts.
+    # The `docker run` command did not have this, but it's highly recommended for a monitoring service.
+    restart: unless-stopped
+    networks:
+      - monitoring-net
+    
+  sonar-scraper:
+    image: weakpassword/sonar-scraper:v2
+    container_name: sonar-scraper
+    env_file:
+      - sonar.env
+    ports:
+      - "9100:9100"
+    networks:
+      - monitoring-net
+
+
+networks:
+    monitoring-net:
+      driver: bridge
+volumes:
+    grafana-data:
+    prometheus-data:
+    cdacdnsmanagementsystem_sonarqube_data:
+      external: true
+    cdacdnsmanagementsystem_sonarqube_extensions:
+      external: true
+    cdacdnsmanagementsystem_sonarqube_logs:
+      external: true
+    alert-manager:

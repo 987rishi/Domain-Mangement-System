@@ -10,6 +10,7 @@ import com.dnsManagement.WorkFlowIpVaptService.openfeign.NotificationClient;
 import com.dnsManagement.WorkFlowIpVaptService.repo.DomainNameRepo;
 import com.dnsManagement.WorkFlowIpVaptService.repo.DomainVerificationRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,9 @@ import java.util.function.Consumer;
 
 @Service
 public class RejectionService {
+
+    @Value("${WEBHOOK_SECRET}")
+    String webhookSecret;
 
     @Autowired
     private DomainVerificationRepo domainVerificationRepo;
@@ -120,7 +124,7 @@ public class RejectionService {
 
         try {
             domainVerificationRepo.save(domainVerification);
-            notificationClient.sendNotification(
+            notificationClient.sendNotification(webhookSecret ,
                     buildNotification(domainName,role,remarks));
             return ResponseEntity.ok(domainVerification);
         } catch (Exception e) {

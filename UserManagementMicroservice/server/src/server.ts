@@ -3,6 +3,7 @@ import { config } from "./config/index.config.js";
 import prisma from "./config/database.config.js";
 const PORT = config.port;
 import { eurekaClient  } from "./utils/serviceDiscovery.js";
+import  client  from 'prom-client';
 /**
  * Establishes a connection to the database using Prisma.
  * Logs a success message upon successful connection.
@@ -37,6 +38,20 @@ connectServer();
 /** 
  * Trying to connect with eureka 
 */
+
+/*
+  EXPOSING DEFAULT METRICS FOR PROMETHEUS SCRAPING
+ */
+const registry = new client.Registry();
+client.collectDefaultMetrics({ register:registry });
+
+
+// app.get('/metrics', async (req, res) => {
+//     res.set('Content-Type', registry.contentType);
+//     res.end(await registry.metrics());
+// });
+
+
 eurekaClient.start((error: unknown) => {
   if (error) {
     console.log("❌ Eureka registration failed:", error);
@@ -44,3 +59,14 @@ eurekaClient.start((error: unknown) => {
     console.log("✅ Registered with Eureka!");
   }
 });
+const intId = setInterval(() => {
+  // Registering with eureka service reg
+  eurekaClient.start((error: unknown) => {
+    if (error) {
+      console.log("❌ Eureka registration failed:", error);
+    } else {
+      console.log("✅ Registered with Eureka!");
+      clearInterval(intId);
+    }
+  });
+}, 100000);
