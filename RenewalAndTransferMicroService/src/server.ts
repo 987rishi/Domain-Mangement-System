@@ -47,7 +47,6 @@ app.get('/metrics', async (req, res) => {
 });
 // -------------X-------------X-----------------------
 
-
 const intId = setInterval(() => {
   // Registering with eureka service reg
   eurekaClient.start((error: unknown) => {
@@ -60,13 +59,13 @@ const intId = setInterval(() => {
   });
 }, 100000);
 
-// eurekaClient.start((error: unknown) => {
-//   if (error) {
-//     console.log("❌ Eureka registration failed:", error);
-//   } else {
-//     console.log("✅ Registered with Eureka!");
-//   }
-// });
+eurekaClient.start((error: unknown) => {
+  if (error) {
+    console.log("❌ Eureka registration failed:", error);
+  } else {
+    console.log("✅ Registered with Eureka!");
+  }
+});
 
 // Deregistering from eureka service reg
 process.on("SIGINT", () => eurekaClient.stop());
@@ -117,5 +116,3 @@ app.get("/renewl-transfer-service", (req, res) => {
   res.send({ service, port: service.port });
   console.log(service);
 });
-
-
