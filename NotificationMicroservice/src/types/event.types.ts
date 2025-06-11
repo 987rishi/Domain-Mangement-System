@@ -2,6 +2,16 @@
  * Represents various events in the domain lifecycle, infrastructure updates,
  * user activity, and system operations that may trigger a webhook notification.
  */
+
+
+/**
+ * Defines the comprehensive list of event types that can be processed by the webhook system.
+ *
+ * @remarks
+ * This enum serves as the single source of truth for event identifiers. The events are
+ * categorized by their functional area, such as Domain Lifecycle, Infrastructure, User Management,
+ * and general System events.
+ */
 export enum WebhookEventType {
   // --- Domain Lifecycle Events ---
   DOMAIN_APPLICATION_SUBMITTED = "Domain application submitted",

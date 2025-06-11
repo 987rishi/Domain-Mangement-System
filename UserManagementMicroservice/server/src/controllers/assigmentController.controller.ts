@@ -64,6 +64,7 @@ export const assignmentController = async (
   res: Response
 ): Promise<void> => {
   // const { project_name, project_remarks,drm_emp_no,arm_emp_no} = req.body;
+  try {
   const assignDrmArmBody = req.body;
   const webhookAPI = await findNotificationServiceUrl();
   const payload = assignmentSchemaValidation.safeParse(assignDrmArmBody);
@@ -87,7 +88,7 @@ export const assignmentController = async (
     return;
   }
 
-  try {
+  
     // Create a new transaction
     const result = await prisma.$transaction(async (tx) => {
       // Find the HOD user by their employee number
