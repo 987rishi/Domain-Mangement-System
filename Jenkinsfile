@@ -26,6 +26,10 @@ pipeline {
                         
                         // Read the file line by line and set environment variables
                         def envFileContent = readFile(env.SECRET_ENV_FILE_PATH).trim()
+
+                        writeFile file: '.env', text: envFileContent
+                        echo "Successfully created .env file in the workspace for Docker Compose."
+
                         envFileContent.eachLine { line ->
                             // Skip comments and empty lines
                             line = line.trim()
@@ -288,7 +292,7 @@ pipeline {
     stage('DAST Scanning using Zed ZAP'){
       steps{
         bat(label: 'Running ZAP Baseline scan',
-        script: 'docker run -dt zaproxy/zap-stable zap-baseline.py -t http://localhost:5173 -r ./reports/zap/zap.html')
+        script: 'docker run --rm -v "%cd%\reports\zap:/zap/wrk/" zaproxy/zap-stable zap-baseline.py -t http://host.docker.internal:5173 -r /zap/wrk/zap.html')
       }
       post{
           always {
@@ -300,6 +304,10 @@ pipeline {
   post{
       always{
         bat(label: 'Clearing docker containers', script: 'docker-compose down')
+        echo "Cleaning up the .env file."
+        deleteDir() // This deletes the entire workspace, including the .env file.
+                    // If you don't want to delete the whole workspace, use:
+                    // bat 'del .env'
       }
   }
 }
