@@ -292,7 +292,7 @@ pipeline {
     stage('DAST Scanning using Zed ZAP'){
       steps{
         bat(label: 'Running ZAP Baseline scan',
-        script: 'docker run --rm -v "%cd%\reports\zap:/zap/wrk/" zaproxy/zap-stable zap-baseline.py -t http://host.docker.internal:5173 -r /zap/wrk/zap.html')
+        script: 'docker run --rm -v "%cd%/reports/zap:/zap/wrk/" zaproxy/zap-stable zap-baseline.py -t http://host.docker.internal:5173 -r /zap/wrk/zap.html')
       }
       post{
           always {
