@@ -220,7 +220,7 @@ pipeline {
                 //     /* groovylint-disable-next-line LineLength */
                 //     echo "Quality Gate for ${svc.name} passed! Dashboard: ${env.SONARQUBE_HOST_URL}/dashboard?id=${projectKeyForSonar}"
                 //   }
-                }
+              // }
               } catch (e) {
                 currentBuild.result = 'FAILURE' // Ensure any exception in the try block fails the build
                 error "SonarQube analysis or Quality Gate processing failed for ${svc.name}: ${e.getMessage()}"
