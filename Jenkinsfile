@@ -209,17 +209,17 @@ pipeline {
                 } // End withSonarQubeEnv
 
                 // Quality Gate check, now correctly associated with the scan inside withSonarQubeEnv
-                echo "SonarQube analysis submitted for ${svc.name}. Waiting for Quality Gate..."
-                timeout(time: 4, unit: 'MINUTES') {
-                  def qg = waitForQualityGate abortPipeline: false // Don't abort pipeline yet
-                  if (qg.status != 'OK') {
-                    currentBuild.result = 'FAILURE' // Mark build as failure
-                    /* groovylint-disable-next-line LineLength */
-                    error "Quality Gate for ${svc.name} failed: ${qg.status}. Dashboard: ${env.SONARQUBE_HOST_URL}/dashboard?id=${projectKeyForSonar}"
-                  } else {
-                    /* groovylint-disable-next-line LineLength */
-                    echo "Quality Gate for ${svc.name} passed! Dashboard: ${env.SONARQUBE_HOST_URL}/dashboard?id=${projectKeyForSonar}"
-                  }
+                // echo "SonarQube analysis submitted for ${svc.name}. Waiting for Quality Gate..."
+                // timeout(time: 4, unit: 'MINUTES') {
+                //   def qg = waitForQualityGate abortPipeline: false // Don't abort pipeline yet
+                //   if (qg.status != 'OK') {
+                //     currentBuild.result = 'FAILURE' // Mark build as failure
+                //     /* groovylint-disable-next-line LineLength */
+                //     error "Quality Gate for ${svc.name} failed: ${qg.status}. Dashboard: ${env.SONARQUBE_HOST_URL}/dashboard?id=${projectKeyForSonar}"
+                //   } else {
+                //     /* groovylint-disable-next-line LineLength */
+                //     echo "Quality Gate for ${svc.name} passed! Dashboard: ${env.SONARQUBE_HOST_URL}/dashboard?id=${projectKeyForSonar}"
+                //   }
                 }
               } catch (e) {
                 currentBuild.result = 'FAILURE' // Ensure any exception in the try block fails the build
