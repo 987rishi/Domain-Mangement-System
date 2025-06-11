@@ -3,15 +3,16 @@ package com.dnsManagement.WorkFlowIpVaptService.repo;
 import com.dnsManagement.WorkFlowIpVaptService.dto.DomainNameDto;
 import com.dnsManagement.WorkFlowIpVaptService.dto.ViewDomainDBDto;
 import com.dnsManagement.WorkFlowIpVaptService.models.DomainName;
-import com.dnsManagement.WorkFlowIpVaptService.models.Role;
+import com.dnsManagement.WorkFlowIpVaptService.dto.PurchasePopulate;
 import jakarta.validation.constraints.Positive;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -28,7 +29,11 @@ public interface DomainNameRepo extends JpaRepository<DomainName, Long> {
           "where drm_emp_no=:drmId and " +
           "expiry_date between NOW() and NOW() + INTERVAL '60 days' and " +
           "is_renewal=false")
-  List<DomainName> findByDrmId(@Positive Long drmId);
+  Page<DomainName> findByDrmId(@Positive @Param("drmId")
+                               Long drmId,
+                               Pageable pageable,
+                               @Param("expiringDays")
+                               int expiringDays);
 
   @Query(value = """
           SELECT dn.dm_id AS domainId,
@@ -50,8 +55,9 @@ public interface DomainNameRepo extends JpaRepository<DomainName, Long> {
                 (:role = 'HODHPC' AND dn.hod_hpc_emp_no = :empNo )
             )
           """, nativeQuery = true)
-  List<ViewDomainDBDto> findAllDomainNameByRoleAndEmpNo(Long empNo,
-                                                        String role);
+  Page<ViewDomainDBDto> findAllDomainNameByRoleAndEmpNo(Long empNo,
+                                                        String role,
+                                                        Pageable pageable);
 
   @NativeQuery("select dn.dm_id as domainId,dm_name as domainName,drm_emp_no " +
           "as " +
@@ -105,11 +111,11 @@ public interface DomainNameRepo extends JpaRepository<DomainName, Long> {
           AND dn.is_active = false 
             AND (
             (:role = 'ARM' AND dn.arm_emp_no = :empNo AND dv.fwd_arm = false) OR
-                (:role = 'HOD' AND dn.hod_emp_no = :empNo AND dv.vfyd_by_hod = false) OR
-                (:role = 'ED' AND dn.ed_emp_no = :empNo AND dv.vfy_by_ed = false) OR
-                (:role = 'NETOPS' AND dn.netops_emp_no = :empNo AND dv.vfy_by_netops = false) OR
-                (:role = 'WEBMASTER' AND dn.webmaster_emp_no = :empNo AND dv.vfy_by_wbmstr = false) OR
-                (:role = 'HODHPC' AND dn.hod_hpc_emp_no = :empNo AND dv.vfy_by_hod_hpc_iand_e = false)
+                (:role = 'HOD' AND dn.hod_emp_no = :empNo AND dv.vfyd_by_hod = false AND dv.fwd_arm = true) OR
+                (:role = 'ED' AND dn.ed_emp_no = :empNo AND dv.vfy_by_ed = false AND dv.vfyd_by_hod = true) OR
+                (:role = 'NETOPS' AND dn.netops_emp_no = :empNo AND dv.vfy_by_netops = false AND dv.vfy_by_ed = true) OR
+                (:role = 'WEBMASTER' AND dn.webmaster_emp_no = :empNo AND dv.vfy_by_wbmstr = false AND dv.vfy_by_netops = true) OR
+                (:role = 'HODHPC' AND dn.hod_hpc_emp_no = :empNo AND dv.vfy_by_hod_hpc_iand_e = false AND dv.vfy_by_wbmstr = true)
             )
           """, nativeQuery = true)
   List<DomainNameDto> findAllDomainRequestsByRoleAndEmpNo(Long empNo,
@@ -169,4 +175,20 @@ public interface DomainNameRepo extends JpaRepository<DomainName, Long> {
           LocalDateTime targetExpirationDateStart,
           LocalDateTime targetExpirationDateEnd,
           int daysUntilExpiration);
+
+
+
+  @NativeQuery("SELECT * FROM domain_name " +
+          "WHERE drm_emp_no = :drmId " +
+          "AND CAST(expiry_date AS date) = (CURRENT_DATE + :expiringDays) " + //
+          // Corrected logic for PostgreSQL
+          "AND is_renewal = false")
+  Page<DomainName> findExpiringDomainsByDaysAndDrmId(@Positive Long drmId, Pageable pageable, int expiringDays);
+
+
+  @Query("SELECT new com.dnsManagement.WorkFlowIpVaptService.dto.PurchasePopulate(dm.isRenewal, dm.periodInYears) " +
+          "FROM DomainName dm " +
+          "WHERE dm.domainNameId = :domainId")
+  PurchasePopulate getPurchasePopulateByDomainId(@Param("domainId") @Positive Long domainId);
 }
+

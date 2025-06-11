@@ -9,8 +9,11 @@ import com.dnsManagement.WorkFlowIpVaptService.openfeign.VaptAndIpRenewalsClient
 import com.dnsManagement.WorkFlowIpVaptService.repo.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -20,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+@Slf4j
 @Service
 public class DomainNameService {
 
@@ -67,6 +71,7 @@ public class DomainNameService {
 
     System.out.println("DRM DETAILS="+drmDetails.toString());
 
+    log.info("DOMAIN NAME REQUEST={}", domainNameRequest);
 
     try {
       client.updateDrmOrArmDetails(domainNameRequest
@@ -274,7 +279,12 @@ public class DomainNameService {
             ),
             new NotificationWebhook.Recipients(
                     domainName.getDrmEmployeeNumber(),
-                    domainName.getArmEmployeeNumber()
+                    domainName.getArmEmployeeNumber(),
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
             )
     );
 
@@ -335,34 +345,63 @@ public class DomainNameService {
   }
 
   @Transactional
-  public ResponseEntity<?> getExpiringDomains(@Positive Long drmId) {
+  public ResponseEntity<Page<ExpiringDomains>> getExpiringDomains(
+          @Positive Long drmId,
+          Pageable pageable,
+          int expiringDays,
+          boolean exact) {
 
-    List<DomainName> domainNameList = domainNameRepo.findByDrmId(drmId);
-    if (domainNameList.isEmpty())
-      return new ResponseEntity<>(domainNameList, HttpStatus.OK);
+    Page<DomainName> domainNamePage = null;
 
-    List<ExpiringDomains> expiringDomainsList = new ArrayList<>();
+    if(!exact)
+      domainNamePage = domainNameRepo.findByDrmId(drmId,
+            pageable, expiringDays);
+    else
+      domainNamePage = domainNameRepo.findExpiringDomainsByDaysAndDrmId(drmId
+              , pageable, expiringDays);
 
-    for (DomainName domain : domainNameList) {
-      ExpiringDomains expiringDomains = new ExpiringDomains();
-      Arm arm = utility
-              .findOrThrowNoSuchElementException(
-                      "ARM",
-                      Arm.class,
-                      domain.getArmEmployeeNumber());
-      expiringDomains.setDomainName(domain.getDomainName());
-      expiringDomains.setDomainId(domain.getDomainNameId());
-      expiringDomains.setArmName(arm.getFirstName() + " " + arm.getLastName());
-      expiringDomains.setArmEmail(arm.getEmail());
-      expiringDomains.setArmMobile(arm.getMobileNumber());
-      expiringDomains.setExpiringDate(domain.getExpiryDate().toLocalDate());
-      expiringDomains.setArmEmpNo(domain.getArmEmployeeNumber());
+    if (!domainNamePage.hasContent())
+      return new ResponseEntity<>(Page.empty(pageable), HttpStatus.OK);
 
-      expiringDomainsList.add(expiringDomains);
+    Page<ExpiringDomains> expiringDomainsPage =
+            domainNamePage.map(domainName -> {
+              ExpiringDomains expiringDomains = new ExpiringDomains();
+              Arm arm = utility
+                      .findOrThrowNoSuchElementException(
+                              "ARM",
+                              Arm.class,
+                              domainName.getArmEmployeeNumber());
+              expiringDomains.setDomainName(domainName.getDomainName());
+              expiringDomains.setDomainId(domainName.getDomainNameId());
+              expiringDomains.setArmName(arm.getFirstName() + " " + arm.getLastName());
+              expiringDomains.setArmEmail(arm.getEmail());
+              expiringDomains.setArmMobile(arm.getMobileNumber());
+              expiringDomains.setExpiringDate(domainName.getExpiryDate().toLocalDate());
+              expiringDomains.setArmEmpNo(domainName.getArmEmployeeNumber());
+              return expiringDomains;
+            });
 
-    }
+//    for (DomainName domain : domainNamePage) {
+//      ExpiringDomains expiringDomains = new ExpiringDomains();
+//      Arm arm = utility
+//              .findOrThrowNoSuchElementException(
+//                      "ARM",
+//                      Arm.class,
+//                      domain.getArmEmployeeNumber());
+//      expiringDomains.setDomainName(domain.getDomainName());
+//      expiringDomains.setDomainId(domain.getDomainNameId());
+//      expiringDomains.setArmName(arm.getFirstName() + " " + arm.getLastName());
+//      expiringDomains.setArmEmail(arm.getEmail());
+//      expiringDomains.setArmMobile(arm.getMobileNumber());
+//      expiringDomains.setExpiringDate(domain.getExpiryDate().toLocalDate());
+//      expiringDomains.setArmEmpNo(domain.getArmEmployeeNumber());
+//
+//      expiringDomainsList.add(expiringDomains);
+//
+//    }
 
-    return new ResponseEntity<>(expiringDomainsList, HttpStatus.OK);
+//    return new ResponseEntity<>(expiringDomainsList, HttpStatus.OK);
+      return new ResponseEntity<>(expiringDomainsPage, HttpStatus.OK);
   }
 
   @Transactional
@@ -807,65 +846,114 @@ public class DomainNameService {
     return new ResponseEntity<>(responseList,HttpStatus.OK);
   }
 
-  public ResponseEntity<?> getAllViewDomains(Long empNo, Role role) {
+  public ResponseEntity<Page<ViewDomainResponseDto>> getAllViewDomains(Long empNo, Role role,
+                                             Pageable pageable) {
 
     System.out.println(String.format("ROLE = %s, emp no = %d",role,empNo));
-    List<ViewDomainDBDto> viewDomainDBDtos =
-            domainNameRepo.findAllDomainNameByRoleAndEmpNo(empNo,role.name());
+    Page<ViewDomainDBDto> viewDomainDBDtosPage =
+            domainNameRepo.findAllDomainNameByRoleAndEmpNo(empNo, role.name()
+                    , pageable);
 
 
-    List<ViewDomainResponseDto> domainResponseDtos = new ArrayList<>();
+    Page<ViewDomainResponseDto> domainResponseDtosPage =
+            viewDomainDBDtosPage.map(viewDomainDBDto -> {
 
-    for(ViewDomainDBDto domainDBDto : viewDomainDBDtos) {
+              String status;
 
-      String status;
-
-      if(domainDBDto.isActive())
-        status = "Domain Active";
-      else if(domainDBDto.isDeleted())
-        status = "Domain Deleted";
-      else if (domainDBDto.isRenewal())
-        status = "Under Renewal";
-      else if(domainDBDto.getDomainExpiryDate() == null)
-        status = "Application Submitted";
-      else
-        status = "Unknown Status";
+              if(viewDomainDBDto.isActive())
+                status = "Domain Active";
+              else if(viewDomainDBDto.isDeleted())
+                status = "Domain Deleted";
+              else if (viewDomainDBDto.isRenewal())
+                status = "Under Renewal";
+              else if(viewDomainDBDto.getDomainExpiryDate() == null)
+                status = "Application Submitted";
+              else
+                status = "Unknown Status";
 
 
-      ViewDomainResponseDto responseDto = new ViewDomainResponseDto();
+              ViewDomainResponseDto responseDto = new ViewDomainResponseDto();
 
-      Drm drm = utility.findOrThrowNoSuchElementException("DRM", Drm.class,
-              domainDBDto.getDrmEmpNo());
+              Drm drm = utility.findOrThrowNoSuchElementException("DRM", Drm.class,
+                      viewDomainDBDto.getDrmEmpNo());
 
-      Centre drmCentre =
-              utility.findCentreOrThrowNoSuchElementException(Centre.class,
-                      drm.getCentreId());
+              Centre drmCentre =
+                      utility.findCentreOrThrowNoSuchElementException(Centre.class,
+                              drm.getCentreId());
 
-      GroupDepartment drmGroup =
-              utility.findGroupOrThrowNoSuchElementException(GroupDepartment.class,
-                      drm.getGroupId());
+              GroupDepartment drmGroup =
+                      utility.findGroupOrThrowNoSuchElementException(GroupDepartment.class,
+                              drm.getGroupId());
 
-      if(drm == null|| drmCentre == null || drmGroup == null)
-        throw new RuntimeException("drm or centre or group is null");
-      System.out.println(drm.toString());
+              if(drm == null || drmCentre == null || drmGroup == null)
+                throw new RuntimeException("drm or centre or group is null");
+              System.out.println(drm.toString());
 
-      responseDto.setDomainId(domainDBDto.getDomainId());
-      responseDto.setDomainName(domainDBDto.getDomainName());
-      responseDto.setDrmName(drm.getFirstName() + " " + drm.getLastName());
+              responseDto.setDomainId(viewDomainDBDto.getDomainId());
+              responseDto.setDomainName(viewDomainDBDto.getDomainName());
+              responseDto.setDrmName(drm.getFirstName() + " " + drm.getLastName());
 
-      if(domainDBDto.getDomainExpiryDate() != null)
-        responseDto.setDomainExpiryDate(domainDBDto
-                .getDomainExpiryDate()
-                .toLocalDateTime()
-                .toLocalDate());
-      responseDto.setDrmCentreName(drmCentre.getCentreName());
-      responseDto.setDrmGroupName(drmGroup.getDepartmentName());
-      responseDto.setStatus(status);
+              if(viewDomainDBDto.getDomainExpiryDate() != null)
+                responseDto.setDomainExpiryDate(viewDomainDBDto
+                        .getDomainExpiryDate()
+                        .toLocalDateTime()
+                        .toLocalDate());
+              responseDto.setDrmCentreName(drmCentre.getCentreName());
+              responseDto.setDrmGroupName(drmGroup.getDepartmentName());
+              responseDto.setStatus(status);
+              return responseDto;
+            });
 
-      domainResponseDtos.add(responseDto);
+//    for(ViewDomainDBDto domainDBDto : viewDomainDBDtos) {
+//
+//      String status;
+//
+//      if(domainDBDto.isActive())
+//        status = "Domain Active";
+//      else if(domainDBDto.isDeleted())
+//        status = "Domain Deleted";
+//      else if (domainDBDto.isRenewal())
+//        status = "Under Renewal";
+//      else if(domainDBDto.getDomainExpiryDate() == null)
+//        status = "Application Submitted";
+//      else
+//        status = "Unknown Status";
+//
+//
+//      ViewDomainResponseDto responseDto = new ViewDomainResponseDto();
+//
+//      Drm drm = utility.findOrThrowNoSuchElementException("DRM", Drm.class,
+//              domainDBDto.getDrmEmpNo());
+//
+//      Centre drmCentre =
+//              utility.findCentreOrThrowNoSuchElementException(Centre.class,
+//                      drm.getCentreId());
+//
+//      GroupDepartment drmGroup =
+//              utility.findGroupOrThrowNoSuchElementException(GroupDepartment.class,
+//                      drm.getGroupId());
+//
+//      if(drm == null|| drmCentre == null || drmGroup == null)
+//        throw new RuntimeException("drm or centre or group is null");
+//      System.out.println(drm.toString());
+//
+//      responseDto.setDomainId(domainDBDto.getDomainId());
+//      responseDto.setDomainName(domainDBDto.getDomainName());
+//      responseDto.setDrmName(drm.getFirstName() + " " + drm.getLastName());
+//
+//      if(domainDBDto.getDomainExpiryDate() != null)
+//        responseDto.setDomainExpiryDate(domainDBDto
+//                .getDomainExpiryDate()
+//                .toLocalDateTime()
+//                .toLocalDate());
+//      responseDto.setDrmCentreName(drmCentre.getCentreName());
+//      responseDto.setDrmGroupName(drmGroup.getDepartmentName());
+//      responseDto.setStatus(status);
+//
+//      domainResponseDtos.add(responseDto);
 
-    }
-    return new ResponseEntity<>(domainResponseDtos,HttpStatus.OK);
+//    }
+    return new ResponseEntity<>(domainResponseDtosPage, HttpStatus.OK);
   }
 
   public ResponseEntity<?> getDomainsToPurchase(Long webmasterId) {
@@ -945,6 +1033,12 @@ public class DomainNameService {
   }
 
 
+  public ResponseEntity<PurchasePopulate> getDomainParticularsForViewPurchase(
+          @Positive Long domainId) {
+    return new ResponseEntity<PurchasePopulate>(
+            domainNameRepo.getPurchasePopulateByDomainId(domainId), HttpStatus.OK);
+
+  }
 }
 
 

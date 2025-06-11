@@ -8,14 +8,12 @@ def services = [
   [name: 'ServiceRegistry',            lang: 'java']
 ]
 
-
 pipeline {
   agent any
    environment {
         // This ID matches the 'ID' you gave the Secret file in Jenkins
         ALL_SERVICES_ENV_FILE_CRED_ID = 'cdac-env-file'
     }
-
   stages {
     stage('Load Environment Variables from Secret File') {
             steps {
@@ -76,7 +74,6 @@ pipeline {
         checkout scm
       }
     }
-
     stage('Pre-commit Checks') {
             steps {
                 script {
@@ -167,7 +164,6 @@ pipeline {
         }
       }
     }
-
     stage('SAST Analysis using SonarQube') {
       // environment {
       //   // Define these at pipeline or stage level
@@ -235,7 +231,6 @@ pipeline {
         }
       }
     }
-
     stage('Build and Push Docker Images') {
       steps {
           script {
@@ -271,8 +266,6 @@ pipeline {
           }
       }
     }
-
-
     stage('Dockerization of services and putting them in same network')
     {
       steps{
@@ -292,7 +285,6 @@ pipeline {
           }
       }
     }
-
     stage('DAST Scanning using Zed ZAP'){
       steps{
         bat(label: 'Running ZAP Baseline scan',
@@ -304,7 +296,6 @@ pipeline {
           }
       }
     }
-
   } // stages
   post{
       always{
@@ -312,5 +303,3 @@ pipeline {
       }
   }
 }
-
-//

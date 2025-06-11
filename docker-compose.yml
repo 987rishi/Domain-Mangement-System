@@ -301,38 +301,6 @@ services:
     depends_on:
       - service-registry
 
-  
-  sonarqube:
-    image: 4f01870f15a6
-    container_name: sonarqube
-    environment:
-      - SONAR_WEB_HOST=0.0.0.0
-    ports:
-      - "9000:9000"
-    volumes:
-      - sonarqube_data:/opt/sonarqube/data
-      - sonarqube_extensions:/opt/sonarqube/extensions
-      - sonarqube_logs:/opt/sonarqube/logs
-  # prometheus:
-  #   image: prom/prometheus
-  #   container_name: prometheus
-  #   ports:
-  #     - "9090:9090"
-  #   volumes:
-  #     - ./:/config
-  #     - prometheus-data:/prometheus
-  #   command:
-  #     - "--config.file=/config/prometheus.yml"
-
-  # grafana:
-  #   image: grafana/grafana
-  #   container_name: grafana
-  #   ports:
-  #     - "3000:3000"
-  #   volumes:
-  #     - grafana-data:/var/lib/grafana
-
-
   workflow-service-db:
     image: postgres:16-alpine3.21
     container_name: workflow_db

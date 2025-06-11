@@ -87,5 +87,15 @@ public class NotificationWebhook {
         private Long drmEmpNo;
         @JsonProperty("arm_emp_no")
         private Long armEmpNo;
+        @JsonProperty("hod_emp_no")
+        private Long hodEmpNo;
+        @JsonProperty("ed_emp_no")
+        private Long edEmpNo;
+        @JsonProperty("netops_emp_no")
+        private Long netopsEmpNo;
+        @JsonProperty("webmaster_emp_no")
+        private Long webmasterEmpNo;
+        @JsonProperty("hod_hpc_emp_no")
+        private Long hodHpcEmpNo;
     }
 }

@@ -138,6 +138,12 @@
             <!-- Version is typically managed by your Spring Boot parent POM -->
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>3.11.2</version>
+        </dependency>
+
 
     </dependencies>
     <dependencyManagement>

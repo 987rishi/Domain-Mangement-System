@@ -4,6 +4,6 @@
 /.idea
 *.log
 dump_files/
-/**/.scannerwork
+**/.scannerwork
 **/*.env
 .vscode

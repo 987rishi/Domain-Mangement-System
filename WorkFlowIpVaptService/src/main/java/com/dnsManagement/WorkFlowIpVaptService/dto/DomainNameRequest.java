@@ -2,6 +2,7 @@ package com.dnsManagement.WorkFlowIpVaptService.dto;
 
 import com.dnsManagement.WorkFlowIpVaptService.models.ServiceType;
 import com.dnsManagement.WorkFlowIpVaptService.models.Status;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.Email;
@@ -54,10 +55,15 @@ public class DomainNameRequest {
   @AllArgsConstructor
   @NoArgsConstructor
   public static class ApproverInfo {
+    @JsonProperty("hod_emp_no")
      private Long hodEmpNo;
+    @JsonProperty("ed_emp_no")
      private Long edEmpNo;
+    @JsonProperty("netops_emp_no")
      private Long netopsEmpNo;
+    @JsonProperty("webmaster_emp_no")
      private Long webmasterEmpNo;
+    @JsonProperty("hod_hpc_iande_emp_no")
      private Long hodHpcEmpNo;
   }
 

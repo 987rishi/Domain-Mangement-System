@@ -13,6 +13,7 @@ import com.dnsManagement.WorkFlowIpVaptService.repo.DomainNameRepo;
 import com.dnsManagement.WorkFlowIpVaptService.repo.DomainRenewalRepo;
 import com.dnsManagement.WorkFlowIpVaptService.repo.DomainVerificationRepo;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +26,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.function.Consumer;
 
+@Slf4j
 @Service
 public class ApprovalService {
 
@@ -122,6 +124,7 @@ public class ApprovalService {
                     remarks);
 //  ON WHEN RAJ HAS FINSIHED IT
             client.sendNotification(webhookSecret , notificationWebhook);
+            log.info("NOTIFICATION SEND:{}", notificationWebhook);
 
             return ResponseEntity.ok(domainVerification);
         } catch (Exception e) {
@@ -139,57 +142,91 @@ public class ApprovalService {
 
         Long empNo;
         NotificationWebhook.EventType eventType;
+        NotificationWebhook.Recipients recipients = new NotificationWebhook.Recipients();
 
-
+      NotificationWebhook notification = new NotificationWebhook();
+      
          switch (role){
             case ARM -> {
               empNo = domainName.getArmEmployeeNumber();
               eventType =
                       NotificationWebhook.EventType.DOMAIN_ARM_VERIFICATION_FORWARDED;
+              recipients.setDrmEmpNo(domainName.getDrmEmployeeNumber());
+              recipients.setArmEmpNo(domainName.getArmEmployeeNumber());
+              recipients.setHodEmpNo(domainName.getHodEmployeeNumber());
             }
             case HOD ->{
                 empNo = domainName.getHodEmployeeNumber();
                 eventType = NotificationWebhook.EventType.DOMAIN_HOD_VERIFIED;
+                recipients.setDrmEmpNo(domainName.getDrmEmployeeNumber());
+                recipients.setArmEmpNo(domainName.getArmEmployeeNumber());
+                recipients.setHodEmpNo(domainName.getHodEmployeeNumber());
+                recipients.setEdEmpNo(domainName.getEdEmployeeNumber());
+
             }
             case ED ->{
                 empNo = domainName.getEdEmployeeNumber();
                 eventType = NotificationWebhook.EventType.DOMAIN_ED_APPROVED;
+
+              recipients.setDrmEmpNo(domainName.getDrmEmployeeNumber());
+              recipients.setArmEmpNo(domainName.getArmEmployeeNumber());
+//              recipients.setHodEmpNo(domainName.getHodEmployeeNumber());
+              recipients.setEdEmpNo(domainName.getEdEmployeeNumber());
+              recipients.setNetopsEmpNo(domainName.getNetopsEmployeeNumber());
             }
             case NETOPS ->{
                 empNo = domainName.getNetopsEmployeeNumber();
                 eventType = NotificationWebhook.EventType.DOMAIN_NETOPS_VERIFIED;
+              recipients.setDrmEmpNo(domainName.getDrmEmployeeNumber());
+              recipients.setArmEmpNo(domainName.getArmEmployeeNumber());
+//              recipients.setHodEmpNo(domainName.getHodEmployeeNumber());
+//              recipients.setEdEmpNo(domainName.getEdEmployeeNumber());
+              recipients.setNetopsEmpNo(domainName.getNetopsEmployeeNumber());
+              recipients.setWebmasterEmpNo(domainName.getWebmasterEmployeeNumber());
             }
             case WEBMASTER ->{
                 empNo = domainName.getWebmasterEmployeeNumber();
                 eventType = NotificationWebhook.EventType.DOMAIN_WEBMASTER_VERIFIED;
+
+              recipients.setDrmEmpNo(domainName.getDrmEmployeeNumber());
+              recipients.setArmEmpNo(domainName.getArmEmployeeNumber());
+//              recipients.setHodEmpNo(domainName.getHodEmployeeNumber());
+//              recipients.setEdEmpNo(domainName.getEdEmployeeNumber());
+//              recipients.setNetopsEmpNo(domainName.getNetopsEmployeeNumber());
+              recipients.setWebmasterEmpNo(domainName.getWebmasterEmployeeNumber());
+              recipients.setHodHpcEmpNo(domainName.getHodHpcEmployeeNumber());
             }
             case HODHPC ->{
                 empNo = domainName.getHodHpcEmployeeNumber();
                 eventType = NotificationWebhook.EventType.DOMAIN_HPC_HOD_RECOMMENDED;
+
+              recipients.setDrmEmpNo(domainName.getDrmEmployeeNumber());
+              recipients.setArmEmpNo(domainName.getArmEmployeeNumber());
+//              recipients.setHodEmpNo(domainName.getHodEmployeeNumber());
+//              recipients.setEdEmpNo(domainName.getEdEmployeeNumber());
+//              recipients.setNetopsEmpNo(domainName.getNetopsEmployeeNumber());
+              recipients.setWebmasterEmpNo(domainName.getWebmasterEmployeeNumber());
+              recipients.setHodHpcEmpNo(domainName.getHodHpcEmployeeNumber());
             }
             default ->{
                 empNo = null;
                 eventType = NotificationWebhook.EventType.UNKNOWN_EVENT;
             }
         }
+          notification.setEventType(eventType);
+          notification.setTimestamp(LocalDateTime.now());
+          notification.setTriggeredBy(new NotificationWebhook.TriggeredBy(
+                      empNo,
+                      role
+              ));
+          notification.setNotificationData(new NotificationWebhook.NotificationData(
+                  domainName.getDomainNameId(),
+                  domainName.getDomainName(),
+                  remarks
+          ));
+          notification.setRecipients(recipients);
 
-         return new NotificationWebhook(
-                 eventType,
-                 LocalDateTime.now(),
-                 new NotificationWebhook.TriggeredBy(
-                         empNo,
-                         role
-                 ),
-                 new NotificationWebhook.NotificationData(
-                         domainName.getDomainNameId(),
-                         domainName.getDomainName(),
-                         remarks
-                 ),
-                 new NotificationWebhook.Recipients(
-                         domainName.getDrmEmployeeNumber(),
-                         domainName.getArmEmployeeNumber()
-                 )
-         );
+         return notification;
 
     }
 

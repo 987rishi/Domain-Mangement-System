@@ -4,6 +4,7 @@ import com.dnsManagement.WorkFlowIpVaptService.dto.IpResponse;
 import com.dnsManagement.WorkFlowIpVaptService.models.Ip;
 import com.dnsManagement.WorkFlowIpVaptService.repo.IpRepo;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class IpService {
@@ -80,5 +83,15 @@ public class IpService {
         ipResponse.setExpiryDate(ip.getExpiryDate());
         ipResponse.setActive(ip.isActive());
         return ipResponse;
+    }
+
+    public ResponseEntity<String> isUnique(@NotNull String ipAddr) {
+        Set<String> ipList =
+                ipRepo.findAllIpAddress();
+        if(!ipList.contains(ipAddr))
+            return ResponseEntity.ok("IP ADDRESS IS VALID");
+        return new ResponseEntity<>("The Ip Address you entered is not " +
+                "Unique", HttpStatus.CONFLICT);
+
     }
 }

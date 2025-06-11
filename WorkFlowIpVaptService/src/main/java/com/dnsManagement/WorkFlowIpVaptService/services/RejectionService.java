@@ -195,7 +195,12 @@ public class RejectionService {
                 ),
                 new NotificationWebhook.Recipients(
                         domainName.getDrmEmployeeNumber(),
-                        domainName.getArmEmployeeNumber()
+                        domainName.getArmEmployeeNumber(),
+                        null,
+                        null,
+                        null,
+                        null,
+                        null
                 )
         );
 
