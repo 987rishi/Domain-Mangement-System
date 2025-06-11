@@ -40,6 +40,23 @@ const networkInterfaces = os.networkInterfaces();
     //   return "127.0.0.1";
     // }
 
+  /**
+ * Determines the most suitable non-internal IPv4 address for this service to advertise to Eureka.
+ *
+ * @remarks
+ * This function follows a specific priority order to find the best IP address:
+ * 1.  **Explicit Override:** It first checks for the `HOST_IP` environment variable. This is the recommended
+ *     approach for containerized environments (like Docker) where the host's IP must be explicitly passed.
+ * 2.  **Automatic Detection:** If no override is found, it scans all network interfaces and filters for addresses that are:
+ *     - IPv4
+ *     - Not internal (e.g., not `127.0.0.1`)
+ *     - Not link-local (e.g., not `169.254.x.x`)
+ *     It gives priority to common interface names like `eth0` or `en0`.
+ * 3.  **Fallback:** If no suitable IP is found, it logs a warning and defaults to `127.0.0.1`.
+ *
+ * @returns {string} The determined IP address as a string.
+ * @internal
+ */
     function getLocalIpAddress(): string {
       // 1. Check for explicit override via environment variable
       const explicitHostIp = process.env.HOST_IP;
@@ -105,6 +122,22 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 // 🛠️ Eureka Client Configuration
+
+/**
+ * @description The configured Eureka client instance for this microservice.
+ * This instance is exported and used by the main application entry point (`index.ts`)
+ * to start the registration and heartbeat process with the Eureka server.
+ *
+ * @remarks
+ * The configuration is split into two main sections:
+ * - **`instance`**: Describes this specific microservice instance.
+ *   - `app`: The logical name of the service ('notification-service').
+ *   - `hostName` & `ipAddr`: ✅ Set to the dynamically determined `localIP` for correct network routing.
+ *   - `statusPageUrl`: ✅ A reachable URL for health checks, also using the `localIP`.
+ * - **`eureka`**: Describes the Eureka server to connect to.
+ *   - `host`, `port`: Location of the Eureka server, loaded from environment variables.
+ */
+
 export const eurekaClient = new Eureka({
   instance: {
     app: "notification-service",

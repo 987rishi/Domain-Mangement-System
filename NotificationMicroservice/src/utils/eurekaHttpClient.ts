@@ -2,7 +2,35 @@ import axios, { Method, AxiosRequestConfig } from "axios";
 import { eurekaClient } from "./serviceDiscovery";
 
 
-
+/**
+ * Dynamically resolves the base URL of a registered microservice using its service name (App ID) from Eureka.
+ *
+ * @remarks
+ * This function is crucial for inter-service communication. It queries the Eureka client for all available
+ * instances of a given service, selects the first one, and constructs its base HTTP address.
+ *
+ * The logic for extracting the port is designed to be resilient, handling two common structures for the
+ * `port` property (`instance.port.$` or `instance.port`) to accommodate potential variations in the
+ * Eureka client's response format.
+ *
+ * @param serviceName - The application ID of the target service as registered in Eureka (e.g., 'USER-MANAGEMENT-SERVICE').
+ * @returns A promise that resolves to the base URL string (e.g., 'http://10.0.1.5:8080').
+ * @throws Throws a custom 'ServiceDiscoveryError' if:
+ *  - No instances are found for the given `serviceName`.
+ *  - An instance is found, but its port cannot be determined.
+ *  - Any other unexpected error occurs during the lookup process.
+ *
+ * @example
+ * ```
+ * try {
+ *   const userServiceUrl = await getServiceBaseUrl('USER-MANAGEMENT-SERVICE');
+ *   // Now you can use axios or another client with this URL
+ *   const response = await axios.get(`${userServiceUrl}/api/users/123`);
+ * } catch (error) {
+ *   console.error('Failed to contact User Service:', error.message);
+ * }
+ * ```
+ */
 const getServiceBaseUrl = async (serviceName: string): Promise<any> => {
   try {
     // If service discovery fails throw error
@@ -43,35 +71,4 @@ const getServiceBaseUrl = async (serviceName: string): Promise<any> => {
 };
 
 export { getServiceBaseUrl };
-// export function discoverService(appName: string): string | null {
-//   const instances = eurekaClient.getInstancesByAppId(appName.toUpperCase());
-//   if (!instances || instances.length === 0) return null;
 
-//   const upInstances = instances.filter(i => i.status === "UP");
-//   const instance = (upInstances.length ? upInstances : instances)[Math.floor(Math.random() * instances.length)];
-//   return `http://${instance.ipAddr}:${instance.port.$}`;
-// }
-// export async function callService<T = any>(
-//   appName: string,
-//   path: string,
-//   method: Method = "GET",
-//   options: {
-//     params?: any;
-//     data?: any;
-//     headers?: Record<string, string>;
-//   } = {}
-// ): Promise<T> {
-//   const baseUrl = await getServiceBaseUrl(appName);
-//   if (!baseUrl) throw new Error(`Service ${appName} not found in Eureka`);
-
-//   const config: AxiosRequestConfig = {
-//     method,
-//     url: `${baseUrl}${path}`,
-//     params: options.params,
-//     data: options.data,
-//     headers: options.headers,
-//   };
-
-//   const response = await axios.request<T>(config);
-//   return response.data;
-// }
