@@ -1,4 +1,4 @@
-# Base image
+#  Base image
 FROM node:22-alpine
 
 # Set working directory inside container
@@ -26,7 +26,10 @@ ENV NODE_ENV=production
 
 # Copy and set up entrypoint script
 COPY --chown=node:node entrypointScript.sh .
-RUN chmod +x ./entrypointScript.sh
+# RUN chmod +x ./entrypointScript.sh
+
+RUN sed -i 's/\r$//' ./entrypointScript.sh && \
+    chmod +x ./entrypointScript.sh
 
 # Expose port (change to your backend's actual port)
 EXPOSE 5000
@@ -36,3 +39,5 @@ ENTRYPOINT [ "./entrypointScript.sh" ]
 
 # Start in development mode
 CMD ["npm", "run", "server"]
+
+
