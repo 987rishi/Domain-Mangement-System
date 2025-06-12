@@ -1039,6 +1039,23 @@ public class DomainNameService {
             domainNameRepo.getPurchasePopulateByDomainId(domainId), HttpStatus.OK);
 
   }
+
+  @Transactional
+  public ResponseEntity<DomainName> deleteDomain(Long domainId) {
+    DomainName domainName = domainNameRepo
+            .findByDomainNameId(domainId)
+            .orElseThrow(() ->
+                    new NoSuchElementException(
+                            String.format("DOMAIN NAME " +
+                                    "CORRESPONDING TO ID: %s DOES " +
+                                    "NOT EXIST", domainId
+                            )));
+    domainName.setActive(false);
+    domainName.setDeleted(true);
+    return ResponseEntity.ok(domainNameRepo.save(domainName));
+
+
+  }
 }
 
 

@@ -288,7 +288,6 @@ services:
       - user-management-service-db
       - openldap
 
-
   api-gateway:
     container_name: api_gateway
     image: weakpassword/apigateway:latest
@@ -354,6 +353,8 @@ services:
       - POSTGRES_DB=user_management_db
     volumes:
       - user-management-service-db-volume:/var/lib/postgresql/data
+      - ./dump_files/UserManagementMicroservice_backup.dump:/docker-entrypoint-initdb.d/user_management_db.dump
+      - ./db_init_scripts/init-db-usermanagement.sh:/docker-entrypoint-initdb.d/init-user-db.sh
     networks:
       - user-management-service-db-network
 

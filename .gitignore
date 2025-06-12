@@ -3,7 +3,7 @@
 /workspace.xml
 /.idea
 *.log
-dump_files/
 **/.scannerwork
 **/*.env
 .vscode
+**/*.jtl

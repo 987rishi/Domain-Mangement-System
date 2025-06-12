@@ -2,6 +2,7 @@ package com.dnsManagement.WorkFlowIpVaptService.controllers;
 
 import com.dnsManagement.WorkFlowIpVaptService.dto.ExpiringDomains;
 import com.dnsManagement.WorkFlowIpVaptService.dto.ViewDomainResponseDto;
+import com.dnsManagement.WorkFlowIpVaptService.models.DomainName;
 import com.dnsManagement.WorkFlowIpVaptService.models.Role;
 import com.dnsManagement.WorkFlowIpVaptService.services.DomainNameService;
 import com.dnsManagement.WorkFlowIpVaptService.dto.PurchasePopulate;
@@ -10,10 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * REST controller for handling all HTTP requests related to domain information.
@@ -89,6 +87,10 @@ public class DomainNameController {
   @GetMapping("get/renew/{domainId}")
   public ResponseEntity<?> getDomainByDomainId(@PathVariable @Positive Long domainId) {
     return domainNameService.getDomainRenewal(domainId);
+  }
+  @DeleteMapping("delete/{domainId}")
+  public ResponseEntity<DomainName> deleteDomain(@PathVariable Long domainId) {
+    return domainNameService.deleteDomain(domainId);
   }
 
   /**
