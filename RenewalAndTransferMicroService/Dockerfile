@@ -49,13 +49,13 @@ COPY package-lock.json .
 
 # Copy and set up entrypoint script
 COPY --chown=node:node entrypointScript.sh .
-RUN chmod +x ./entrypoint.sh
+RUN chmod +x ./entrypointScript.sh
 
 EXPOSE 5000
 
 
 # Set the entrypoint script
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["./entrypointScript.sh"]
 
 # The command that will be passed to the entry point
 CMD ["node", "dist/server.js"]
