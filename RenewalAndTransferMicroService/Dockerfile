@@ -13,30 +13,51 @@ FROM base AS dependencies
 # RUN npm ci --only=production
 RUN npm ci
 
-
 COPY prisma ./prisma/
+
+# Generate Prisma Client
 RUN npx prisma generate
 
+
+# ---- Builder Stage ----
 FROM dependencies AS builder
+
+# Copy the rest of the source code
 COPY . .
 
-
+# Build the TypeScript application
 RUN npm run build
 
-
+# ---- Production Stage ----
 FROM base AS production
 
+# Set the node env to production
+ENV NODE_ENV=production
+
+# Copy the node_modules
 COPY --from=dependencies /usr/src/app/node_modules ./node_modules
+
+# Copy the prisma schema and migrations
 COPY --from=dependencies /usr/src/app/prisma ./prisma/
 
-
+# Copy the compiled application code
 COPY --from=builder /usr/src/app/dist ./dist
 
+# Copy package files
 COPY package.json .
+COPY package-lock.json .
+
+# Copy and set up entrypoint script
+COPY --chown=node:node entrypoint.sh .
+RUN chmode +x ./entrypoint.sh
 
 EXPOSE 5000
 
 
+# Set the entrypoint script
+ENTRYPOINT ["./entrypoint.sh"]
+
+# The command that will be passed to the entry point
 CMD ["node", "dist/server.js"]
 
 

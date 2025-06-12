@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const ipRenewalController_1 = require("../controllers/ipRenewalController");
+const router = (0, express_1.Router)();
+router.post("/create", ipRenewalController_1.createIpRenewal);
+router.patch("/:ipRnwlId/approve", ipRenewalController_1.approveIpRenewal);
+router.patch("/:ipRnwlId/reject", ipRenewalController_1.rejectIpRenewal);
+router.patch("/:ipRnwlId/review", ipRenewalController_1.reviewIpRenewal);
+router.patch("/:ipRnwlId/complete", ipRenewalController_1.completeIpRenewal);
+router.get("/all", ipRenewalController_1.getIpRenewals);
+router.get("/:ipRnwlId", ipRenewalController_1.getIpRenewal);
+exports.default = router;

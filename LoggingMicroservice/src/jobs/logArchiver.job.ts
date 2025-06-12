@@ -84,7 +84,7 @@ const archiveLogsForDate = async (date: Date): Promise<void> => {
  * Initializes the scheduled job to archive logs every day at 23:59.
  */
 export const initializeLogArchiverJob = () => {
-  const schedule = "59 23 * * *"; // "at 23:59 every day"
+  const schedule = "1 * * * * *"; // "59 23 * * *"; // "at 23:59 every day"
 
   console.log(`[Archiver] Scheduling daily log archival for ${schedule}.`);
   const today = new Date();
