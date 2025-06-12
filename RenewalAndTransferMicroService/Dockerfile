@@ -48,7 +48,7 @@ COPY package.json .
 COPY package-lock.json .
 
 # Copy and set up entrypoint script
-COPY --chown=node:node entrypoint.sh .
+COPY --chown=node:node entrypointScript.sh .
 RUN chmode +x ./entrypoint.sh
 
 EXPOSE 5000
