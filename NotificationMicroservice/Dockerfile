@@ -26,9 +26,15 @@ RUN npx tsc
 # Set environment variable for Prisma (needed during generate)
 ENV NODE_ENV=production
 
+# Copy and set up entrypoint script
+COPY --chown=node:node entrypointScript.sh .
+RUN chmod +x ./entrypointScript.sh
 
 # Expose port (change to your backend's actual port)
 EXPOSE 5000
+
+# Set the entrypoint Script that migrates prisma model to postgresdb
+ENTRYPOINT [ "./entrypointScript.sh" ]
 
 # Start in development mode
 CMD ["npm", "run", "server"]

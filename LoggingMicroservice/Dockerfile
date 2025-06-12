@@ -39,6 +39,10 @@ COPY --from=builder /usr/src/app/dist ./dist
 # Copy package.json (some libraries might need it at runtime)
 COPY --from=builder /usr/src/app/package.json ./package.json
 
+# Copy and set up entrypoint script
+COPY --chown=node:node entrypointScript.sh .
+RUN chmod +x ./entrypointScript.sh
+
 # Expose application port
 EXPOSE 5001
 
@@ -50,6 +54,11 @@ RUN chown -R appuser:appgroup /usr/src/app
 
 # Switch to the non-root user
 USER appuser
+
+
+
+# Set the entrypoint script
+ENTRYPOINT ["./entrypointScript.sh"]
 
 # Command to run the application
 CMD ["node", "dist/server.js"]
