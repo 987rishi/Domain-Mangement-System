@@ -19,7 +19,7 @@ COPY . .
 # Prisma generate
 RUN npx prisma generate
 # This creates the dist/ directory and dist/server.js
-RUN npx prisma migrate deploy
+# RUN npx prisma migrate deploy
 
 RUN npx tsc
 
