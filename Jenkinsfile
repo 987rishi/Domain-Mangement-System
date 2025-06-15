@@ -168,73 +168,73 @@ pipeline {
         }
       }
     }
-    // stage('SAST Analysis using SonarQube') {
-    //   // environment {
-    //   //   // Define these at pipeline or stage level
-    //   //   // SONAR_TOKEN = credentials('cdac-project-sonar-server')
-    //   //   // SONARQUBE_URL = 'http://localhost:9000' // CHANGE_ME
-    //   // }
-    //   steps {
-    //     script {
-    //       // Optional: Install @sonar/scan once if not a devDependency or globally on agent
-    //       // sh 'npm install -g @sonar/scan' // Or handle via npx / devDependency
+    stage('SAST Analysis using SonarQube') {
+      // environment {
+      //   // Define these at pipeline or stage level
+      //   // SONAR_TOKEN = credentials('cdac-project-sonar-server')
+      //   // SONARQUBE_URL = 'http://localhost:9000' // CHANGE_ME
+      // }
+      steps {
+        script {
+          // Optional: Install @sonar/scan once if not a devDependency or globally on agent
+          // sh 'npm install -g @sonar/scan' // Or handle via npx / devDependency
 
-    //       services.each { svc ->
-    //         dir(svc.name) {
-    //           echo "--- Starting SonarQube Analysis for ${svc.name} ---"
-    //           // Define projectKey either from svc map or derive it
-    //           String projectKeyForSonar = svc.name // Example: using service name as key
+          services.each { svc ->
+            dir(svc.name) {
+              echo "--- Starting SonarQube Analysis for ${svc.name} ---"
+              // Define projectKey either from svc map or derive it
+              String projectKeyForSonar = svc.name // Example: using service name as key
 
-    //           try {
-    //             // 'cdac-project-sonar-server' must match the SonarQube server name in Jenkins Global Config
-    //             withSonarQubeEnv('cdac-project-sonar-server') {
-    //               if (svc.lang == 'java') {
-    //                 bat(label: "Sonar Scan for ${svc.name}", script: """
-    //                   mvn clean install -DskipTests sonar:sonar \
-    //                     -Dsonar.projectKey=${projectKeyForSonar} \
-    //                     -Dsonar.projectName=${svc.name} \
-    //                     -Dsonar.host.url=${env.SONAR_HOST_URL} \
-    //                     -Dsonar.login=${env.SONAR_AUTH_TOKEN}
-    //                 """)
-    //               } else { // TypeScript
-    //                 // Assuming @sonar/scan is available (globally, via npx, or path)
-    //                 // And sonar-project.properties defines sonar.sources, sonar.javascript.lcov.reportPaths etc.
-    //                 // OR you pass them all via -D
-    //                 bat(label: 'Installing sonar/scan', script: 'npm install -g @sonar/scan')
-    //                 bat(label: "Sonar Scan for ${svc.name}", script: """
-    //                   sonar \
-    //                     -Dsonar.projectKey=${projectKeyForSonar} \
-    //                     -Dsonar.projectName=${svc.name} \
-    //                     -Dsonar.host.url=${env.SONAR_HOST_URL} \
-    //                     -Dsonar.token=${env.SONAR_AUTH_TOKEN} \
-    //                     -Dsonar.projectVersion=${env.BUILD_ID}
-    //                 """)
-    //               }
-    //             } // End withSonarQubeEnv
+              try {
+                // 'cdac-project-sonar-server' must match the SonarQube server name in Jenkins Global Config
+                withSonarQubeEnv('cdac-project-sonar-server') {
+                  if (svc.lang == 'java') {
+                    bat(label: "Sonar Scan for ${svc.name}", script: """
+                      mvn clean install -DskipTests sonar:sonar \
+                        -Dsonar.projectKey=${projectKeyForSonar} \
+                        -Dsonar.projectName=${svc.name} \
+                        -Dsonar.host.url=${env.SONAR_HOST_URL} \
+                        -Dsonar.login=${env.SONAR_AUTH_TOKEN}
+                    """)
+                  } else { // TypeScript
+                    // Assuming @sonar/scan is available (globally, via npx, or path)
+                    // And sonar-project.properties defines sonar.sources, sonar.javascript.lcov.reportPaths etc.
+                    // OR you pass them all via -D
+                    bat(label: 'Installing sonar/scan', script: 'npm install -g @sonar/scan')
+                    bat(label: "Sonar Scan for ${svc.name}", script: """
+                      sonar \
+                        -Dsonar.projectKey=${projectKeyForSonar} \
+                        -Dsonar.projectName=${svc.name} \
+                        -Dsonar.host.url=${env.SONAR_HOST_URL} \
+                        -Dsonar.token=${env.SONAR_AUTH_TOKEN} \
+                        -Dsonar.projectVersion=${env.BUILD_ID}
+                    """)
+                  }
+                } // End withSonarQubeEnv
 
-    //             // Quality Gate check, now correctly associated with the scan inside withSonarQubeEnv
-    //             // echo "SonarQube analysis submitted for ${svc.name}. Waiting for Quality Gate..."
-    //             // timeout(time: 4, unit: 'MINUTES') {
-    //             //   def qg = waitForQualityGate abortPipeline: false // Don't abort pipeline yet
-    //             //   if (qg.status != 'OK') {
-    //             //     currentBuild.result = 'FAILURE' // Mark build as failure
-    //             //     /* groovylint-disable-next-line LineLength */
-    //             //     error "Quality Gate for ${svc.name} failed: ${qg.status}. Dashboard: ${env.SONARQUBE_HOST_URL}/dashboard?id=${projectKeyForSonar}"
-    //             //   } else {
-    //             //     /* groovylint-disable-next-line LineLength */
-    //             //     echo "Quality Gate for ${svc.name} passed! Dashboard: ${env.SONARQUBE_HOST_URL}/dashboard?id=${projectKeyForSonar}"
-    //             //   }
-    //           // }
-    //           } catch (e) {
-    //             currentBuild.result = 'FAILURE' // Ensure any exception in the try block fails the build
-    //             error "SonarQube analysis or Quality Gate processing failed for ${svc.name}: ${e.getMessage()}"
-    //           }
-    //           echo "--- SonarQube Analysis for ${svc.name} finished ---"
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
+                // Quality Gate check, now correctly associated with the scan inside withSonarQubeEnv
+                // echo "SonarQube analysis submitted for ${svc.name}. Waiting for Quality Gate..."
+                // timeout(time: 4, unit: 'MINUTES') {
+                //   def qg = waitForQualityGate abortPipeline: false // Don't abort pipeline yet
+                //   if (qg.status != 'OK') {
+                //     currentBuild.result = 'FAILURE' // Mark build as failure
+                //     /* groovylint-disable-next-line LineLength */
+                //     error "Quality Gate for ${svc.name} failed: ${qg.status}. Dashboard: ${env.SONARQUBE_HOST_URL}/dashboard?id=${projectKeyForSonar}"
+                //   } else {
+                //     /* groovylint-disable-next-line LineLength */
+                //     echo "Quality Gate for ${svc.name} passed! Dashboard: ${env.SONARQUBE_HOST_URL}/dashboard?id=${projectKeyForSonar}"
+                //   }
+              // }
+              } catch (e) {
+                currentBuild.result = 'FAILURE' // Ensure any exception in the try block fails the build
+                error "SonarQube analysis or Quality Gate processing failed for ${svc.name}: ${e.getMessage()}"
+              }
+              echo "--- SonarQube Analysis for ${svc.name} finished ---"
+            }
+          }
+        }
+      }
+    }
     stage('Build and Push Docker Images') {
       steps {
           script {
@@ -277,37 +277,75 @@ pipeline {
         bat(label: 'Running docker compose ',script: 'docker-compose up -d')
       }
     }
-    stage('Stress and Load Testing using Jmeter')
-    {
-      steps{
-        bat(label: 'Running jmeter test script',
-        script: 'jmeter -n -t "./Testing/HTTP Request.jmx" -l results.jtl -e -o ./reports/jmeter ')
+
+    stage('Stress and Load Testing using JMeter') {
+      steps {
+        // 1. Clean up the old JMeter report directory before the test.
+        bat(label: 'Cleaning up previous JMeter report', script: 'if exist .\\reports\\jmeter (rmdir /s /q .\\reports\\jmeter)')
+
+        // 2. Run the JMeter test. Target the API Gateway by its internal Docker network name.
+        //    (Assuming your JMX file is configured to hit 'apigateway:8080' or a similar internal URL)
+        bat(label: 'Running JMeter test script',
+            script: 'jmeter -n -t ".\\Testing\\HTTP Request.jmx" -l results.jtl -e -o .\\reports\\jmeter')
       }
-      post{
-          always {
-            echo(message: 'Jmeter Stress and Load Testing finished, check the report at ./reports/jmeter')
-          }
+      post {
+        always {
+          // 3. Archive the report so it's saved with the build.
+          archiveArtifacts artifacts: 'reports/jmeter/**', allowEmptyArchive: true
+          echo('JMeter Stress and Load Testing finished. Check the archived report in the Jenkins build.')
+        }
       }
     }
-    stage('DAST Scanning using Zed ZAP'){
-      steps{
-        bat(label: 'Running ZAP Baseline scan',
-        script: 'docker run --rm -v "%cd%/reports/zap:/zap/wrk/" zaproxy/zap-stable zap-baseline.py -t http://host.docker.internal:5173 -r /zap/wrk/zap.html')
+
+    stage('DAST Scanning using Zed ZAP') {
+      steps {
+        script {
+          // --- Configuration for ZAP ---
+          // A. Define the Docker Compose network name. Find it by running 'docker network ls'.
+          //    It's usually '<directory-name>_default'.
+          def composeNetwork = 'cdacpipelinescript_application-network' // <-- IMPORTANT: VERIFY THIS NAME
+
+          // B. Define the target URL *inside* the Docker network.
+          //    This should be the service name from docker-compose.yml and its internal port.
+          def targetUrl = 'http://localhost:8085' // <-- SCAN THE API GATEWAY
+
+          echo "Preparing for DAST scan..."
+
+          // 1. Clean up the old ZAP report directory.
+          bat(label: 'Cleaning up previous ZAP report', script: 'if exist .\\reports\\zap (rmdir /s /q .\\reports\\zap)')
+
+          // 2. Add a delay to ensure the target application is fully started.
+          echo "Waiting 60 seconds for services to initialize before starting ZAP scan..."
+          bat 'timeout /t 60 /nobreak'
+
+          echo "Starting ZAP Baseline Scan against ${targetUrl} on network ${composeNetwork}"
+
+          // 3. Run the ZAP scan connected to the application's network.
+          //    Use %WORKSPACE% for a reliable path.
+          bat(label: 'Running ZAP Baseline scan',
+              script: """
+                docker run --rm --network ${composeNetwork} -v "%WORKSPACE%\\reports\\zap:/zap/wrk/" zaproxy/zap-stable zap-baseline.py -t ${targetUrl} -r /zap/wrk/zap.html
+              """)
+        }
       }
-      post{
-          always {
-            echo(message: 'OWASP DAST Baseline scan finished please see the report at ./reports/zap/zap.html')
-          }
+      post {
+        always {
+          // 4. Archive the ZAP report for easy access.
+          archiveArtifacts artifacts: 'reports/zap/zap.html', allowEmptyArchive: true
+          echo('OWASP ZAP DAST scan finished. Check the archived report "zap.html" in the Jenkins build.')
+        }
       }
     }
   } // stages
-  post{
-      always{
-        bat(label: 'Clearing docker containers', script: 'docker-compose down')
-        echo "Cleaning up the .env file."
-        deleteDir() // This deletes the entire workspace, including the .env file.
-                    // If you don't want to delete the whole workspace, use:
-                    // bat 'del .env'
-      }
+
+  post {
+    always {
+      // Use -v to also remove volumes, ensuring a clean state for the next run.
+      bat(label: 'Clearing docker containers and volumes', script: 'docker-compose down -v')
+      
+      // deleteDir() is the most robust way to clean the workspace.
+      echo "Cleaning up the workspace for the next run."
+      deleteDir()
+    }
   }
 }
