@@ -137,7 +137,7 @@ pipeline {
             dir(svc.name) {
               if (svc.lang == 'java') {
                 catchError(message: "Error executing Maven tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-                  bat 'mvn clean install package -DskipTests'
+                  bat 'mvn clean install package verify'
                   // bat 'mvn test'
                 }
               } else if (svc.name == 'UserManagementMicroservice') {
@@ -146,7 +146,7 @@ pipeline {
                     bat 'npm install'
                     bat 'npx prisma generate'
                     bat 'npx tsc'
-                    bat 'npx jest --coverage --passWithNoTests'
+                    bat 'npx jest'
                   }
                 }
               }
