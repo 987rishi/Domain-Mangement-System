@@ -68,5 +68,4 @@ public class RouteValidator {
             log.trace("Request path: {}, Secured: {}", path, secured);
             return secured;
           };
-
 }

@@ -25,7 +25,14 @@ export enum WebhookEventType {
   DOMAIN_VERIFICATION_REJECTED = "Domain verification rejected",
   DOMAIN_PURCHASED = "Domain purchase completed",
   DOMAIN_RENEWAL_REQUESTED = "Domain renewal requested",
-  DOMAIN_RENEWAL_APPROVED = "Domain renewal approved",
+  DOMAIN_RENEWAL_ARM_FORWARDED = "Domain renewal forwarded by ARM",
+  DOMAIN_RENEWAL_HOD_VERIFIED = "Domain renewal application verified by HoD",
+  DOMAIN_RENEWAL_ED_APPROVED = "Domain renewal application approved by Executive Director",
+  DOMAIN_RENEWAL_NETOPS_VERIFIED = "Domain renewal application verified by NetOps",
+  DOMAIN_RENEWAL_WEBMASTER_VERIFIED = "Domain renewal application verified by Webmaster",
+  DOMAIN_RENEWAL_HPC_HOD_RECOMMENDED = "Domain renewal application recommended by HPC HoD",
+  
+
   DOMAIN_RENEWAL_COMPLETED = "Domain renewal completed",
   DOMAIN_EXPIRY_WARNING = "Domain expiry warning",
   DOMAIN_EXPIRED = "Domain expired",

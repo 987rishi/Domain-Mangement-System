@@ -22,6 +22,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
@@ -30,151 +31,124 @@ public class DomainNameService {
   @Value("${WEBHOOK_SECRET}")
   String webhookSecret;
 
-  @Autowired
-  private DomainNameRepo domainNameRepo;
+  private final DomainNameRepo domainNameRepo;
+
+  private final IpRepo ipRepo;
+
+  private final VaptRepo vaptRepo;
+
+  private final DomainVerificationRepo domainVerificationRepo;
+
+  private final Utility utility;
+
+
+  private final StakeHolderClient client;
+
+  private final VaptAndIpRenewalsClient renewalsClient;
+
+  private final DomainRenewalRepo domainRenewalRepo;
+
+  private final AsyncNotificationService asyncNotificationService;
 
   @Autowired
-  private IpRepo ipRepo;
-
-  @Autowired
-  private VaptRepo vaptRepo;
-
-  @Autowired
-  private DomainVerificationRepo domainVerificationRepo;
-
-  @Autowired
-  private Utility utility;
-
-  @Autowired
-  private NotificationClient notificationClient;
-
-  @Autowired
-  private StakeHolderClient client;
-
-  @Autowired
-  private VaptAndIpRenewalsClient renewalsClient;
-
-  @Autowired
-  private DomainRenewalRepo domainRenewalRepo;
+  public DomainNameService(DomainNameRepo domainNameRepo, IpRepo ipRepo, VaptRepo vaptRepo, DomainVerificationRepo domainVerificationRepo, Utility utility, NotificationClient notificationClient, StakeHolderClient client, VaptAndIpRenewalsClient renewalsClient, DomainRenewalRepo domainRenewalRepo, AsyncNotificationService asyncNotificationService) {
+    this.domainNameRepo = domainNameRepo;
+    this.ipRepo = ipRepo;
+    this.vaptRepo = vaptRepo;
+    this.domainVerificationRepo = domainVerificationRepo;
+    this.utility = utility;
+    this.client = client;
+    this.renewalsClient = renewalsClient;
+    this.domainRenewalRepo = domainRenewalRepo;
+    this.asyncNotificationService = asyncNotificationService;
+  }
 
   @Transactional
-  public ResponseEntity<?> addDomainRequest(@Valid DomainNameRequest domainNameRequest) {
+  public ResponseEntity<DomainName> addDomainRequest(@Valid DomainNameRequest domainNameRequest) {
+    log.info("Starting new domain request processing for: {}",
+            domainNameRequest.getDomainDetails().getDomainName());
 
-//    System.out.println("Domain Name Request="+domainNameRequest.toString());
+    // Phase 1: Update external systems via Feign client.
+    // This is wrapped in a helper method for clarity. If it fails, the entire transaction will roll back.
+    updateExternalDrmAndArmInfo(domainNameRequest);
 
+    // Phase 2: Fetch all related entities from the local database.
+    Drm drm = utility.findOrThrowNoSuchElementException("DRM", Drm.class, domainNameRequest.getDrmInfo().getEmpNo());
+    Arm arm = utility.findOrThrowNoSuchElementException("ARM", Arm.class, domainNameRequest.getArmInfo().getEmpNo());
+    Hod hod = utility.findOrThrowNoSuchElementException("HOD", Hod.class, domainNameRequest.getApproverInfo().getHodEmpNo());
+    EdCentreHead edCentreHead = utility.findOrThrowNoSuchElementException("ED", EdCentreHead.class, domainNameRequest.getApproverInfo().getEdEmpNo());
+    MemberNetops memberNetops = utility.findOrThrowNoSuchElementException("NETOPS", MemberNetops.class, domainNameRequest.getApproverInfo().getNetopsEmpNo());
+    WebMaster webMaster = utility.findOrThrowNoSuchElementException("WEBMASTER", WebMaster.class, domainNameRequest.getApproverInfo().getWebmasterEmpNo());
+    HodHpcIandE hodHpcIandE = utility.findOrThrowNoSuchElementException("HODHPC", HodHpcIandE.class, domainNameRequest.getApproverInfo().getHodHpcEmpNo());
 
-    //Updating drm and arm records with details provided during form submission
-    UpdateDrmAndArmDetails drmDetails =
-            buildUpdateDetails(domainNameRequest, Role.DRM);
-    UpdateDrmAndArmDetails armDetails =
-            buildUpdateDetails(domainNameRequest, Role.ARM);
-
-    System.out.println("DRM DETAILS="+drmDetails.toString());
-
-    log.info("DOMAIN NAME REQUEST={}", domainNameRequest);
-
-    try {
-      client.updateDrmOrArmDetails(domainNameRequest
-                      .getDrmInfo()
-                      .getEmpNo()
-                      .toString(),
-              drmDetails);
-      client.updateDrmOrArmDetails(domainNameRequest
-                      .getArmInfo()
-                      .getEmpNo()
-                      .toString(),
-              armDetails);
-
-    } catch (Exception e) {
-      System.out.println("ERROR OCCURED");
-      throw new RuntimeException(e);
-    }
-
-
-
-    Drm drm = utility.findOrThrowNoSuchElementException("DRM", Drm.class,
-            domainNameRequest
-                    .getDrmInfo()
-                    .getEmpNo());
-
-    Arm arm = utility.findOrThrowNoSuchElementException("ARM", Arm.class,
-            domainNameRequest
-                    .getArmInfo()
-                    .getEmpNo());
-
-
-    Hod hod = utility.findOrThrowNoSuchElementException("HOD", Hod.class,
-            domainNameRequest
-                    .getApproverInfo()
-                    .getHodEmpNo());
-
-    System.out.println("ED EMP NO="+domainNameRequest.getApproverInfo().getEdEmpNo());
-
-    EdCentreHead edCentreHead = utility.findOrThrowNoSuchElementException("ED", EdCentreHead.class,
-            domainNameRequest
-                    .getApproverInfo()
-                    .getEdEmpNo());
-
-    MemberNetops memberNetops = utility.findOrThrowNoSuchElementException("NETOPS", MemberNetops.class,
-            domainNameRequest
-                    .getApproverInfo()
-                    .getNetopsEmpNo());
-
-    WebMaster webMaster = utility.findOrThrowNoSuchElementException("WEBMASTER", WebMaster.class,
-            domainNameRequest
-                    .getApproverInfo()
-                    .getWebmasterEmpNo());
-
-    HodHpcIandE hodHpcIandE = utility.findOrThrowNoSuchElementException("HODHPC", HodHpcIandE.class,
-            domainNameRequest
-                    .getApproverInfo()
-                    .getHodHpcEmpNo());
-
-
-
-    System.out.println("DRM="+drm.toString());
-    System.out.println("ARM="+arm.toString());
-    System.out.println("HOD="+hod.toString());
-    System.out.println("ED="+edCentreHead.toString());
-    System.out.println("NETOPS="+memberNetops.toString());
-    System.out.println("HODHPC="+hodHpcIandE.toString());
-
+    // Phase 3: Build the new entities that will be saved to the database.
     DomainVerification domainVerification = new DomainVerification();
-
-    DomainName domainName = buildDomainName(
-            domainNameRequest,
-            drm,
-            arm,
-            hod,
-            edCentreHead,
-            memberNetops,
-            webMaster,
-            hodHpcIandE);
-
+    DomainName domainName = buildDomainName(domainNameRequest, drm, arm, hod, edCentreHead, memberNetops, webMaster, hodHpcIandE);
     Ip ip = buildIp(domainName, domainNameRequest);
     Vapt vapt = buildVapt(ip, domainNameRequest);
-
-
     domainVerification.setDomainName(domainName);
 
-    try {
-      //ORDER IN WHICH SAVE IS PERFORMED MATTERS
-      DomainName dn = domainNameRepo.save(domainName);
-      ipRepo.save(ip);
-      vaptRepo.save(vapt);
-      domainVerificationRepo.save(domainVerification);
-//      RAJ HAS NOT WRITTEN LOGIC FOR IT YET
-      notificationClient.sendNotification(webhookSecret, buildNotification(domainName));
+    // Phase 4: Persist all new entities.
+    // CRITICAL FIX: The dangerous try-catch block is removed.
+    // If any of these .save() calls fail, @Transactional will automatically roll back
+    // all previous database operations within this method, ensuring data consistency.
+    DomainName savedDomain = domainNameRepo.save(domainName);
+    ipRepo.save(ip);
+    vaptRepo.save(vapt);
+    domainVerificationRepo.save(domainVerification);
 
-      return new ResponseEntity<>(dn, HttpStatus.CREATED);
-    } catch (Exception e) {
-      return new ResponseEntity<>("ERROR OCCURED WHILE" +
-              " SAVING DOMAIN NAME WITH ERROR : " +
-              e.getMessage(),
-              HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+    log.info("Successfully saved domain '{}' and its related entities to the database.", savedDomain.getDomainName());
 
+    // Phase 5: Send notification asynchronously.
+    // This happens after the database transaction is successful, without blocking the API response.
+    sendApplicationSubmittedNotification(savedDomain);
+
+    return new ResponseEntity<>(savedDomain, HttpStatus.CREATED);
   }
+
+  /**
+   * Helper method to encapsulate the synchronous Feign client calls.
+   * A failure here will correctly cause the transaction to roll back.
+   */
+  private void updateExternalDrmAndArmInfo(DomainNameRequest request) {
+    try {
+      log.info("Updating external DRM info for empNo: {}", request.getDrmInfo().getEmpNo());
+      client.updateDrmOrArmDetails(
+              request.getDrmInfo().getEmpNo().toString(),
+              buildUpdateDetails(request, Role.DRM)
+      );
+
+      log.info("Updating external ARM info for empNo: {}", request.getArmInfo().getEmpNo());
+      client.updateDrmOrArmDetails(
+              request.getArmInfo().getEmpNo().toString(),
+              buildUpdateDetails(request, Role.ARM)
+      );
+    } catch (Exception e) {
+      log.error("Critical failure during update of DRM/ARM info via Feign client. Rolling back transaction.", e);
+      // Re-throw as a runtime exception to allow @Transactional to handle it.
+      throw new RuntimeException("Failed to update external user information.", e);
+    }
+  }
+
+  /**
+   * Helper method to send the notification asynchronously using the async service.
+   */
+  private void sendApplicationSubmittedNotification(DomainName domainName) {
+    String remarks = """
+            DOMAIN NAME APPLICATION HAS BEEN SUCCESSFULLY SUBMITTED.
+            PLEASE TRACK YOUR APPLICATION STATUS IN THE PORTAL.
+            """;
+    NotificationWebhook.EventType eventType = NotificationWebhook.EventType.DOMAIN_APPLICATION_SUBMITTED;
+    NotificationWebhook payload = buildNotification(domainName, eventType, remarks);
+
+    log.info("Queuing application submission notification for domain: {}", domainName.getDomainName());
+    asyncNotificationService.sendNotificationAsync(webhookSecret, payload)
+            .exceptionally(ex -> {
+              log.error("Failed to send submission notification for domain: {}", domainName.getDomainName(), ex);
+              return null; // Required for exceptionally block in CompletableFuture<Void>
+            });
+  }
+
 
   private UpdateDrmAndArmDetails buildUpdateDetails(@Valid DomainNameRequest domainNameRequest, Role role) {
     UpdateDrmAndArmDetails details = new UpdateDrmAndArmDetails();
@@ -254,17 +228,10 @@ public class DomainNameService {
     return vapt;
   }
 
-  private NotificationWebhook buildNotification(DomainName domainName) {
-
-    String remarks = "DOMAIN NAME APPLICATION HAS" +
-            " BEEN SUCCESSFULLY SUBMITTED." +
-            " PLEASE TRACK YOUR APPLICATION" +
-            " STATUS IN THE PORTAL";
-    NotificationWebhook.EventType eventType = NotificationWebhook
-            .EventType
-            .DOMAIN_APPLICATION_SUBMITTED;
+  private NotificationWebhook buildNotification(DomainName domainName,
+                                                NotificationWebhook.EventType eventType,
+                                                String remarks) {
     Role role = Role.DRM;
-
     return new NotificationWebhook(
             eventType,
             LocalDateTime.now(),
@@ -290,7 +257,8 @@ public class DomainNameService {
 
   }
 
-  public ResponseEntity<?> updateDomain(@Positive Long dmId, @Valid UpdateDomainName updateDomainName) {
+  public ResponseEntity<String> updateDomain(@Positive Long dmId,
+                                        @Valid UpdateDomainName updateDomainName) {
     DomainName domainName =
             domainNameRepo.
                     findById(dmId)
@@ -312,10 +280,9 @@ public class DomainNameService {
     } catch (RuntimeException e) {
       throw new RuntimeException(e);
     }
-
   }
 
-  public ResponseEntity<?> getDomain(Long dmId) {
+  public ResponseEntity<DomainResponse> getDomain(Long dmId) {
     DomainName domainName = domainNameRepo
             .findById(dmId)
             .orElseThrow(() ->
@@ -380,32 +347,11 @@ public class DomainNameService {
               expiringDomains.setArmEmpNo(domainName.getArmEmployeeNumber());
               return expiringDomains;
             });
-
-//    for (DomainName domain : domainNamePage) {
-//      ExpiringDomains expiringDomains = new ExpiringDomains();
-//      Arm arm = utility
-//              .findOrThrowNoSuchElementException(
-//                      "ARM",
-//                      Arm.class,
-//                      domain.getArmEmployeeNumber());
-//      expiringDomains.setDomainName(domain.getDomainName());
-//      expiringDomains.setDomainId(domain.getDomainNameId());
-//      expiringDomains.setArmName(arm.getFirstName() + " " + arm.getLastName());
-//      expiringDomains.setArmEmail(arm.getEmail());
-//      expiringDomains.setArmMobile(arm.getMobileNumber());
-//      expiringDomains.setExpiringDate(domain.getExpiryDate().toLocalDate());
-//      expiringDomains.setArmEmpNo(domain.getArmEmployeeNumber());
-//
-//      expiringDomainsList.add(expiringDomains);
-//
-//    }
-
-//    return new ResponseEntity<>(expiringDomainsList, HttpStatus.OK);
       return new ResponseEntity<>(expiringDomainsPage, HttpStatus.OK);
   }
 
   @Transactional
-  public ResponseEntity<?> getDomainRenewal(@Positive Long domainId) {
+  public ResponseEntity<DomainNameRenewalRequest> getDomainRenewal(@Positive Long domainId) {
     DomainName domainName = domainNameRepo
             .findById(domainId)
             .orElseThrow(() ->
@@ -564,126 +510,126 @@ public class DomainNameService {
   }
 
   @Transactional
-  public ResponseEntity<?> getAllDomains(Long empNo, Role role) {
-    List<DomainName> domainNameList = domainNameRepo.findAllByRoleAndId(empNo
-            ,role.name());
+  public ResponseEntity<Page<ExpiringDomains>> getAllDomains(Long empNo,
+                                                             Role role,
+                                                             Pageable pageable) {
+    Page<DomainName> domainNameList = domainNameRepo.findAllByRoleAndId(empNo
+            ,role.name(), pageable);
     if (domainNameList.isEmpty())
-      return new ResponseEntity<>(domainNameList, HttpStatus.OK);
+      return new ResponseEntity<>(Page.empty(pageable), HttpStatus.OK);
 
-    List<ExpiringDomains> expiringDomainsList = new ArrayList<>();
-
-    for (DomainName domain : domainNameList) {
-      ExpiringDomains expiringDomains = new ExpiringDomains();
-      Arm arm = utility
-              .findOrThrowNoSuchElementException(
-                      "ARM",
-                      Arm.class,
-                      domain.getArmEmployeeNumber());
-      expiringDomains.setDomainName(domain.getDomainName());
-      expiringDomains.setDomainId(domain.getDomainNameId());
-      expiringDomains.setArmName(arm.getFirstName() + " " + arm.getLastName());
-      expiringDomains.setArmEmail(arm.getEmail());
-      expiringDomains.setArmMobile(arm.getMobileNumber());
-      expiringDomains.setExpiringDate(domain.getExpiryDate().toLocalDate());
-      expiringDomains.setArmEmpNo(domain.getArmEmployeeNumber());
-
-      expiringDomainsList.add(expiringDomains);
-
-    }
-
+    //TO OPTIMIZE TELL RAJ TO EXPOSE A ENDPOINT FOR BULK USER DATA FETCH
+    //ENDPOINT EXAMPLE POST /api/bulk/{Role} with request body as a list of
+    // the emp numbers to be fetched
+    Page<ExpiringDomains> expiringDomainsList =
+            domainNameList.map(domainName -> {
+              ExpiringDomains expiringDomains = new ExpiringDomains();
+              Arm arm = utility
+                      .findOrThrowNoSuchElementException(
+                              "ARM",
+                              Arm.class,
+                              domainName.getArmEmployeeNumber());
+              expiringDomains.setDomainName(domainName.getDomainName());
+              expiringDomains.setDomainId(domainName.getDomainNameId());
+              expiringDomains.setArmName(arm.getFirstName() + " " + arm.getLastName());
+              expiringDomains.setArmEmail(arm.getEmail());
+              expiringDomains.setArmMobile(arm.getMobileNumber());
+              expiringDomains.setExpiringDate(domainName.getExpiryDate().toLocalDate());
+              expiringDomains.setArmEmpNo(domainName.getArmEmployeeNumber());
+              return expiringDomains;
+            });
     return new ResponseEntity<>(expiringDomainsList, HttpStatus.OK);
   }
 
   @Transactional
-  public ResponseEntity<?> getDomainsWithByRoleAndEmpNoInfo(Long empNo,
-                                                            Role role) {
+  public ResponseEntity<Page<VerifyDomainRequestPageDto>> getDomainsWithByRoleAndEmpNoInfo(Long empNo,
+                                                            Role role,
+                                                            Pageable pageable) {
 
-    List<DomainNameDto> domainNameList =
-            domainNameRepo.findAllDomainRequestsByRoleAndEmpNo(empNo,role.name());
+    Page<DomainNameDto> domainNameList = domainNameRepo.findAllDomainRequestsByRoleAndEmpNo(
+                    empNo,
+                    role.name(),
+                    pageable
+            );
 
 
-    List<VerifyDomainRequestPageDto> hodResponse = new ArrayList<>();
-    //buildDomainRequestRenewalPageView(List<DomainNameDto> domainNameList)
-    // response List<VerifyDomainRequestPageDto>
-    for(DomainNameDto domainName:domainNameList) {
+    Page<VerifyDomainRequestPageDto> hodResponse =
+            domainNameList.map(domainNameDto -> {
+              VerifyDomainRequestPageDto domainRequest =
+                      new VerifyDomainRequestPageDto();
 
-      VerifyDomainRequestPageDto domainRequest =
-              new VerifyDomainRequestPageDto();
+              Drm drm = utility
+                      .findOrThrowNoSuchElementException(
+                              "DRM",
+                              Drm.class,
+                              domainNameDto.getDrmEmpNo());
 
-      Drm drm = utility
-              .findOrThrowNoSuchElementException(
-                      "DRM",
-                      Drm.class,
-                      domainName.getDrmEmpNo());
+              Arm arm = utility
+                      .findOrThrowNoSuchElementException(
+                              "ARM",
+                              Arm.class,
+                              domainNameDto.getArmEmpNo());
 
-      Arm arm = utility
-              .findOrThrowNoSuchElementException(
-                      "ARM",
-                      Arm.class,
-                      domainName.getArmEmpNo());
+              GroupDepartment drmGroup = utility
+                      .findGroupOrThrowNoSuchElementException(
+                              GroupDepartment.class,
+                              drm.getGroupId());
+              Centre drmCentre = utility
+                      .findCentreOrThrowNoSuchElementException(
+                              Centre.class,
+                              drm.getCentreId()
+                      );
 
-      GroupDepartment drmGroup = utility
-              .findGroupOrThrowNoSuchElementException(
-                      GroupDepartment.class,
-                      drm.getGroupId());
-      Centre drmCentre = utility
-              .findCentreOrThrowNoSuchElementException(
-                      Centre.class,
-                      drm.getCentreId()
+              GroupDepartment armGroup = utility
+                      .findGroupOrThrowNoSuchElementException(
+                              GroupDepartment.class,
+                              arm.getGroupId());
+              Centre armCentre = utility
+                      .findCentreOrThrowNoSuchElementException(
+                              Centre.class,
+                              arm.getCentreId()
+                      );
+
+              domainRequest.setDomainId(domainNameDto.getDomainId());
+              domainRequest.setDomainName(domainNameDto.getDomainName());
+              domainRequest.setDrmName(
+                      drm.getFirstName() + " " +
+                              drm.getLastName());
+              domainRequest.setArmName(
+                      arm.getFirstName() + " " +
+                              arm.getLastName()
               );
 
-      GroupDepartment armGroup = utility
-              .findGroupOrThrowNoSuchElementException(
-                      GroupDepartment.class,
-                      arm.getGroupId());
-      Centre armCentre = utility
-              .findCentreOrThrowNoSuchElementException(
-                      Centre.class,
-                      arm.getCentreId()
-              );
+              domainRequest.setDateOfApplication(domainNameDto
+                      .getDateOfApplication()
+                      .toLocalDateTime()
+                      .toLocalDate());
 
-      domainRequest.setDomainId(domainName.getDomainId());
-      domainRequest.setDomainName(domainName.getDomainName());
-      domainRequest.setDrmName(
-              drm.getFirstName() + " " +
-              drm.getLastName());
-      domainRequest.setArmName(
-              arm.getFirstName() + " " +
-              arm.getLastName()
-      );
+              if(drmGroup != null || armGroup != null) {
+                domainRequest.setDrmGroupName(
+                        drmGroup.getDepartmentName()
+                );
+                domainRequest.setDrmCentreName(
+                        drmCentre.getCentreName()
+                );
 
-      domainRequest.setDateOfApplication(domainName
-              .getDateOfApplication()
-              .toLocalDateTime()
-              .toLocalDate());
-
-      if(drmGroup != null || armGroup != null) {
-        domainRequest.setDrmGroupName(
-                drmGroup.getDepartmentName()
-        );
-        domainRequest.setDrmCentreName(
-                drmCentre.getCentreName()
-        );
-
-        domainRequest.setArmGroupName(
-                armGroup.getDepartmentName()
-        );
-        domainRequest.setArmCentreName(
-                armCentre.getCentreName()
-        );
-      }
+                domainRequest.setArmGroupName(
+                        armGroup.getDepartmentName()
+                );
+                domainRequest.setArmCentreName(
+                        armCentre.getCentreName()
+                );
+              }
+              return domainRequest;
 
 
-      hodResponse.add(domainRequest);
-
-
-    }
+            });
     return new ResponseEntity<>(hodResponse,HttpStatus.OK);
 
   }
 
   @Transactional
-  public ResponseEntity<?> getDetailedDomain(@Positive Long domainId) {
+  public ResponseEntity<DomainNameRenewalRequest> getDetailedDomain(@Positive Long domainId) {
 
     DomainName domainName = domainNameRepo
             .findByDomainNameId(domainId)
@@ -735,7 +681,10 @@ public class DomainNameService {
     return new ResponseEntity<>(response,HttpStatus.OK);
   }
 
-  public ResponseEntity<?> getRenewalViewByRoleAndEmpNo(Role role, Long empNo) {
+  public ResponseEntity<Page<VerifyDomainRequestPageDto>> getRenewalViewByRoleAndEmpNo(
+          Role role,
+          Long empNo,
+          Pageable pageable) {
 
     // domainId;
     // domainName;
@@ -743,55 +692,51 @@ public class DomainNameService {
     // armName;
     // dateOfApplication;
 
-    List<DomainNameDto> domainNameList =
-            domainNameRepo.findDomainRenewalsByRoleAndEmpNo(role.name(),empNo);
+    Page<DomainNameDto> domainNameList =
+            domainNameRepo.findDomainRenewalsByRoleAndEmpNo(
+                    role.name(),
+                    empNo,
+                    pageable);
 
 
-    List<VerifyDomainRequestPageDto> response = new ArrayList<>();
-    //buildDomainRequestRenewalPageView(List<DomainNameDto> domainNameList)
-    // response List<VerifyDomainRequestPageDto>
-    for(DomainNameDto domainName:domainNameList) {
+    Page<VerifyDomainRequestPageDto> response =
+            domainNameList.map(domainNameDto -> {
+              VerifyDomainRequestPageDto domainRequest =
+                      new VerifyDomainRequestPageDto();
 
-      VerifyDomainRequestPageDto domainRequest =
-              new VerifyDomainRequestPageDto();
+              Drm drm = utility
+                      .findOrThrowNoSuchElementException(
+                              "DRM",
+                              Drm.class,
+                              domainNameDto.getDrmEmpNo());
 
-      Drm drm = utility
-              .findOrThrowNoSuchElementException(
-                      "DRM",
-                      Drm.class,
-                      domainName.getDrmEmpNo());
+              Arm arm = utility
+                      .findOrThrowNoSuchElementException(
+                              "ARM",
+                              Arm.class,
+                              domainNameDto.getArmEmpNo());
 
-      Arm arm = utility
-              .findOrThrowNoSuchElementException(
-                      "ARM",
-                      Arm.class,
-                      domainName.getArmEmpNo());
+              domainRequest.setDomainId(domainNameDto.getDomainId());
+              domainRequest.setDomainName(domainNameDto.getDomainName());
+              domainRequest.setDrmName(
+                      drm.getFirstName() + " " +
+                              drm.getLastName());
+              domainRequest.setArmName(
+                      arm.getFirstName() + " " +
+                              arm.getLastName()
+              );
 
-      domainRequest.setDomainId(domainName.getDomainId());
-      domainRequest.setDomainName(domainName.getDomainName());
-      domainRequest.setDrmName(
-              drm.getFirstName() + " " +
-                      drm.getLastName());
-      domainRequest.setArmName(
-              arm.getFirstName() + " " +
-                      arm.getLastName()
-      );
-
-      domainRequest.setDateOfApplication(domainName
-              .getDateOfApplication()
-              .toLocalDateTime()
-              .toLocalDate());
-      response.add(domainRequest);
-
-
-    }
+              domainRequest.setDateOfApplication(domainNameDto
+                      .getDateOfApplication()
+                      .toLocalDateTime()
+                      .toLocalDate());
+              return domainRequest;
+            });
     return new ResponseEntity<>(response,HttpStatus.OK);
-
-
   }
 
   @Transactional
-  public ResponseEntity<?> getTransferDetailsByHod(@Positive Long hodEmpNo) {
+  public ResponseEntity<?> getTransferDetailsByHod(@Positive Long hodEmpNo, Pageable pageable) {
 
     List<TransferRequestDto> transferRequestDtoList;
     try{
@@ -903,131 +848,73 @@ public class DomainNameService {
               responseDto.setStatus(status);
               return responseDto;
             });
-
-//    for(ViewDomainDBDto domainDBDto : viewDomainDBDtos) {
-//
-//      String status;
-//
-//      if(domainDBDto.isActive())
-//        status = "Domain Active";
-//      else if(domainDBDto.isDeleted())
-//        status = "Domain Deleted";
-//      else if (domainDBDto.isRenewal())
-//        status = "Under Renewal";
-//      else if(domainDBDto.getDomainExpiryDate() == null)
-//        status = "Application Submitted";
-//      else
-//        status = "Unknown Status";
-//
-//
-//      ViewDomainResponseDto responseDto = new ViewDomainResponseDto();
-//
-//      Drm drm = utility.findOrThrowNoSuchElementException("DRM", Drm.class,
-//              domainDBDto.getDrmEmpNo());
-//
-//      Centre drmCentre =
-//              utility.findCentreOrThrowNoSuchElementException(Centre.class,
-//                      drm.getCentreId());
-//
-//      GroupDepartment drmGroup =
-//              utility.findGroupOrThrowNoSuchElementException(GroupDepartment.class,
-//                      drm.getGroupId());
-//
-//      if(drm == null|| drmCentre == null || drmGroup == null)
-//        throw new RuntimeException("drm or centre or group is null");
-//      System.out.println(drm.toString());
-//
-//      responseDto.setDomainId(domainDBDto.getDomainId());
-//      responseDto.setDomainName(domainDBDto.getDomainName());
-//      responseDto.setDrmName(drm.getFirstName() + " " + drm.getLastName());
-//
-//      if(domainDBDto.getDomainExpiryDate() != null)
-//        responseDto.setDomainExpiryDate(domainDBDto
-//                .getDomainExpiryDate()
-//                .toLocalDateTime()
-//                .toLocalDate());
-//      responseDto.setDrmCentreName(drmCentre.getCentreName());
-//      responseDto.setDrmGroupName(drmGroup.getDepartmentName());
-//      responseDto.setStatus(status);
-//
-//      domainResponseDtos.add(responseDto);
-
-//    }
     return new ResponseEntity<>(domainResponseDtosPage, HttpStatus.OK);
   }
 
-  public ResponseEntity<?> getDomainsToPurchase(Long webmasterId) {
+  public ResponseEntity<Page<VerifyDomainRequestPageDto>> getDomainsToPurchase(Long webmasterId, Pageable pageable) {
 
-    List<DomainNameDto> domainNameList =
-            domainNameRepo.findDomainToPurchaseByWebmasterId(webmasterId);
-
-
-    List<VerifyDomainRequestPageDto> response = new ArrayList<>();
-    //buildDomainRequestRenewalPageView(List<DomainNameDto> domainNameList)
-    // response List<VerifyDomainRequestPageDto>
-    for(DomainNameDto domainName:domainNameList) {
-
-      VerifyDomainRequestPageDto domainRequest =
-              new VerifyDomainRequestPageDto();
-
-      Drm drm = utility
-              .findOrThrowNoSuchElementException(
-                      "DRM",
-                      Drm.class,
-                      domainName.getDrmEmpNo());
-
-      Arm arm = utility
-              .findOrThrowNoSuchElementException(
-                      "ARM",
-                      Arm.class,
-                      domainName.getArmEmpNo());
-
-      domainRequest.setDomainId(domainName.getDomainId());
-      domainRequest.setDomainName(domainName.getDomainName());
-      domainRequest.setDrmName(
-              drm.getFirstName() + " " +
-                      drm.getLastName());
-      domainRequest.setArmName(
-              arm.getFirstName() + " " +
-                      arm.getLastName()
-      );
-
-      domainRequest.setDateOfApplication(domainName
-              .getDateOfApplication()
-              .toLocalDateTime()
-              .toLocalDate());
-
-      domainRequest.setDrmGroupName(utility
-              .findGroupOrThrowNoSuchElementException(
-                      GroupDepartment.class,
-                      drm.getGroupId())
-              .getDepartmentName());
-
-      domainRequest.setDrmCentreName(utility
-              .findCentreOrThrowNoSuchElementException(
-                      Centre.class,
-                      drm.getCentreId())
-              .getCentreName());
+    Page<DomainNameDto> domainNameList =
+            domainNameRepo.findDomainToPurchaseByWebmasterId(webmasterId, pageable);
 
 
-      domainRequest.setArmGroupName(utility
-              .findGroupOrThrowNoSuchElementException(
-                      GroupDepartment.class,
-                      arm.getGroupId())
-              .getDepartmentName());
+    Page<VerifyDomainRequestPageDto> response =
+            domainNameList.map(domainNameDto -> {
+              VerifyDomainRequestPageDto domainRequest =
+                      new VerifyDomainRequestPageDto();
 
-      domainRequest.setArmCentreName(utility
-              .findCentreOrThrowNoSuchElementException(
-                      Centre.class,
-                      arm.getCentreId())
-              .getCentreName());
+              Drm drm = utility
+                      .findOrThrowNoSuchElementException(
+                              "DRM",
+                              Drm.class,
+                              domainNameDto.getDrmEmpNo());
+
+              Arm arm = utility
+                      .findOrThrowNoSuchElementException(
+                              "ARM",
+                              Arm.class,
+                              domainNameDto.getArmEmpNo());
+
+              domainRequest.setDomainId(domainNameDto.getDomainId());
+              domainRequest.setDomainName(domainNameDto.getDomainName());
+              domainRequest.setDrmName(
+                      drm.getFirstName() + " " +
+                              drm.getLastName());
+              domainRequest.setArmName(
+                      arm.getFirstName() + " " +
+                              arm.getLastName()
+              );
+
+              domainRequest.setDateOfApplication(domainNameDto
+                      .getDateOfApplication()
+                      .toLocalDateTime()
+                      .toLocalDate());
+
+              domainRequest.setDrmGroupName(utility
+                      .findGroupOrThrowNoSuchElementException(
+                              GroupDepartment.class,
+                              drm.getGroupId())
+                      .getDepartmentName());
+
+              domainRequest.setDrmCentreName(utility
+                      .findCentreOrThrowNoSuchElementException(
+                              Centre.class,
+                              drm.getCentreId())
+                      .getCentreName());
 
 
+              domainRequest.setArmGroupName(utility
+                      .findGroupOrThrowNoSuchElementException(
+                              GroupDepartment.class,
+                              arm.getGroupId())
+                      .getDepartmentName());
 
-      response.add(domainRequest);
-
-
-    }
+              domainRequest.setArmCentreName(utility
+                      .findCentreOrThrowNoSuchElementException(
+                              Centre.class,
+                              arm.getCentreId())
+                      .getCentreName());
+              return domainRequest;
+            });
     return new ResponseEntity<>(response,HttpStatus.OK);
 
   }
@@ -1042,6 +929,7 @@ public class DomainNameService {
 
   @Transactional
   public ResponseEntity<DomainName> deleteDomain(Long domainId) {
+
     DomainName domainName = domainNameRepo
             .findByDomainNameId(domainId)
             .orElseThrow(() ->
@@ -1050,11 +938,35 @@ public class DomainNameService {
                                     "CORRESPONDING TO ID: %s DOES " +
                                     "NOT EXIST", domainId
                             )));
+
     domainName.setActive(false);
     domainName.setDeleted(true);
-    return ResponseEntity.ok(domainNameRepo.save(domainName));
+    DomainName  response = domainNameRepo.save(domainName);
 
-
+    String remarks = """
+            DOMAIN NAME  DELETION IS SUCCESSFUL.
+            DOMAIN IS NO LONGER ACTIVE.
+            """;
+    NotificationWebhook.EventType eventType = NotificationWebhook
+            .EventType
+            .DOMAIN_DELETED;
+    log.info("Queuing notification for deletion of domain: {}",
+            response.getDomainName());
+    asyncNotificationService
+            .sendNotificationAsync(
+                    webhookSecret,
+                    buildNotification(response, eventType, remarks)
+            )
+            .exceptionally(throwable -> {
+              log.error(
+                      "Failed to send DELETION notification for domain: {}",
+                      response.getDomainName(),
+                      throwable
+              );
+              // The 'exceptionally' block must return a value. For CompletableFuture<Void>, null is appropriate.
+              return null;
+            });
+    return ResponseEntity.ok(response);
   }
 }
 

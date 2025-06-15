@@ -3,6 +3,7 @@ package com.dnsManagement.WorkFlowIpVaptService.controllers;
 
 import com.dnsManagement.WorkFlowIpVaptService.dto.DomainNameRenewalRequest;
 
+import com.dnsManagement.WorkFlowIpVaptService.models.DomainRenewal;
 import com.dnsManagement.WorkFlowIpVaptService.services.DomainRenewalService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,11 +27,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/domainRenewal")
 public class RenewalController {
 
+    private final DomainRenewalService domainRenewalService;
+
     @Autowired
-    private DomainRenewalService domainRenewalService;
+    public RenewalController(DomainRenewalService domainRenewalService) {
+        this.domainRenewalService = domainRenewalService;
+    }
 
     @PostMapping("renew")
-    public ResponseEntity<?> domainRenewal(@RequestBody @Valid DomainNameRenewalRequest domainNameRenewalRequest){
+    public ResponseEntity<DomainRenewal> domainRenewal(@RequestBody @Valid DomainNameRenewalRequest domainNameRenewalRequest){
         return domainRenewalService.applyForRenewal(domainNameRenewalRequest);
     }
 }

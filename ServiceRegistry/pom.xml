@@ -33,9 +33,6 @@
 		<sonar.projectKey>ServiceRegistry</sonar.projectKey>
 		<sonar.projectName>ServiceRegistry</sonar.projectName>
 		<sonar.host.url>http://localhost:9000</sonar.host.url>
-		<sonar.token> sqp_288a9c396c35a5d7a6c01464c0c4e5c5cf026f39
-		</sonar.token>
-
 		<sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
 		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
 		<sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
@@ -131,7 +128,7 @@
 				<executions>
 					<execution>
 						<id>validate</id>
-						<phase>validate</phase>
+						<phase>verify</phase>
 						<goals>
 							<goal>check</goal>
 						</goals>

@@ -42,11 +42,23 @@ public class EmailService {
       Arm arm = utility.findOrThrowNoSuchElementException("ARM", Arm.class,
               domain.getArmEmployeeNumber());
 
+      String subjectMessage;
+      String bodyMessage;
+
       message.setTo(drm.getEmail());
       message.setCc(arm.getEmail());
 
-      message.setSubject(String.format("%s Your domain %s is expiring in %d days",
-              mailSubject, domain.getDomainName(), daysUntilExpiration));
+      if(daysUntilExpiration != 0)
+        subjectMessage = String.format("%s Your domain %s is expiring " +
+                      "in %d days",
+              mailSubject, domain.getDomainName(), daysUntilExpiration);
+      else
+        subjectMessage = String.format("%s Your domain %s has expired ",
+                mailSubject, domain.getDomainName());
+
+
+
+      message.setSubject(subjectMessage);
       message.setText(String.format(
               "Dear User,\n\n" +
                       "This is a friendly reminder that your domain '%s' is due to expire in %d days, on %s.\n\n" +

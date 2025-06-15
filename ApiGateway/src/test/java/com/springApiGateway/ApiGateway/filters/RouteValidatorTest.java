@@ -1,9 +1,11 @@
+
 package com.springApiGateway.ApiGateway.filters;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
@@ -56,134 +58,40 @@ class RouteValidatorTest {
     return request;
   }
 
-  @Test
-  @DisplayName("Should return FALSE for a public auth endpoint like /api/auth/login")
-  void isSecured_shouldReturnFalse_whenPathIsPublicAuthEndpoint() {
+  /**
+   * Parameterized test to verify the isSecured predicate against various URI paths.
+   * This single test method replaces multiple individual tests, reducing code duplication
+   * and improving maintainability.
+   *
+   * @param path            The request path to test.
+   * @param expectedSecured The expected boolean result (true if secured, false if public).
+   */
+  @ParameterizedTest(name = "Path \"{0}\" should be secured: {1}")
+  @CsvSource({
+          // Public Endpoints (should NOT be secured)
+          "/api/auth/register,                false",
+          "/api/auth/token,                   false",
+          "/api/auth/validate,                false",
+          "/eureka,                           false",
+          "/eureka/apps,                      false",
+          "/api/auth/login?token=xyz,         false", // Should ignore query parameters
+
+          // Secured Endpoints (should BE secured)
+          "/api/users/123,                    true",
+          "/api/products/all,                 true",
+          "/,                                 true", // Root path is not whitelisted
+          "/api/authentication/check,         true", // Partial match "auth" is not enough
+          "/API/AUTH/LOGIN,                   true"  // Logic is case-sensitive
+  })
+  @DisplayName("Verify isSecured predicate for various endpoints")
+  void isSecured_returnsCorrectly_forGivenPath(String path, boolean expectedSecured) {
     // Arrange
-    ServerHttpRequest request = mockRequestWithPath("/api/auth/login");
+    ServerHttpRequest request = mockRequestWithPath(path);
 
     // Act
     boolean isSecured = routeValidator.isSecured.test(request);
 
     // Assert
-    assertThat(isSecured).isFalse();
-  }
-
-  @Test
-  @DisplayName("Should return FALSE for a deep public auth endpoint like /api/auth/validate/token")
-  void isSecured_shouldReturnFalse_whenPathIsDeepPublicAuthEndpoint() {
-    // Arrange
-    ServerHttpRequest request = mockRequestWithPath("/api/auth/validate/token");
-
-    // Act
-    boolean isSecured = routeValidator.isSecured.test(request);
-
-    // Assert
-    assertThat(isSecured).isFalse();
-  }
-
-  @Test
-  @DisplayName("Should return FALSE for a public Eureka endpoint like /eureka/apps")
-  void isSecured_shouldReturnFalse_whenPathIsPublicEurekaEndpoint() {
-    // Arrange
-    ServerHttpRequest request = mockRequestWithPath("/eureka/apps");
-
-    // Act
-    boolean isSecured = routeValidator.isSecured.test(request);
-
-    // Assert
-    assertThat(isSecured).isFalse();
-  }
-
-  @Test
-  @DisplayName("Should return FALSE for the root Eureka path /eureka/")
-  void isSecured_shouldReturnFalse_whenPathIsRootEurekaPath() {
-    // Arrange
-    ServerHttpRequest request = mockRequestWithPath("/eureka/");
-
-    // Act
-    boolean isSecured = routeValidator.isSecured.test(request);
-
-    // Assert
-    assertThat(isSecured).isFalse();
-  }
-
-  @Test
-  @DisplayName("Should return TRUE for a secured user-related endpoint")
-  void isSecured_shouldReturnTrue_whenPathIsSecuredUserEndpoint() {
-    // Arrange
-    ServerHttpRequest request = mockRequestWithPath("/api/users/123");
-
-    // Act
-    boolean isSecured = routeValidator.isSecured.test(request);
-
-    // Assert
-    assertThat(isSecured).isTrue();
-  }
-
-  @Test
-  @DisplayName("Should return TRUE for a secured product-related endpoint")
-  void isSecured_shouldReturnTrue_whenPathIsSecuredProductEndpoint() {
-    // Arrange
-    ServerHttpRequest request = mockRequestWithPath("/api/products/all");
-
-    // Act
-    boolean isSecured = routeValidator.isSecured.test(request);
-
-    // Assert
-    assertThat(isSecured).isTrue();
-  }
-
-  @Test
-  @DisplayName("Should return TRUE for a path that partially matches but is not whitelisted")
-  void isSecured_shouldReturnTrue_forPartialMatch() {
-    // Arrange
-    ServerHttpRequest request = mockRequestWithPath("/api/authentication/check"); // 'auth' vs 'authentication'
-
-    // Act
-    boolean isSecured = routeValidator.isSecured.test(request);
-
-    // Assert
-    assertThat(isSecured).isTrue();
-  }
-
-  @Test
-  @DisplayName("Should return TRUE for a root path that is not whitelisted")
-  void isSecured_shouldReturnTrue_forRootPath() {
-    // Arrange
-    ServerHttpRequest request = mockRequestWithPath("/");
-
-    // Act
-    boolean isSecured = routeValidator.isSecured.test(request);
-
-    // Assert
-    assertThat(isSecured).isTrue();
-  }
-
-  @Test
-  @DisplayName("Should ignore query parameters and return FALSE for a public endpoint")
-  void isSecured_shouldIgnoreQueryParams_andReturnFalseForPublicEndpoint() {
-    // Arrange
-    ServerHttpRequest request = mockRequestWithPath("/api/auth/login?token=xyz");
-
-    // Act
-    boolean isSecured = routeValidator.isSecured.test(request);
-
-    // Assert
-    assertThat(isSecured).isFalse();
-  }
-
-  @Test
-  @DisplayName("Should be case-sensitive and return TRUE for an uppercase path")
-  void isSecured_shouldBeCaseSensitive_andReturnTrueForUppercasePath() {
-    // Arrange
-    ServerHttpRequest request = mockRequestWithPath("/API/AUTH/LOGIN");
-
-    // Act
-    boolean isSecured = routeValidator.isSecured.test(request);
-
-    // Assert
-    // AntPathMatcher is case-sensitive by default, so "/API/AUTH/LOGIN" does NOT match "/api/auth/**"
-    assertThat(isSecured).isTrue();
+    assertThat(isSecured).isEqualTo(expectedSecured);
   }
 }

@@ -23,24 +23,24 @@ import java.util.NoSuchElementException;
 
 @Service
 public class VaptService {
-    @Autowired
-    private VaptRepo vaptRepo;
+
+    private final VaptRepo vaptRepo;
+    private final VaptAndIpRenewalsClient renewalsClient;
+    private final DomainNameRepo domainNameRepo;
+    private final Utility utility;
 
     @Autowired
-    private StakeHolderClient client;
+    public VaptService(VaptRepo vaptRepo, StakeHolderClient client, VaptAndIpRenewalsClient renewalsClient, DomainNameRepo domainNameRepo, Utility utility) {
+        this.vaptRepo = vaptRepo;
+        this.renewalsClient = renewalsClient;
+        this.domainNameRepo = domainNameRepo;
+        this.utility = utility;
+    }
 
-    @Autowired
-    private VaptAndIpRenewalsClient renewalsClient;
-
-    @Autowired
-    private DomainNameRepo domainNameRepo;
-
-    @Autowired
-    private Utility utility;
 
 
     @Transactional
-    public ResponseEntity<?> getVapt(@Positive Long vaptId) {
+    public ResponseEntity<VaptResponse> getVapt(@Positive Long vaptId) {
         Vapt vapt = vaptRepo
                 .findById(vaptId)
                 .orElseThrow(() ->
@@ -65,7 +65,7 @@ public class VaptService {
     }
 
     @Transactional
-    public ResponseEntity<?> updateVapt(@Valid VaptResponse vaptResponse) {
+    public ResponseEntity<Vapt> updateVapt(@Valid VaptResponse vaptResponse) {
         Vapt vapt = vaptRepo
                 .findById(
                         vaptResponse
@@ -82,17 +82,13 @@ public class VaptService {
         vapt.setVaptCertifyAuthority(vaptResponse.getVaptCertifyAuthority());
         vapt.setExpiryDate(vaptResponse.getExpiryDate());
 
-        try{
-            return new ResponseEntity<>(vaptRepo.save(vapt),HttpStatus.OK);
-
-        } catch (Exception e) {
-            throw new RuntimeException("ERROR WHILE UPDATING VAPT. " +
-                    e.getMessage());
-        }
+        return new ResponseEntity<>(vaptRepo.save(vapt),HttpStatus.OK);
 
     }
 
-    public ResponseEntity<?> findAllVaptRenewalRecords(@Positive Long hodId) {
+
+
+    public ResponseEntity<List<VaptViewDto>> findAllVaptRenewalRecords(@Positive Long hodId) {
 
         List<VaptRenewalResponseDTO> vaptRenewals =
                 renewalsClient
@@ -104,7 +100,7 @@ public class VaptService {
             DomainName domainName = domainNameRepo
                     .findById(Long.parseLong(vapt.getDomainId()))
                     .orElseThrow(() ->
-                            new NoSuchElementException("" +
+                            new NoSuchElementException(
                                     "Domain name does not exist with id: " +
                                     vapt.getDomainId()));
 
@@ -114,7 +110,7 @@ public class VaptService {
                             .parseLong(vapt
                                     .getVaptId()))
                     .orElseThrow(() ->
-                            new NoSuchElementException("" +
+                            new NoSuchElementException(
                                     "Vapt record does not exist with id: " +
                                     vapt.getVaptId()));
             Drm drm = utility.findOrThrowNoSuchElementException(
@@ -144,7 +140,7 @@ public class VaptService {
         return new ResponseEntity<>(vaptList,HttpStatus.OK);
     }
 
-    public ResponseEntity<?> getVaptRenewalDetail(@Positive Long vaptRenewalId) {
+    public ResponseEntity<VaptRenewalDetailDto> getVaptRenewalDetail(@Positive Long vaptRenewalId) {
 
         VaptRenewalDetailDto vaptRenewalDetailDto = new VaptRenewalDetailDto();
         VaptRenewalResponseDTO vaptRenewalResponse =

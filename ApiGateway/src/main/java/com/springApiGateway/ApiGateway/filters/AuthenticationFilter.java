@@ -2,6 +2,7 @@ package com.springApiGateway.ApiGateway.filters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.springApiGateway.ApiGateway.dto.Response;
+import com.springApiGateway.ApiGateway.exceptions.UnauthorizedAccessException;
 import com.springApiGateway.ApiGateway.service.JwtUtils;
 import org.apache.http.HttpHeaders;
 import org.slf4j.Logger;
@@ -41,14 +42,19 @@ import java.util.Objects;
 @Component
 public class AuthenticationFilter extends AbstractGatewayFilterFactory<AuthenticationFilter.Config> {
 
-  @Autowired
   private RouteValidator routeValidator;
-
-  @Autowired
   private JwtUtils jwtUtils;
 
   private static final Logger logger =
           LoggerFactory.getLogger(AuthenticationFilter.class);
+
+  @Autowired
+  public AuthenticationFilter(JwtUtils jwtUtils, RouteValidator routeValidator) {
+    this.jwtUtils = jwtUtils;
+    this.routeValidator = routeValidator;
+  }
+
+
 
   /**
    * Default constructor that passes the configuration class to the superclass.
@@ -77,7 +83,7 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
    */
   @Override
   public GatewayFilter apply(final Config config) {
-    return (((exchange, chain) -> {
+    return ((exchange, chain) -> {
       if (routeValidator.isSecured.test(exchange.getRequest())) {
         //If header contains token or not
         if (!exchange.getRequest().getHeaders().containsKey((HttpHeaders.AUTHORIZATION))) {
@@ -87,10 +93,10 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
 
         String authHeader =
                 Objects.requireNonNull(exchange.getRequest().getHeaders().get(HttpHeaders.AUTHORIZATION)).get(0);
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+        if (authHeader != null && authHeader.startsWith("Bearer "))
           //Removing the 7 characters "Bearer "
           authHeader = authHeader.substring(7);
-        }
+
         //REST call to AUTH service
         try {
           // Instead of using an API call (vulnerable), validate the token in the API Gateway itself.
@@ -98,16 +104,26 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
           logger.info("Token validated successfully for route: {}", exchange.getRequest().getURI());
 
         } catch (Exception e) {
-          logger.error("Invalid token received for route: {}. Error: {}", exchange.getRequest().getURI(), e.getMessage());
-          // In a real app, you would have specific exceptions for expired, malformed tokens etc.
-          // and return a more specific error response.
-          throw new RuntimeException("Unauthorized access to application", e);
+//          String errorMessage = String.format("Unauthorized access attempt for route: %s", exchange.getRequest().getURI());
+//          // In a real app, you would have specific exceptions for expired, malformed tokens etc.
+//          // and return a more specific error response.
+//          throw new UnauthorizedAccessException(errorMessage, e);
+
+          logger.error("Invalid token for route: {}. Error: {}",
+                  exchange.getRequest().getURI(), e.getMessage());
+
+          String errorMessage = "Unauthorized access attempt for route: " + exchange.getRequest().getURI();
+          UnauthorizedAccessException reactiveException = new UnauthorizedAccessException(errorMessage, e);
+
+          // This correctly propagates the error through the reactive stream
+          // so that downstream subscribers (like StepVerifier) can handle it.
+          return Mono.error(reactiveException);
         }
       }
 
       return chain.filter(exchange);
     }
-    ));
+    );
   }
 
   /**

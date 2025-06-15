@@ -1,15 +1,14 @@
 package com.dnsManagement.WorkFlowIpVaptService.controllers;
 
-import com.dnsManagement.WorkFlowIpVaptService.dto.ExpiringDomains;
-import com.dnsManagement.WorkFlowIpVaptService.dto.ViewDomainResponseDto;
+import com.dnsManagement.WorkFlowIpVaptService.dto.*;
 import com.dnsManagement.WorkFlowIpVaptService.models.DomainName;
 import com.dnsManagement.WorkFlowIpVaptService.models.Role;
 import com.dnsManagement.WorkFlowIpVaptService.services.DomainNameService;
-import com.dnsManagement.WorkFlowIpVaptService.dto.PurchasePopulate;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -85,9 +84,11 @@ public class DomainNameController {
    *         is determined by the service layer.
    */
   @GetMapping("get/renew/{domainId}")
-  public ResponseEntity<?> getDomainByDomainId(@PathVariable @Positive Long domainId) {
+  public ResponseEntity<DomainNameRenewalRequest> getDomainByDomainId(@PathVariable @Positive Long domainId) {
     return domainNameService.getDomainRenewal(domainId);
   }
+
+
   @DeleteMapping("delete/{domainId}")
   public ResponseEntity<DomainName> deleteDomain(@PathVariable Long domainId) {
     return domainNameService.deleteDomain(domainId);
@@ -101,12 +102,13 @@ public class DomainNameController {
    *
    * @param empNo The employee number.
    * @param role  The role of the employee (e.g., HOD, ARM), which defines the access scope.
-   * @return A {@link ResponseEntity} containing a list of domains.
+   * @return A {@link ResponseEntity} containing a page of domains.
    */
   @GetMapping("get-domains/{role}/{empNo}")
-  public ResponseEntity<?> getDomains(@PathVariable Long empNo,
-                                      @PathVariable Role role) {
-    return domainNameService.getAllDomains(empNo,role);
+  public ResponseEntity<Page<ExpiringDomains>> getDomains(@PathVariable Long empNo,
+                                      @PathVariable Role role,
+                                      Pageable pageable) {
+    return domainNameService.getAllDomains(empNo, role, pageable);
   }
 
   /**
@@ -137,9 +139,15 @@ public class DomainNameController {
    * @param role     The role of the user, which determines the scope of the search.
    * @return A {@link ResponseEntity} with the list of domain verification requests.
    */
+//  -- TO DO POSTMAN TESTING
   @GetMapping("{role}/domain-verify-requests/{hodEmpNo}")
-  public ResponseEntity<?> getDomainVerifyAndInfoByRoleAndEmpNo(@PathVariable Long hodEmpNo, @PathVariable Role role) {
-    return domainNameService.getDomainsWithByRoleAndEmpNoInfo(hodEmpNo,role);
+  public ResponseEntity<Page<VerifyDomainRequestPageDto>> getDomainVerifyAndInfoByRoleAndEmpNo(@PathVariable Long hodEmpNo,
+                                                                                               @PathVariable Role role,
+                                                                                               Pageable pageable) {
+    return domainNameService.getDomainsWithByRoleAndEmpNoInfo(
+            hodEmpNo,
+            role,
+            pageable);
   }
 
   /**
@@ -152,7 +160,7 @@ public class DomainNameController {
    * @return A {@link ResponseEntity} containing the detailed domain object.
    */
   @GetMapping("domain-detail/{domainId}")
-  public ResponseEntity<?> getDetailedDomain(@PathVariable @Positive Long domainId) {
+  public ResponseEntity<DomainNameRenewalRequest> getDetailedDomain(@PathVariable @Positive Long domainId) {
     return domainNameService.getDetailedDomain(domainId);
   }
 
@@ -166,10 +174,15 @@ public class DomainNameController {
    * @param empNo The employee number.
    * @return A {@link ResponseEntity} containing the renewal view information.
    */
+//  -- TO DO POSTMAN TESTING
   @GetMapping("domain-renewal/view/{role}/{empNo}")
-  public ResponseEntity<?> getRenewalsView(@PathVariable Role role,
-                                           @PathVariable Long empNo) {
-    return domainNameService.getRenewalViewByRoleAndEmpNo(role,empNo);
+  public ResponseEntity<Page<VerifyDomainRequestPageDto>> getRenewalsView(@PathVariable Role role,
+                                           @PathVariable Long empNo,
+                                           Pageable pageable) {
+    return domainNameService.getRenewalViewByRoleAndEmpNo(
+            role,
+            empNo,
+            pageable);
   }
 
   /**
@@ -181,10 +194,12 @@ public class DomainNameController {
    * @param hodEmpNo The employee number of the HOD. Must be a positive number.
    * @return A {@link ResponseEntity} containing the list of transfer requests.
    */
+//  -- HANSRAJ MS CALL
   @GetMapping("/view/transfer/hod/{hodEmpNo}")
-  public ResponseEntity<?> getTransferRequestsByHod(@PathVariable @Positive Long hodEmpNo)
+  public ResponseEntity<?> getTransferRequestsByHod(@PathVariable @Positive Long hodEmpNo,
+                                                    Pageable pageable)
   {
-    return domainNameService.getTransferDetailsByHod(hodEmpNo);
+    return domainNameService.getTransferDetailsByHod(hodEmpNo, pageable);
   }
 
   /**
@@ -196,8 +211,10 @@ public class DomainNameController {
    * @param webmasterId The unique identifier of the webmaster.
    * @return A {@link ResponseEntity} containing the list of domains to be purchased.
    */
+//  -- TO DO POSTMAN TESTING
   @GetMapping("domain-purchase-view/WEBMASTER/{webmasterId}")
-  public ResponseEntity<?> getDomainsForPurchase(@PathVariable Long webmasterId) {
-    return domainNameService.getDomainsToPurchase(webmasterId);
+  public ResponseEntity<Page<VerifyDomainRequestPageDto>> getDomainsForPurchase(@PathVariable Long webmasterId,
+                                                 Pageable pageable) {
+    return domainNameService.getDomainsToPurchase(webmasterId, pageable);
   }
 }

@@ -32,13 +32,12 @@
         <spring-cloud.version>2024.0.1</spring-cloud.version>
 <!--        Excluding config file from code coverage tests-->
         <jacoco.version>0.8.12</jacoco.version>
-        <sonar.exclusions>**/schemas/**,**/config/**</sonar.exclusions>
-        <sonar.coverage.exclusions>**/schemas/**,**/config/**</sonar.coverage.exclusions>
+        <sonar.exclusions>**/target/**,**/config/**</sonar.exclusions>
+        <sonar.coverage.exclusions>**/target/**,**/config/**</sonar.coverage.exclusions>
 <!--Whenever using  sonarqube scanner  via  maven plugin-->
             <sonar.projectKey>ApiGateway</sonar.projectKey>
             <sonar.projectName>ApiGateway</sonar.projectName>
             <sonar.host.url>http://localhost:9000</sonar.host.url>
-            <sonar.token>sqa_081bcd3af1a377ed7b45c3a3d73bf1518897034b</sonar.token>
 
     </properties>
     <dependencies>

@@ -93,9 +93,9 @@ public interface DomainNameRepo extends JpaRepository<DomainName, Long> {
                 (:role = 'HODHPC' AND dn.hod_hpc_emp_no = :empNo AND dv.vfy_by_hod_hpc_iand_e = false AND dv.vfy_by_wbmstr = true)
             )
           """, nativeQuery = true)
-  List<DomainNameDto> findDomainRenewalsByRoleAndEmpNo(
+  Page<DomainNameDto> findDomainRenewalsByRoleAndEmpNo(
           @Param("role") String role,
-          @Param("empNo") Long empNo);
+          @Param("empNo") Long empNo, Pageable pageable);
 
 
 
@@ -118,8 +118,8 @@ public interface DomainNameRepo extends JpaRepository<DomainName, Long> {
                 (:role = 'HODHPC' AND dn.hod_hpc_emp_no = :empNo AND dv.vfy_by_hod_hpc_iand_e = false AND dv.vfy_by_wbmstr = true)
             )
           """, nativeQuery = true)
-  List<DomainNameDto> findAllDomainRequestsByRoleAndEmpNo(Long empNo,
-                                                          String role);
+  Page<DomainNameDto> findAllDomainRequestsByRoleAndEmpNo(Long empNo,
+                                                          String role, Pageable pageable);
 
 
 
@@ -142,8 +142,8 @@ public interface DomainNameRepo extends JpaRepository<DomainName, Long> {
                 (:role = 'HODHPC' AND dn.hod_hpc_emp_no = :empNo )
             )
           """, nativeQuery = true)
-  List<DomainName> findAllByRoleAndId(@Param("empNo") Long empNo,
-                                      @Param("role") String role);
+  Page<DomainName> findAllByRoleAndId(@Param("empNo") Long empNo,
+                                      @Param("role") String role, Pageable pageable);
 
 
 
@@ -163,7 +163,8 @@ public interface DomainNameRepo extends JpaRepository<DomainName, Long> {
             AND 
           (dn.webmaster_emp_no = :webmasterId) 
           """, nativeQuery = true)
-  List<DomainNameDto> findDomainToPurchaseByWebmasterId(Long webmasterId);
+  Page<DomainNameDto> findDomainToPurchaseByWebmasterId(Long webmasterId,
+                                                     Pageable pageable);
 
 
   @Query("SELECT dn from DomainName dn WHERE dn.expiryDate IS NOT NULL AND dn" +

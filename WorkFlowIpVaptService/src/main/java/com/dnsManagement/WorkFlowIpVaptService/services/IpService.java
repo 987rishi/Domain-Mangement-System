@@ -14,17 +14,22 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 public class IpService {
 
+    private final IpRepo ipRepo;
+
     @Autowired
-    private IpRepo ipRepo;
+    public IpService(IpRepo ipRepo) {
+        this.ipRepo = ipRepo;
+    }
 
     @Transactional
-    public ResponseEntity<?> getIp(@Positive Long ipId) {
+    public ResponseEntity<IpResponse> getIp(@Positive Long ipId) {
         Ip ip = ipRepo
                 .findByIpId(ipId)
                 .orElseThrow(()->
@@ -36,7 +41,7 @@ public class IpService {
 
     }
     @Transactional
-    public ResponseEntity<?> updateIp(@Valid IpResponse ipResponse) {
+    public ResponseEntity<Ip> updateIp(@Valid IpResponse ipResponse) {
         Ip ip = ipRepo
                 .findByIpId(
                         ipResponse
@@ -48,7 +53,7 @@ public class IpService {
                                 ipResponse
                                         .getIpId()));
 
-        if(ip.getDomainName().getDomainNameId() != ipResponse.getDomainNameId())
+        if(!Objects.equals(ip.getDomainName().getDomainNameId(), ipResponse.getDomainNameId()))
             throw new IllegalAccessError("DOMAIN ID DOES NOT" +
                     " MATCH WITH ACTUAL DOMAIN RECORD ID");
 
@@ -57,17 +62,11 @@ public class IpService {
         ip.setIpAddress(ipResponse.getIpAddress());
         ip.setIpIssuer(ipResponse.getIpIssuer());
 
-        try {
-            return new ResponseEntity<>(ipRepo.save(ip),HttpStatus.OK);
-        } catch (Exception e) {
-            throw new RuntimeException("ERROR OCCURED " +
-                    "WHILE UPDATING IP. " +
-                    e.getMessage());
-        }
+        return new ResponseEntity<>(ipRepo.save(ip),HttpStatus.OK);
     }
 
     @Transactional
-    public ResponseEntity<List<?>> getAllIps() {
+    public ResponseEntity<List<Ip>> getAllIps() {
         return new ResponseEntity<>(ipRepo.findAll(),HttpStatus.OK);
     }
 

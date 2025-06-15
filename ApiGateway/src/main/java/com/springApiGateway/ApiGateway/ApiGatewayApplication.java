@@ -32,6 +32,9 @@ import org.springframework.context.annotation.Bean;
 @EnableDiscoveryClient
 public class ApiGatewayApplication {
 
+
+  private static final String LB_PREFIX = "lb://";
+
   // --- Service Discovery Constants ---
   /** Constants for service discovery IDs used in 'lb://' URIs. */
   private static final String USER_MANAGEMENT_SERVICE_ID = "USER-MANAGEMENT-SERVICE";
@@ -57,8 +60,8 @@ public class ApiGatewayApplication {
   /** Constants for specific paths that require special handling or exclusion. */
   private static final String INTERNAL_EMP_PATH = "/api/users/emp";
 
-  @Autowired
-  private AuthenticationFilter authenticationFilter;
+
+  private final AuthenticationFilter authenticationFilter;
 
   /**
    * Main method to launch the Spring Boot API Gateway application.
@@ -67,6 +70,11 @@ public class ApiGatewayApplication {
    */
   public static void main(final String[] args) {
     SpringApplication.run(ApiGatewayApplication.class, args);
+  }
+
+  @Autowired
+  public ApiGatewayApplication(AuthenticationFilter authenticationFilter) {
+    this.authenticationFilter = authenticationFilter;
   }
 
   /**
@@ -127,7 +135,7 @@ public class ApiGatewayApplication {
                             .circuitBreaker(config ->
                                     config.setName(USER_MANAGEMENT_CB))
                             .filter(authenticationFilter.apply(new AuthenticationFilter.Config())))
-                    .uri("lb://" + USER_MANAGEMENT_SERVICE_ID))
+                    .uri(LB_PREFIX + USER_MANAGEMENT_SERVICE_ID))
 
             // Route for the Notification service
             .route(NOTIFICATION_ROUTE_ID, r -> r
@@ -136,7 +144,7 @@ public class ApiGatewayApplication {
                             .circuitBreaker(config ->
                                     config.setName(NOTIFICATION_SERVICE_CB))
                             .filter(authenticationFilter.apply(new AuthenticationFilter.Config())))
-                    .uri("lb://" + NOTIFICATION_SERVICE_ID))
+                    .uri(LB_PREFIX + NOTIFICATION_SERVICE_ID))
 
             // Route group for Workflow, Domain Registration, Purchase and Renewal
             .route(WORKFLOW_SERVICE_ROUTE_ID, r -> r
@@ -153,7 +161,7 @@ public class ApiGatewayApplication {
                             .circuitBreaker(config ->
                                     config.setName(WORKFLOW_SERVICE_CB))
                             .filter(authenticationFilter.apply(new AuthenticationFilter.Config())))
-                    .uri("lb://" + WORKFLOW_SERVICE_ID))
+                    .uri(LB_PREFIX + WORKFLOW_SERVICE_ID))
 
             // Route group for Transfer and Renewals
             .route(RENEWAL_TRANSFER_ROUTE_ID, r -> r
@@ -165,7 +173,7 @@ public class ApiGatewayApplication {
                             .circuitBreaker(config ->
                                     config.setName(RENEWAL_TRANSFER_CB))
                             .filter(authenticationFilter.apply(new AuthenticationFilter.Config())))
-                    .uri("lb://" + RENEWAL_TRANSFER_SERVICE_ID))
+                    .uri(LB_PREFIX + RENEWAL_TRANSFER_SERVICE_ID))
 
             .build();
   }

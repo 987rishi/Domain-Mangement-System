@@ -145,19 +145,29 @@ public class ApprovalService {
         NotificationWebhook.Recipients recipients = new NotificationWebhook.Recipients();
 
       NotificationWebhook notification = new NotificationWebhook();
+      boolean isRenewal = domainName.isRenewal();
       
          switch (role){
             case ARM -> {
               empNo = domainName.getArmEmployeeNumber();
-              eventType =
-                      NotificationWebhook.EventType.DOMAIN_ARM_VERIFICATION_FORWARDED;
+              if(!isRenewal)
+                eventType =
+                        NotificationWebhook.EventType.DOMAIN_ARM_VERIFICATION_FORWARDED;
+              else
+                eventType =
+                        NotificationWebhook.EventType.DOMAIN_RENEWAL_ARM_FORWARDED;
+
               recipients.setDrmEmpNo(domainName.getDrmEmployeeNumber());
               recipients.setArmEmpNo(domainName.getArmEmployeeNumber());
               recipients.setHodEmpNo(domainName.getHodEmployeeNumber());
             }
             case HOD ->{
                 empNo = domainName.getHodEmployeeNumber();
-                eventType = NotificationWebhook.EventType.DOMAIN_HOD_VERIFIED;
+                if(!isRenewal)
+                  eventType = NotificationWebhook.EventType.DOMAIN_HOD_VERIFIED;
+                else
+                  eventType =
+                          NotificationWebhook.EventType.DOMAIN_RENEWAL_HOD_VERIFIED;
                 recipients.setDrmEmpNo(domainName.getDrmEmployeeNumber());
                 recipients.setArmEmpNo(domainName.getArmEmployeeNumber());
                 recipients.setHodEmpNo(domainName.getHodEmployeeNumber());
@@ -166,45 +176,53 @@ public class ApprovalService {
             }
             case ED ->{
                 empNo = domainName.getEdEmployeeNumber();
-                eventType = NotificationWebhook.EventType.DOMAIN_ED_APPROVED;
+                if(!isRenewal)
+                  eventType = NotificationWebhook.EventType.DOMAIN_ED_APPROVED;
+                else
+                  eventType =
+                          NotificationWebhook.EventType.DOMAIN_RENEWAL_ED_APPROVED;
 
               recipients.setDrmEmpNo(domainName.getDrmEmployeeNumber());
               recipients.setArmEmpNo(domainName.getArmEmployeeNumber());
-//              recipients.setHodEmpNo(domainName.getHodEmployeeNumber());
               recipients.setEdEmpNo(domainName.getEdEmployeeNumber());
               recipients.setNetopsEmpNo(domainName.getNetopsEmployeeNumber());
             }
             case NETOPS ->{
-                empNo = domainName.getNetopsEmployeeNumber();
+              empNo = domainName.getNetopsEmployeeNumber();
+              if(!isRenewal)
                 eventType = NotificationWebhook.EventType.DOMAIN_NETOPS_VERIFIED;
+              else
+                eventType =
+                        NotificationWebhook.EventType.DOMAIN_RENEWAL_NETOPS_VERIFIED;
+
               recipients.setDrmEmpNo(domainName.getDrmEmployeeNumber());
               recipients.setArmEmpNo(domainName.getArmEmployeeNumber());
-//              recipients.setHodEmpNo(domainName.getHodEmployeeNumber());
-//              recipients.setEdEmpNo(domainName.getEdEmployeeNumber());
               recipients.setNetopsEmpNo(domainName.getNetopsEmployeeNumber());
               recipients.setWebmasterEmpNo(domainName.getWebmasterEmployeeNumber());
             }
             case WEBMASTER ->{
-                empNo = domainName.getWebmasterEmployeeNumber();
+              empNo = domainName.getWebmasterEmployeeNumber();
+              if(!isRenewal)
                 eventType = NotificationWebhook.EventType.DOMAIN_WEBMASTER_VERIFIED;
+              else
+                eventType =
+                          NotificationWebhook.EventType.DOMAIN_RENEWAL_WEBMASTER_VERIFIED;
 
               recipients.setDrmEmpNo(domainName.getDrmEmployeeNumber());
               recipients.setArmEmpNo(domainName.getArmEmployeeNumber());
-//              recipients.setHodEmpNo(domainName.getHodEmployeeNumber());
-//              recipients.setEdEmpNo(domainName.getEdEmployeeNumber());
-//              recipients.setNetopsEmpNo(domainName.getNetopsEmployeeNumber());
               recipients.setWebmasterEmpNo(domainName.getWebmasterEmployeeNumber());
               recipients.setHodHpcEmpNo(domainName.getHodHpcEmployeeNumber());
             }
             case HODHPC ->{
-                empNo = domainName.getHodHpcEmployeeNumber();
+              empNo = domainName.getHodHpcEmployeeNumber();
+              if(!isRenewal)
                 eventType = NotificationWebhook.EventType.DOMAIN_HPC_HOD_RECOMMENDED;
+              else
+                eventType =
+                        NotificationWebhook.EventType.DOMAIN_RENEWAL_HPC_HOD_RECOMMENDED;
 
               recipients.setDrmEmpNo(domainName.getDrmEmployeeNumber());
               recipients.setArmEmpNo(domainName.getArmEmployeeNumber());
-//              recipients.setHodEmpNo(domainName.getHodEmployeeNumber());
-//              recipients.setEdEmpNo(domainName.getEdEmployeeNumber());
-//              recipients.setNetopsEmpNo(domainName.getNetopsEmployeeNumber());
               recipients.setWebmasterEmpNo(domainName.getWebmasterEmployeeNumber());
               recipients.setHodHpcEmpNo(domainName.getHodHpcEmployeeNumber());
             }

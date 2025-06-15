@@ -2,6 +2,7 @@ package com.dnsManagement.WorkFlowIpVaptService.controllers;
 
 
 import com.dnsManagement.WorkFlowIpVaptService.dto.DomainNameRequest;
+import com.dnsManagement.WorkFlowIpVaptService.models.DomainName;
 import com.dnsManagement.WorkFlowIpVaptService.services.DomainNameService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,12 +16,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/domainRegistration")
 public class DomainNameRegistrationController {
 
-  @Autowired
-  private DomainNameService domainNameService;
 
+  private final DomainNameService domainNameService;
+
+  @Autowired
+  public DomainNameRegistrationController(DomainNameService domainNameService) {
+    this.domainNameService = domainNameService;
+  }
 
   @PostMapping("domainRegister")
-  public ResponseEntity<?> applyForDomain(@RequestBody @Valid DomainNameRequest domainNameRequest){
+  public ResponseEntity<DomainName> applyForDomain(@RequestBody @Valid DomainNameRequest domainNameRequest){
     return domainNameService.addDomainRequest(domainNameRequest);
   }
 

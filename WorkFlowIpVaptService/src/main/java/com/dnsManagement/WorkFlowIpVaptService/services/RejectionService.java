@@ -6,9 +6,9 @@ import com.dnsManagement.WorkFlowIpVaptService.helpers.Utility;
 import com.dnsManagement.WorkFlowIpVaptService.models.DomainName;
 import com.dnsManagement.WorkFlowIpVaptService.models.DomainVerification;
 import com.dnsManagement.WorkFlowIpVaptService.models.Role;
-import com.dnsManagement.WorkFlowIpVaptService.openfeign.NotificationClient;
 import com.dnsManagement.WorkFlowIpVaptService.repo.DomainNameRepo;
 import com.dnsManagement.WorkFlowIpVaptService.repo.DomainVerificationRepo;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -20,18 +20,16 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.function.Consumer;
 
+@Slf4j
 @Service
 public class RejectionService {
 
     @Value("${WEBHOOK_SECRET}")
     String webhookSecret;
 
-    @Autowired
-    private DomainVerificationRepo domainVerificationRepo;
-    @Autowired
-    private NotificationClient notificationClient;
-    @Autowired
-    private DomainNameRepo domainNameRepo;
+    private final DomainVerificationRepo domainVerificationRepo;
+    private final DomainNameRepo domainNameRepo;
+    private final AsyncNotificationService asyncNotificationService;
 
     private final Map<Role, Consumer<DomainVerification>> rejectionRole = Map.of(
             Role.HOD,dv -> {
@@ -97,10 +95,20 @@ public class RejectionService {
             }
     );
 
+    @Autowired
+    public RejectionService(DomainVerificationRepo domainVerificationRepo, DomainNameRepo domainNameRepo, AsyncNotificationService asyncNotificationService) {
+        this.domainVerificationRepo = domainVerificationRepo;
+        this.domainNameRepo = domainNameRepo;
+      this.asyncNotificationService = asyncNotificationService;
+    }
 
 
+    public ResponseEntity<DomainVerification> reject(Long domainNameId,
+                                    String remarks,
+                                    Role role) {
+        log.info("ENTERED reject METHOD with arguments domainNameId:{}, " +
+                "remarks:{}, role:{}", domainNameId, remarks, role);
 
-    public ResponseEntity<?> reject(Long domainNameId, String remarks, Role role) {
         DomainVerification domainVerification = domainVerificationRepo
                 .findByDomainNameId(domainNameId)
                 .orElseThrow(() ->
@@ -122,15 +130,27 @@ public class RejectionService {
         // Set remarks dynamically
         setRemarks(domainVerification, role, remarks);
 
+        DomainVerification response;
         try {
-            domainVerificationRepo.save(domainVerification);
-            notificationClient.sendNotification(webhookSecret ,
-                    buildNotification(domainName,role,remarks));
-            return ResponseEntity.ok(domainVerification);
+            response =
+                    domainVerificationRepo.save(domainVerification);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error updating domain verification: " + e.getMessage());
+            throw new RuntimeException("ERROR OCCURRED WHILE REJECTION STATE SAVE of domain" + e.getMessage());
         }
+
+        log.info("SUCCESSFULLY SAVED REJECTED STATE FOR DOMAIN:{}", domainName);
+
+        log.info("SENDING REJECTION NOTIFICATION");
+        asyncNotificationService.sendNotificationAsync(webhookSecret,
+                buildNotification(domainName, role, remarks))
+                .exceptionally(throwable -> {
+                    log.error("Failed to send activation notification for " +
+                            "domain: {}", domainName.getDomainName(), throwable);
+                    return null;
+                });
+
+
+        return new ResponseEntity<DomainVerification>(response, HttpStatus.OK);
     }
 
     private void setRemarks(DomainVerification dv,
