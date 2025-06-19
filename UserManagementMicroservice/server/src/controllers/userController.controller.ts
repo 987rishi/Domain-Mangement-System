@@ -4,6 +4,7 @@ import prisma from "../config/database.config";
 import { Role } from "@prisma/client"; // Import the enum
 import { getRoleInfo, stringifyBigInts } from "../utils/userController.helper";
 import { bigint } from "zod";
+import { parse } from "path";
 
 export const getUserDetails = async (
   req: Request,
@@ -482,50 +483,158 @@ export const getProjectList = async (
   res: Response
 ): Promise<void> => {
   const { empNo } = req.params;
+  // -------- pagination parameter from query string ----------
+  const page = parseInt(req.query.page as string) || 1;
+  const pageSize = parseInt(req.query.pageSize as string) || 10;
+
+  // -------- validating page and pageSize ----------
+  if (isNaN(page) || page < 1) {
+    res
+      .status(400)
+      .json({
+        message: "Invalid 'page' parameter. Must be a positive integer.",
+      });
+    return;
+  }
+  if (isNaN(pageSize) || pageSize < 1 || pageSize > 100) {
+    // Add a max pageSize limit
+    res
+      .status(400)
+      .json({
+        message:
+          "Invalid 'pageSize' parameter. Must be a positive integer (e.g., 1-100).",
+      });
+    return;
+  }
+
   const employeeNo = BigInt(empNo);
   if (!employeeNo) {
     res.status(400).json({ message: "Invalid employee number." });
     return;
   }
   try {
+    // --------- calculating skip and take ---------
+    const skip = (page - 1) * pageSize;
+    const take = pageSize;
     // Find all projects where the employee number matches one of the roles
-    const projects = await prisma.projectAssignment.findMany({
-      where: {
-        // Use the OR operator to match any of the following conditions
-        OR: [
-          // The employee is the HOD of the project
-          { hod_emp_no: employeeNo },
-          // The employee is the ARM of the project
-          { arm_emp_no: employeeNo },
-          // The employee is the DRM of the project
-          { drm_emp_no: employeeNo },
-        ],
-      },
-      // Include the DRM, ARM, and HOD details in the response
-      include: {
-        drm: true,
-        arm: true,
-        hod: true,
-      },
-    });
-    if (projects.length === 0) {
-      res
-        .status(404)
-        .json({ message: "No projects found for employee number" });
+    // const projects = await prisma.projectAssignment.findMany({
+    //   where: {
+    //     // Use the OR operator to match any of the following conditions
+    //     OR: [
+    //       // The employee is the HOD of the project
+    //       { hod_emp_no: employeeNo },
+    //       // The employee is the ARM of the project
+    //       { arm_emp_no: employeeNo },
+    //       // The employee is the DRM of the project
+    //       { drm_emp_no: employeeNo },
+    //     ],
+    //   },
+    //   // Include the DRM, ARM, and HOD details in the response
+    //   include: {
+    //     drm: true,
+    //     arm: true,
+    //     hod: true,
+    //   },
+    // });
+    // if (projects.length === 0) {
+    //   res
+    //     .status(404)
+    //     .json({ message: "No projects found for employee number" });
+    //   return;
+    // }
+    // // Return the list of projects
+    // res.status(200).json(stringifyBigInts(projects));
+    // return;
+    const [projects, totalItems] = await prisma.$transaction([
+      prisma.projectAssignment.findMany({
+        where: {
+          // Use the OR operator to match any of the following conditions
+          OR: [
+            // The employee is the HOD of the project
+            { hod_emp_no: employeeNo },
+            // The employee is the ARM of the project
+            { arm_emp_no: employeeNo },
+            // The employee is the DRM of the project
+            { drm_emp_no: employeeNo },
+          ],
+        },
+        // Include the DRM, ARM, and HOD details in the response
+        include: {
+          drm: true,
+          arm: true,
+          hod: true,
+        },
+
+        skip,
+        take,
+      }),
+      prisma.projectAssignment.count({
+        // Get the total count matching the where clause
+        where: {
+          // Use the OR operator to match any of the following conditions
+          OR: [
+            // The employee is the HOD of the project
+            { hod_emp_no: employeeNo },
+            // The employee is the ARM of the project
+            { arm_emp_no: employeeNo },
+            // The employee is the DRM of the project
+            { drm_emp_no: employeeNo },
+          ],
+        },
+      }),
+    ]);
+    // --- Calculate Pagination Metadata ---
+    const totalPages = Math.ceil(totalItems / pageSize);
+    const hasNextPage = page < totalPages;
+    const hasPreviousPage = page > 1;
+
+    // Handle case where no projects are found AT ALL for this employee
+    if (totalItems === 0) {
+      console.log(`No projects found at all for employee number ${empNo}.`);
+      res.status(200).json({
+        data: [], // Send empty array
+        pagination: {
+          totalItems: 0,
+          totalPages: 0,
+          currentPage: 1, // Or page, though 1 makes sense for 0 results
+          pageSize: pageSize,
+          hasNextPage: false,
+          hasPreviousPage: false,
+        },
+      });
       return;
     }
-    // Return the list of projects
-    res.status(200).json(stringifyBigInts(projects));
-    return;
+
+    // Handle case where requested page is out of bounds but there IS data
+    if (page > totalPages && totalItems > 0) {
+      res
+        .status(404)
+        .json({
+          message: `Page ${page} not found. Total pages: ${totalPages}.`,
+        });
+      return;
+    }
+
+    // --- Construct and Send Response ---
+    res.status(200).json({
+      data: stringifyBigInts(projects), // The paginated list of projects
+      pagination: {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        pageSize,
+        hasNextPage,
+        hasPreviousPage,
+      },
+    });
   } catch (error) {
-    // If there's an error, log it and return a 404 error with a message
     console.error(
-      "Error fetching projects for employee number %s:",
-      empNo,
+      `Error fetching paginated projects for employee number ${empNo} (page ${page}, pageSize ${pageSize}):`,
       error instanceof Error ? error.message : error
     );
-    res.status(404).json({ message: "Error in fetching projects" });
-    return;
+    res
+      .status(500)
+      .json({ message: "Error fetching projects from the database." });
   }
 };
 
