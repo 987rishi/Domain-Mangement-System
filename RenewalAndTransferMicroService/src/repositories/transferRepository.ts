@@ -1,4 +1,13 @@
+import { bigint } from "zod";
 import prisma from "../database/prisma";
+
+type GetAllOptions = {
+  empNo?: bigint;
+  role?: "DRM" | "HOD";
+  skip: number;
+  take: number;
+  orderBy: { [key: string]: "asc" | "desc" };
+};
 
 export const transferRepository = {
   create: async (data: {
@@ -20,11 +29,25 @@ export const transferRepository = {
     return await prisma.transfer.findMany({ where: { dm_id } });
   },
 
-  getAll: async (empNo?: bigint, role?: "DRM" | "HOD") => {
-    if (role === "HOD") {
-      return await prisma.transfer.findMany({ where: { hod_empno: empNo } });
-    }
-    return await prisma.transfer.findMany({ where: { trns_frm: empNo } });
+  getAll: async (options: GetAllOptions) => {
+    const { empNo, role, skip, take, orderBy } = options;
+
+    // Define the 'where' clause once to be used in both count and findMany
+    const whereClause =
+      role === "HOD" ? { hod_empno: empNo } : { trns_frm: empNo };
+
+    // Use a transaction to get both the total count and the paginated data
+    const [totalCount, transfers] = await prisma.$transaction([
+      prisma.transfer.count({ where: whereClause }),
+      prisma.transfer.findMany({
+        where: whereClause,
+        skip: skip,
+        take: take,
+        orderBy: orderBy,
+      }),
+    ]);
+
+    return { totalCount, transfers };
   },
 
   approve: async (

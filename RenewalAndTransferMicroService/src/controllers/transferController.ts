@@ -91,94 +91,93 @@ export const approveTransfer: RequestHandler = async (
   res.status(200).json(response.data);
 };
 
-// @desc Get all transfers for a user (HOD | DRM)
+// @desc Get all transfers for the logged-in user (as initiator) with pagination
 // @route GET /api/transfers
+// @query page - The page number to retrieve (default: 0)
+// @query size - The number of items per page (default: 20)
+// @query sort - The sort order, e.g., "createdAt,desc" (default: "created_at,desc")
 export const getTransfers: RequestHandler = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const empNo = req.user.id;
-  const transfers = await transferService.getAll(empNo);
-
-  if (!transfers) {
-    const e = new AppError("Failed to fetch the transfers");
-    e.statusCode = 400;
-    throw e;
-  }
-
-  const response = transfers.map(
-    (t) => CreateTransferResponseSchema.safeParse(t).data
-  );
-  res.status(200).json(response);
-};
-
-// @desc Get all transfers for a user (HOD | DRM)
-// @route GET /api/transfers/:trnsfrId
-export const getTransfer: RequestHandler = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  // TODO Get the employee number from the req
-  const empNo = req.user.id;
-  let trnsfrId: bigint;
+  // Use a try...catch block to handle any potential errors gracefully
   try {
-    trnsfrId = z.coerce.bigint().parse(req.params.trnsfrId);
-  } catch (error) {
-    const e = new AppError(
-      `Invalid trnsfrId(/api/transfers/${req.params.trnsfrId}). Transfer Id must be a number.`
+    // 1. Get the employee number from the authenticated user
+    const empNo = req.user.id;
+
+    // 2. Validate and parse query parameters for pagination, with defaults
+    const page = z.coerce.number().default(0).parse(req.query.page);
+    const size = z.coerce.number().default(20).parse(req.query.size);
+    // Default sort by creation date, newest first
+    const sort = z.coerce
+      .string()
+      .default("created_at,desc")
+      .parse(req.query.sort);
+
+    // 3. Call the paginated service.
+    // We pass "DRM" as the role because this endpoint implicitly gets transfers
+    // where the logged-in user is the initiator (trns_frm), which aligns with
+    // the "DRM" case in your repository logic.
+    const paginatedTransfers = await transferService.getAll(
+      empNo,
+      "DRM",
+      page,
+      size,
+      sort
     );
-    e.statusCode = 400;
-    throw e;
+
+    // 4. Send the response. The service already returns the complete paginated object.
+    res.status(200).json(paginatedTransfers);
+  } catch (error) {
+    // Pass any errors (from Zod parsing or the service) to the error handler
+    next(error);
   }
-
-  const transfer = await transferService.getById(trnsfrId, empNo);
-
-  if (!transfer) {
-    const e = new AppError("Failed to fetch the transfer");
-    e.statusCode = 400;
-    throw e;
-  }
-
-  const response = CreateTransferResponseSchema.safeParse(transfer);
-  res.status(200).json(response.data);
 };
 
-// @desc Get all transfers for a user (HOD | DRM)
-// @route GET /api/transfers/all/:role:id
+// @desc Get all transfers for a user (HOD | DRM) with pagination
+// @route GET /api/transfers/all/:role/:id
 export const getTransfersByRoleAndId: RequestHandler = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const e = new AppError("");
-  let empNo: bigint;
-  let role: string;
+  // Use a try...catch block to wrap the entire handler for async errors
   try {
-    empNo = z.coerce.bigint().parse(req.params.id);
-    role = z.coerce.string().parse(req.params.role);
-    if (role !== "DRM" && role !== "HOD") {
-      e.message =
-        "Invalid Params: Invalid role Param: Role param can be either HOD or DRM";
-      e.statusCode = 400;
-      throw e;
-    }
+    // 1. Validate and parse path parameters
+    const empNo = z.coerce.bigint().parse(req.params.id);
+    const role = z
+      .string()
+      .refine((val) => val === "DRM" || val === "HOD", {
+        message: "Invalid Role: Role param can be either HOD or DRM",
+      })
+      .parse(req.params.role);
+
+    // 2. Validate and parse query parameters for pagination, with defaults
+    const page = z.coerce.number().default(0).parse(req.query.page);
+    const size = z.coerce.number().default(20).parse(req.query.size);
+    // Default sort by creation date, newest first
+    const sort = z.coerce
+      .string()
+      .default("created_at,desc")
+      .parse(req.query.sort);
+
+    // 3. Call the service with all parameters
+    const paginatedTransfers = await transferService.getAll(
+      empNo,
+      role as "DRM" | "HOD", // Cast is safe due to Zod validation
+      page,
+      size,
+      sort
+    );
+
+    // The service now returns the complete response object.
+    // The old `!transfers` check is no longer needed as the service handles it.
+
+    // 4. Send the response
+    res.status(200).json(paginatedTransfers);
   } catch (error) {
-    throw error;
+    // Pass any errors (from Zod parsing or the service) to the error handler
+    next(error);
   }
-
-  const transfers = await transferService.getAll(empNo, role);
-
-  if (!transfers) {
-    const e = new AppError("Failed to fetch the transfers");
-    e.statusCode = 400;
-    throw e;
-  }
-
-  const response = transfers.map(
-    (t) => CreateTransferResponseSchema.safeParse(t).data
-  );
-  // console.log(response);
-  res.status(200).json(response);
 };

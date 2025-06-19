@@ -3,6 +3,7 @@ import {
   ApproveTransferBodyDTO,
   ApproveTransferParamsDTO,
   CreateTransferBodyDTO,
+  CreateTransferResponseSchema,
 } from "../validators/transferValidators";
 import { AppError } from "../errors";
 import { getUserDetails } from "../integrations/userManagement/userManagementService";
@@ -255,18 +256,79 @@ export const transferService = {
     return transfer;
   },
 
-  getAll: async (requestingUserId: bigint, role?: "DRM" | "HOD") => {
-    // 1. Get all transfers for the user
-    const allTransfers = await transferRepository.getAll(
-      requestingUserId,
-      role
+  getAll: async (
+    requestingUserId: bigint,
+    role: "DRM" | "HOD",
+    page: number,
+    size: number,
+    sort: string
+  ) => {
+    // 1. Calculate skip and parse sorting for the repository
+    const skip = page * size;
+    const take = size;
+    const orderBy = parseSortParameter(sort);
+
+    // 2. Get paginated data and total count from the repository
+    const { totalCount, transfers } = await transferRepository.getAll({
+      empNo: requestingUserId,
+      role,
+      skip,
+      take,
+      orderBy,
+    });
+
+    // The repository should throw if it fails, so we can remove the !allTransfers check here.
+
+    // 3. Map the data for the current page to the response schema
+    const content = transfers.map(
+      (t) => CreateTransferResponseSchema.safeParse(t).data
     );
 
-    if (!allTransfers) {
-      const e = (new AppError("Failed to fetch transfers").statusCode = 500);
-      throw e;
-    }
-    // 2. Return the transfers
-    return allTransfers;
+    // 4. Calculate pagination metadata
+    const totalPages = size > 0 ? Math.ceil(totalCount / size) : 0;
+    const numberOfElements = content.length;
+    const isFirst = page === 0;
+    const isLast = page >= totalPages - 1;
+
+    // 5. Construct and return the final paginated response object
+    return {
+      content,
+      totalElements: totalCount,
+      totalPages: totalPages,
+      size: size,
+      number: page,
+      numberOfElements: numberOfElements,
+      first: isFirst,
+      last: isLast,
+      empty: numberOfElements === 0,
+      sort: {
+        sorted: !!sort,
+        unsorted: !sort,
+        empty: !sort, // Can be refined based on exact requirements
+      },
+    };
   },
+};
+
+type SortDirection = "asc" | "desc";
+
+// A helper function to parse the sort query parameter with validation
+const parseSortParameter = (sort: string): { [key: string]: SortDirection } => {
+  // Set a default value for the direction right away
+  const [field, rawDirection = "asc"] = sort.split(",");
+
+  // Normalize to lowercase to be case-insensitive (e.g., "DESC" becomes "desc")
+  const direction = rawDirection.toLowerCase();
+
+  // Type Guard: Check if the provided direction is valid
+  if (direction !== "asc" && direction !== "desc") {
+    // If not valid, throw a clear error to the client.
+    throw new AppError(
+      `Invalid sort direction: '${rawDirection}'. Must be 'asc' or 'desc'.`
+    );
+  }
+
+  // Because of the check above, TypeScript now knows `direction` is of type `SortDirection`.
+  // The function is guaranteed to return the correct type or throw an error.
+  return { [field]: direction as SortDirection };
 };
