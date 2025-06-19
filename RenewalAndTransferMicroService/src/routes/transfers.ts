@@ -3,7 +3,7 @@ import {
   getTransfers,
   createTransfer,
   approveTransfer,
-  // getTransfer,
+  getTransfer,
   getTransfersByRoleAndId,
 } from "../controllers/transferController";
 import { protect } from "../middlewares/authMiddleware";
@@ -20,7 +20,7 @@ router.get("/all/:role/:id", getTransfersByRoleAndId);
 // @desc Get a transfers for a user(DRM, HOD)
 // @route GET /api/transfers/:trnsfrID
 // @access private
-// router.get("/:trnsfrId", protect, getTransfer);
+router.get("/:trnsfrId", protect, getTransfer);
 
 // @desc Create a transfer
 // @route /api/transfers/create
