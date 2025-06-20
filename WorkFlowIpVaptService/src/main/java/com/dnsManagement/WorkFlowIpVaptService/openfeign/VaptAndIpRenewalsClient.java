@@ -1,10 +1,12 @@
 package com.dnsManagement.WorkFlowIpVaptService.openfeign;
 
+import com.dnsManagement.WorkFlowIpVaptService.dto.RestPage;
 import com.dnsManagement.WorkFlowIpVaptService.dto.TransferRequestDto;
 import com.dnsManagement.WorkFlowIpVaptService.dto.VaptRenewalResponseDTO;
 import com.dnsManagement.WorkFlowIpVaptService.models.Role;
 import jakarta.validation.constraints.Positive;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -24,8 +26,9 @@ public interface VaptAndIpRenewalsClient {
 
   //VERIFY THE API
   @GetMapping("/api/transfers/all/{role}/{empNo}")
-  List<TransferRequestDto> fetchTransferRecordsByRoleAndEmpNo(
+  RestPage<TransferRequestDto> fetchTransferRecordsByRoleAndEmpNo(
           @PathVariable Long empNo,
-          @PathVariable Role role);
+          @PathVariable Role role,
+          Pageable pageable); // Pass the pageable object here
 
 }

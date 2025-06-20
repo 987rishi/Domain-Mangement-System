@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -738,21 +739,24 @@ public class DomainNameService {
   @Transactional
   public ResponseEntity<?> getTransferDetailsByHod(@Positive Long hodEmpNo, Pageable pageable) {
 
-    List<TransferRequestDto> transferRequestDtoList;
+    RestPage<TransferRequestDto> transferRequestPage;
     try{
-       transferRequestDtoList =
-              renewalsClient.fetchTransferRecordsByRoleAndEmpNo(hodEmpNo,Role.HOD);
-
+       transferRequestPage =
+              renewalsClient.fetchTransferRecordsByRoleAndEmpNo(hodEmpNo,
+                      Role.HOD, pageable);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+
+    log.debug("TRANSFER ={}", transferRequestPage);
 
 
 
     List<ViewTransferDto> responseList = new ArrayList<>();
 
 
-    for(TransferRequestDto transfer: transferRequestDtoList) {
+    for(TransferRequestDto transfer: transferRequestPage) {
+      log.info("transfer:{}", transfer);
       if(transfer.getHodApproved() && transfer.getApprovedAt() != null)
         continue;
 
@@ -787,8 +791,15 @@ public class DomainNameService {
       responseList.add(viewTransferDto);
     }
 
+    Page<ViewTransferDto> responsePage = new PageImpl<>(
+            responseList,
+            pageable,
+            transferRequestPage.getTotalElements()
+    );
+    log.debug("RESPONSE PAGE={}", responsePage);
 
-    return new ResponseEntity<>(responseList,HttpStatus.OK);
+
+    return new ResponseEntity<>(responsePage, HttpStatus.OK);
   }
 
   public ResponseEntity<Page<ViewDomainResponseDto>> getAllViewDomains(Long empNo, Role role,

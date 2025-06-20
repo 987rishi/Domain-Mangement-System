@@ -307,7 +307,7 @@ pipeline {
 
           // B. Define the target URL *inside* the Docker network.
           //    This should be the service name from docker-compose.yml and its internal port.
-          def targetUrl = 'http://localhost:8085' // <-- SCAN THE API GATEWAY
+          def targetUrl = 'http://host.docker.internal:8085' // <-- SCAN THE API GATEWAY
 
           echo "Preparing for DAST scan..."
 

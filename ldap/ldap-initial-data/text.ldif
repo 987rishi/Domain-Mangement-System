@@ -1,10 +1,7 @@
 # extended LDIF
 #
-# LDAPv3
-# base <dc=cdac,dc=in,dc=world> with scope subtree
-# filter: (objectClass=*)
-# requesting: ALL
-#
+# This file has been corrected to the LDIF Change-Log format, suitable for
+# bootstrapping an LDAP container using tools like ldapadd.
 
 # User, cdac.in.world
 dn: ou=User,dc=cdac,dc=in,dc=world
@@ -27,7 +24,7 @@ objectClass: organizationalUnit
 objectClass: top
 ou: Group
 
-# --- START: NEW Groups under PU/Group ---
+# --- START: Groups under PU/Group ---
 
 dn: cn=pudevelopers,ou=Group,ou=PU,ou=User,dc=cdac,dc=in,dc=world
 changetype: add
@@ -48,7 +45,7 @@ gidNumber: 6002
 memberUid: 220007
 memberUid: 220012
 
-# --- END: NEW Groups under PU/Group ---
+# --- END: Groups under PU/Group ---
 
 # People, PU, User, cdac.in.world
 dn: ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
@@ -57,7 +54,7 @@ objectClass: organizationalUnit
 objectClass: top
 ou: People
 
-# --- START: Original Users under PU/People ---
+# --- START: Users under PU/People ---
 
 # csb22067, People, PU, User, cdac.in.world
 dn: uid=csb22067,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
@@ -83,7 +80,7 @@ objectClass: posixAccount
 objectClass: top
 cn: Aryan Sharma
 sn: Sharma
-# givenName: Aryan (Original missing, can be inferred or added if schema allows cn to be multi-valued for givenName)
+givenName: Aryan
 uid: 220067
 gidNumber: 5001
 mail: csb22067@cdac.in
@@ -99,7 +96,7 @@ objectClass: posixAccount
 objectClass: top
 cn: Raj Raushan
 sn: Raushan
-# givenName: Raj (Original missing)
+givenName: Raj
 uid: 220055
 gidNumber: 5001
 mail: csb22055@tezu.ac.in
@@ -115,7 +112,7 @@ objectClass: posixAccount
 objectClass: top
 cn: Rishi Sarkar
 sn: Sarkar
-# givenName: Rishi (Original missing)
+givenName: Rishi
 uid: 220005
 gidNumber: 5001
 mail: csb22005@tezu.ac.in
@@ -131,7 +128,7 @@ objectClass: posixAccount
 objectClass: top
 cn: Ankit Mishra
 sn: Mishra
-# givenName: Ankit (Original missing)
+givenName: Ankit
 uid: 220001
 gidNumber: 5001
 homeDirectory: /home/220001
@@ -147,7 +144,7 @@ objectClass: posixAccount
 objectClass: top
 cn: Nidhi Kumari
 sn: Kumari
-# givenName: Nidhi (Original missing)
+givenName: Nidhi
 uid: 220002
 gidNumber: 5001
 homeDirectory: /home/220002
@@ -163,7 +160,7 @@ objectClass: posixAccount
 objectClass: top
 cn: Arjun Singh
 sn: Singh
-# givenName: Arjun (Original missing)
+givenName: Arjun
 uid: 220003
 gidNumber: 5001
 homeDirectory: /home/220003
@@ -179,7 +176,7 @@ objectClass: posixAccount
 objectClass: top
 cn: Priya Rani
 sn: Rani
-# givenName: Priya (Original missing)
+givenName: Priya
 uid: 220004
 gidNumber: 5001
 mail: priya@cdac.in
@@ -195,7 +192,7 @@ objectClass: posixAccount
 objectClass: top
 cn: Saurav Kumar
 sn: Kumar
-# givenName: Saurav (Original missing)
+givenName: Saurav
 uid: 220006
 gidNumber: 5001
 mail: saurav@cdac.in
@@ -211,7 +208,7 @@ objectClass: posixAccount
 objectClass: top
 cn: Tanya Verma
 sn: Verma
-# givenName: Tanya (Original missing)
+givenName: Tanya
 uid: 220007
 gidNumber: 5001
 homeDirectory: /home/220007
@@ -227,7 +224,7 @@ objectClass: posixAccount
 objectClass: top
 cn: Manish Sharma
 sn: Sharma
-# givenName: Manish (Original missing)
+givenName: Manish
 uid: 220008
 gidNumber: 5001
 mail: manish@cdac.in
@@ -243,7 +240,7 @@ objectClass: posixAccount
 objectClass: top
 cn: Ankit Anand
 sn: Anand
-# givenName: Ankit (Original missing)
+givenName: Ankit
 uid: 220009
 uidNumber: 220009
 gidNumber: 5001
@@ -259,7 +256,7 @@ objectClass: posixAccount
 objectClass: top
 cn: Vikrant Kumar
 sn: Kumar
-# givenName: Vikrant (Original missing)
+givenName: Vikrant
 uid: 220010
 uidNumber: 220010
 gidNumber: 5001
@@ -339,9 +336,21 @@ homeDirectory: /home/8001
 userPassword:: e1NTSEF9OVFudzdIZTJUaTR0N3h4aHlLeW5HWVBMNlJNck9qSDQ=
 mail: nehaWEBMASTER.kulkarni@cdac.in
 
-# --- END: Original Users under PU/People ---
-
-# --- START: NEW Users under PU/People ---
+# 220080, People, PU, User, cdac.in.world
+dn: uid=220080,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
+changetype: add
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Neeraj Ranjan
+sn: Ranjan
+givenName: Neeraj
+uid: 220080
+mail: hcblock711@gmail.com
+uidNumber: 220080
+gidNumber: 5001
+homeDirectory: /home/220080
+userPassword:: e01ENX16QVBuUjZhdnU4djR2blpvclA2KzVRPT0=
 
 # newuser01pu, People, PU, User, cdac.in.world
 dn: uid=newuser01pu,ou=People,ou=PU,ou=User,dc=cdac,dc=in,dc=world
@@ -375,8 +384,7 @@ gidNumber: 5001
 homeDirectory: /home/newuser02pu
 userPassword:: e1NTSEF9UUtkZ0t0Qk5sYkVJb0VqU282bUZjV1VzZmpxSmV0b0s=
 
-# --- END: NEW Users under PU/People ---
-
+# --- END: Users under PU/People ---
 
 # GW, User, cdac.in.world
 dn: ou=GW,ou=User,dc=cdac,dc=in,dc=world
@@ -392,7 +400,7 @@ objectClass: top
 objectClass: organizationalUnit
 ou: Group
 
-# --- START: NEW Groups under GW/Group ---
+# --- START: Groups under GW/Group ---
 
 dn: cn=gwsupport,ou=Group,ou=GW,ou=User,dc=cdac,dc=in,dc=world
 changetype: add
@@ -403,7 +411,7 @@ gidNumber: 6003
 memberUid: 7001
 memberUid: newuser01gw
 
-# --- END: NEW Groups under GW/Group ---
+# --- END: Groups under GW/Group ---
 
 # People, GW, User, cdac.in.world
 dn: ou=People,ou=GW,ou=User,dc=cdac,dc=in,dc=world
@@ -412,7 +420,7 @@ objectClass: top
 objectClass: organizationalUnit
 ou: People
 
-# --- START: Original Users under GW/People ---
+# --- START: Users under GW/People ---
 
 # 7001, People, GW, User, cdac.in.world
 dn: uid=7001,ou=People,ou=GW,ou=User,dc=cdac,dc=in,dc=world
@@ -432,10 +440,6 @@ mail: anil.patil@cdac.in
 homeDirectory: /home/7001
 userPassword:: e1NTSEF9bm11V2RuMU1CTGRNaHdsKzdDcHZuVE8zYVRscjJHQkQ=
 
-# --- END: Original Users under GW/People ---
-
-# --- START: NEW Users under GW/People ---
-
 # newuser01gw, People, GW, User, cdac.in.world
 dn: uid=newuser01gw,ou=People,ou=GW,ou=User,dc=cdac,dc=in,dc=world
 changetype: add
@@ -452,8 +456,7 @@ gidNumber: 5002
 homeDirectory: /home/newuser01gw
 userPassword:: e1NTSEF9ZEJCVlZpYm51TXZ4V2J0TzBKaW5tck92UjQxVWJkTkc=
 
-# --- END: NEW Users under GW/People ---
-
+# --- END: Users under GW/People ---
 
 # --- START: NEW OU - BLR (Bangalore) ---
 
@@ -471,7 +474,7 @@ objectClass: top
 objectClass: organizationalUnit
 ou: Group
 
-# --- START: NEW Groups under BLR/Group ---
+# --- START: Groups under BLR/Group ---
 
 dn: cn=blrresearch,ou=Group,ou=BLR,ou=User,dc=cdac,dc=in,dc=world
 changetype: add
@@ -489,7 +492,7 @@ cn: blradmin
 gidNumber: 6005
 memberUid: user02blr
 
-# --- END: NEW Groups under BLR/Group ---
+# --- END: Groups under BLR/Group ---
 
 # People, BLR, User, cdac.in.world
 dn: ou=People,ou=BLR,ou=User,dc=cdac,dc=in,dc=world
@@ -498,7 +501,7 @@ objectClass: top
 objectClass: organizationalUnit
 ou: People
 
-# --- START: NEW Users under BLR/People ---
+# --- START: Users under BLR/People ---
 
 # user01blr, People, BLR, User, cdac.in.world
 dn: uid=user01blr,ou=People,ou=BLR,ou=User,dc=cdac,dc=in,dc=world
@@ -512,7 +515,7 @@ givenName: Diana
 uid: user01blr
 mail: diana.prince@cdac.in
 uidNumber: 240001
-gidNumber: 5003 # New GID for BLR default users
+gidNumber: 5003
 homeDirectory: /home/user01blr
 userPassword:: e1NTSEF9MTJnYnF1R2tqV0x0WlZnNnp0cW15eEVqRkFMNkZ2cWU=
 
@@ -532,13 +535,4 @@ gidNumber: 5003
 homeDirectory: /home/user02blr
 userPassword:: e1NTSEF9eGZlUExsNjNsZThzSmlqY3N0RkE5SmN5Wmd5aGZ6d0E=
 
-# --- END: NEW Users under BLR/People ---
-
-# --- END: NEW OU - BLR (Bangalore) ---
-
-# search result
-# search: 2
-# result: 0 Success
-
-# numResponses: XX (this will be the total number of entries + 1 for the result line)
-# numEntries: YY (this will be the total number of actual entries added)
+# --- END: Users under BLR/People ---

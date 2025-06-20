@@ -353,7 +353,7 @@ services:
       - POSTGRES_DB=user_management_db
     volumes:
       - user-management-service-db-volume:/var/lib/postgresql/data
-      - ./dump_files/UserManagementMicroservice_backup.dump:/docker-entrypoint-initdb.d/user_management_db.dump
+      - ./dump_files/dumpfileUMM.dump:/docker-entrypoint-initdb.d/user_management_db.dump
       - ./db_init_scripts/init-db-usermanagement.sh:/docker-entrypoint-initdb.d/init-user-db.sh
     networks:
       - user-management-service-db-network
@@ -368,7 +368,7 @@ services:
       LDAP_ADMIN_PASSWORD: "raju"
       LDAP_TLS: "false"             # deactivate TLS for the LDAP server
     volumes:
-      - ./ldap/ldap-initial-data/cdacNew.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/50-bootstrap.ldif
+      - ./ldap/ldap-initial-data/text.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/50-bootstrap.ldif
     networks:
       - ldap-net
     ports:
