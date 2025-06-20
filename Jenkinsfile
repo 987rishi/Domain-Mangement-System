@@ -322,9 +322,11 @@ pipeline {
 
           // 3. Run the ZAP scan connected to the application's network.
           //    Use %WORKSPACE% for a reliable path.
+//           docker run --rm -v "%CD%/reports/zap:/zap/wrk/" zaproxy/zap-stable zap-full-scan.py -t http://host.doc
+// ker.internal:8085 -r /zap
           bat(label: 'Running ZAP Baseline scan',
               script: """
-                docker run --rm --network ${composeNetwork} -v "%WORKSPACE%\\reports\\zap:/zap/wrk/" zaproxy/zap-stable zap-baseline.py -t ${targetUrl} -r /zap/wrk/zap.html
+                docker run --rm --network ${composeNetwork} -v "%CD%/reports/zap:/zap/wrk/" zaproxy/zap-stable zap-baseline.py -t ${targetUrl} -r /zap
               """)
         }
       }
