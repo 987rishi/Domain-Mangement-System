@@ -22,6 +22,7 @@ export const createTransfer = async (
   const parsed = CreateTransferBodySchema.safeParse(req.body);
   if (!parsed.success) {
     const err = new AppError("Invalid transfer data");
+    console.log(parsed);
     err.statusCode = 400;
     next(err);
     return;
@@ -91,6 +92,36 @@ export const approveTransfer: RequestHandler = async (
   res.status(200).json(response.data);
 };
 
+// @desc Get all transfers for a user (HOD | DRM)Add commentMore actions
+// @route GET /api/transfers/:trnsfrId
+export const getTransfer: RequestHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const empNo = req.user.id;
+  let trnsfrId: bigint;
+  try {
+    trnsfrId = z.coerce.bigint().parse(req.params.trnsfrId);
+  } catch (error) {
+    const e = new AppError(
+      `Invalid trnsfrId(/api/transfers/${req.params.trnsfrId}). Transfer Id must be a number.`
+    );
+    e.statusCode = 400;
+    throw e;
+  }
+
+  const transfer = await transferService.getById(trnsfrId, empNo);
+
+  if (!transfer) {
+    const e = new AppError("Failed to fetch the transfer");
+    e.statusCode = 400;
+    throw e;
+  }
+
+  const response = CreateTransferResponseSchema.safeParse(transfer);
+  res.status(200).json(response.data);
+};
 // @desc Get all transfers for the logged-in user (as initiator) with pagination
 // @route GET /api/transfers
 // @query page - The page number to retrieve (default: 0)
