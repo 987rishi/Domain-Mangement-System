@@ -342,8 +342,8 @@ pipeline {
       bat(label: 'Clearing docker containers and volumes', script: 'docker-compose down -v')
       
       // deleteDir() is the most robust way to clean the workspace.
-      echo "Cleaning up the workspace for the next run."
-      deleteDir()
+      // echo "Cleaning up the workspace for the next run."
+      // deleteDir()
     }
   }
 }
