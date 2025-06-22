@@ -278,8 +278,8 @@ pipeline {
     }
     stage('Stress and Load Testing using JMeter') {
       steps {
-        runAfter(10000) {
-
+ 
+        sleep(time: 5,unit: 'SECONDS')
           
         
         // 1. Clean up the old JMeter report directory before the test.
@@ -289,7 +289,7 @@ pipeline {
         //    (Assuming your JMX file is configured to hit 'apigateway:8080' or a similar internal URL)
         bat(label: 'Running JMeter test script',
             script: 'jmeter -n -t ".\\Testing\\HTTP Request.jmx" -l results.jtl -e -o .\\reports\\jmeter')
-        }
+
       }
       post {
         always {
