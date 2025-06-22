@@ -137,7 +137,7 @@ pipeline {
             dir(svc.name) {
               if (svc.lang == 'java') {
                 catchError(message: "Error executing Maven tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-                  bat 'mvn clean install package verify'
+                  bat 'mvn clean verify'
                   // bat 'mvn test'
                 }
               } else if (svc.name == 'UserManagementMicroservice') {
