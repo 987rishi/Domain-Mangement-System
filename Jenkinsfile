@@ -155,7 +155,7 @@ pipeline {
                     bat 'npm install'
                     bat 'npx prisma generate'
                     bat 'npx tsc'
-                    bat 'npx jest --coverage --passWithNoTests'
+                    bat 'npx jest --coverage'
                 }
               }
             }
@@ -194,7 +194,6 @@ pipeline {
                         -Dsonar.projectKey=${projectKeyForSonar} \
                         -Dsonar.projectName=${svc.name} \
                         -Dsonar.host.url=${env.SONAR_HOST_URL} \
-                        -Dsonar.login=${env.SONAR_AUTH_TOKEN}
                     """)
                   } else { // TypeScript
                     // Assuming @sonar/scan is available (globally, via npx, or path)
@@ -277,9 +276,12 @@ pipeline {
         bat(label: 'Running docker compose ',script: 'docker-compose up -d')
       }
     }
-
     stage('Stress and Load Testing using JMeter') {
       steps {
+        runAfter(10000) {
+
+          
+        
         // 1. Clean up the old JMeter report directory before the test.
         bat(label: 'Cleaning up previous JMeter report', script: 'if exist .\\reports\\jmeter (rmdir /s /q .\\reports\\jmeter)')
 
@@ -287,6 +289,7 @@ pipeline {
         //    (Assuming your JMX file is configured to hit 'apigateway:8080' or a similar internal URL)
         bat(label: 'Running JMeter test script',
             script: 'jmeter -n -t ".\\Testing\\HTTP Request.jmx" -l results.jtl -e -o .\\reports\\jmeter')
+        }
       }
       post {
         always {
@@ -314,14 +317,7 @@ pipeline {
           // 1. Clean up the old ZAP report directory.
           bat(label: 'Cleaning up previous ZAP report', script: 'if exist .\\reports\\zap (rmdir /s /q .\\reports\\zap)')
 
-          // 2. Add a delay to ensure the target application is fully started.
-          echo "Waiting 60 seconds for services to initialize before starting ZAP scan..."
-          bat 'timeout /t 60 /nobreak'
-
           echo "Starting ZAP Baseline Scan against ${targetUrl} on network ${composeNetwork}"
-
-          // 3. Run the ZAP scan connected to the application's network.
-          //    Use %WORKSPACE% for a reliable path.
 //           docker run --rm -v "%CD%/reports/zap:/zap/wrk/" zaproxy/zap-stable zap-full-scan.py -t http://host.doc
 // ker.internal:8085 -r /zap
           bat(label: 'Running ZAP Baseline scan',
