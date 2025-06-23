@@ -235,6 +235,8 @@ services:
     image: weakpassword/workflowipvaptservice:latest
     env_file:
       - .env
+    environment:
+      - SPRING_CLOUD_INETUTILS_PREFERRED_NETWORKS=cdacdnsmanagementsystem_application-network
     networks:
       - application-network
       - workflow-service-db-network
@@ -400,7 +402,6 @@ volumes:
   user-management-service-db-volume:
   prometheus-data:
   grafana-data:
-
 
 networks:
   application-network:
