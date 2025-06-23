@@ -368,7 +368,7 @@ services:
       LDAP_ADMIN_PASSWORD: "raju"
       LDAP_TLS: "false"             # deactivate TLS for the LDAP server
     volumes:
-      - ./ldap/ldap-initial-data/text.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/50-bootstrap.ldif
+      - ./ldap/ldap-initial-data/cdacNew.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/50-bootstrap.ldif
     networks:
       - ldap-net
     ports:
