@@ -72,7 +72,7 @@
 
     <!-- You can also define specific log levels for your application's packages -->
     <!-- For example, set your application's base package to DEBUG -->
-    <logger name="com.dnsManagement.WorkFlowIpVaptService" level="DEBUG" additivity="false">
+    <logger name="com.eurekaServiceRegistry.ServiceRegistry" level="DEBUG" additivity="false">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="APP_LOG_FILE"/>
         <appender-ref ref="ERROR_LOG_FILE"/>

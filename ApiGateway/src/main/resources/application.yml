@@ -32,10 +32,9 @@ eureka:
   client:
     service-url:
      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE}
-#       defaultZone: http://localhost:8761/eureka
   instance:
-#    prefer-ip-address: true
-#    ip-address: 100.75.10.81
+    prefer-ip-address: true
+    ip-address: ${PUBLIC_IP}
     metadata-map:
       prometheus.path: /actuator/prometheus
 
