@@ -5,7 +5,7 @@ const PORT = Number(process.env.PORT) || 5000;
 const EUREKA_HOST = process.env.EUREKA_HOST || "localhost";
 const EUREKA_PORT = process.env.EUREKA_PORT || "8761";
 const SERVICE_NAME = process.env.SERVICE_NAME || "renewal-transfer-service";
-
+const ZITI_HOST_NAME_RENEWAL = process.env.ZITI_HOST_NAME_RENEWAL || "renewal.ziti"
 // Get the actual network IP
 const networkInterfaces = os.networkInterfaces();
 const localIP =
@@ -21,9 +21,9 @@ const eurekaClient = new Eureka({
   instance: {
     app: SERVICE_NAME,
     instanceId: `${SERVICE_NAME}-${PORT}`,
-    hostName: localIP,
-    ipAddr: localIP,
-    statusPageUrl: `http://${localIP}:${PORT}`,
+    hostName: ZITI_HOST_NAME_RENEWAL,
+    ipAddr: ZITI_HOST_NAME_RENEWAL,
+    statusPageUrl: `http://${ZITI_HOST_NAME_RENEWAL}:${PORT}`,
     port: {
       "@enabled": true,
       $: Number(PORT),
