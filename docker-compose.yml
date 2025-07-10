@@ -229,6 +229,17 @@ services:
       - .env
     networks:
       - application-network
+  service-registry-tunneler:
+    image: openziti/ziti-edge-tunnel:latest
+    container_name: service-registry-tunneler
+    network_mode: "service:service-registry"
+    volumes:
+      - ./identities/service-registry-identity.jwt:/ziti-identity.jwt
+    environment:
+      ZITI_IDENTITY_FILE: "/ziti-identity.jwt"
+      # This tunneler HOSTS the 'service-registry-svc' so others can find it.
+      # The service name must match what you created in Ziti.
+      ZITI_SERVICE_HOST_v1: "service-registry-svc,localhost,8761,tcp"
 
   workflow-service:
     container_name: workflow-service
@@ -242,45 +253,76 @@ services:
       - workflow-service-db-network
     depends_on:
       - service-registry
+    
+  workflow-service-tunneler:
+    image: openziti/ziti-edge-tunnel:latest
+    container_name: workflow-service-tunneler
+    network_mode: "service:workflow-service"
+    volumes:
+      - ./identities/workflow-svc-identity.jwt:/ziti-identity.jwt
+    environment:
+      ZITI_IDENTITY_FILE: "/ziti-identity.jwt"
+      # This tunneler HOSTS the 'service-registry-svc' so others can find it.
+      # The service name must match what you created in Ziti.
+      ZITI_SERVICE_HOST_v1: "workflow-svc,localhost,8080,tcp"
 
   notification-service:
     container_name: notification-service
     image: weakpassword/notificationmicroservice:latest
     env_file:
       - .env
-    environment:
-      - EUREKA_HOST=service-registry
-      - EUREKA_PORT=8761
     networks:
       - application-network
       - notification-service-db-network
     depends_on:
       - service-registry
       - notification-service-db
+    
+  notification-service-tunneler:
+    image: openziti/ziti-edge-tunnel:latest
+    container_name: notification-service-tunneler
+    network_mode: "service:notification-service"
+    volumes:
+      - ./identities/notification-svc-identity.jwt:/ziti-identity.jwt
+    environment:
+      ZITI_IDENTITY_FILE: "/ziti-identity.jwt"
+      # This tunneler HOSTS the 'service-registry-svc' so others can find it.
+      # The service name must match what you created in Ziti.
+      ZITI_SERVICE_HOST_v1: "notification-svc,localhost,5000,tcp"
+
+    
   
   renewal-service:
     container_name: renewal-service
     image: weakpassword/renewalandtransfermicroservice:latest
     env_file:
       - .env
-    environment:
-      - EUREKA_HOST=service-registry
-      - EUREKA_PORT=8761
     networks:
       - application-network
       - renewal-service-db-network
     depends_on:
       - service-registry
       - renewal-service-db
+
+  renewal-service-tunneler:
+    image: openziti/ziti-edge-tunnel:latest
+    container_name: renewal-service-tunneler
+    network_mode: "service:renewal-service"
+    volumes:
+      - ./identities/renewal-svc-identity.jwt:/ziti-identity.jwt
+    environment:
+      ZITI_IDENTITY_FILE: "/ziti-identity.jwt"
+      # This tunneler HOSTS the 'service-registry-svc' so others can find it.
+      # The service name must match what you created in Ziti.
+      ZITI_SERVICE_HOST_v1: "renewal-svc,localhost,5000,tcp"
+
+    
     
   user-management-service:
     container_name: user-management-service
     image: weakpassword/usermanagementmicroservice:latest
     env_file:
       - .env
-    environment:
-      - EUREKA_HOST=service-registry
-      - EUREKA_PORT=8761
     networks:
       - application-network
       - user-management-service-db-network
@@ -289,6 +331,18 @@ services:
       - service-registry
       - user-management-service-db
       - openldap
+
+  user-management-service-tunneler:
+    image: openziti/ziti-edge-tunnel:latest
+    container_name: user-management-service-tunneler
+    network_mode: "service:user-management-service"
+    volumes:
+      - ./identities/user-mgmt-identity.jwt:/ziti-identity.jwt
+    environment:
+      ZITI_IDENTITY_FILE: "/ziti-identity.jwt"
+      # This tunneler HOSTS the 'service-registry-svc' so others can find it.
+      # The service name must match what you created in Ziti.
+      ZITI_SERVICE_HOST_v1: "user-mgmt-svc,localhost,5000,tcp"
 
   api-gateway:
     container_name: api_gateway
@@ -301,6 +355,17 @@ services:
       - application-network
     depends_on:
       - service-registry
+    
+  api-gateway-tunneler:
+    image: openziti/ziti-edge-tunnel:latest
+    container_name: uapi-gateway-tunneler
+    network_mode: "service:api-gateway-tunneler"
+    volumes:
+      - ./identities/api-gateway-identity.jwt:/ziti-identity.jwt
+    environment:
+      ZITI_IDENTITY_FILE: "/ziti-identity.jwt"
+
+  
 
   workflow-service-db:
     image: postgres:16-alpine3.21

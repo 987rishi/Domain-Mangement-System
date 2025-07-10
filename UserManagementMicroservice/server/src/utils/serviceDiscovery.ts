@@ -93,7 +93,7 @@ export const eurekaClient = new Eureka({
     instanceId: `user-management-service-${PORT}`,
     hostName: ZITI_HOSTNAME_USM, // ✅ Use actual network IP
     ipAddr: ZITI_HOSTNAME_USM, // ✅ Use actual network IP
-    statusPageUrl: `http://${localIP}:${PORT}`, // ✅ Use actual network IP
+    statusPageUrl: `http://${ZITI_HOSTNAME_USM}:${PORT}`, // ✅ Use actual network IP
     metadata: {
         'prometheus.path': '/metrics',  // 👈 Prometheus can detect this!
         'management.port': PORT.toString(),
