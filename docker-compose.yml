@@ -237,11 +237,15 @@ services:
       - .env
     environment:
       - SPRING_CLOUD_INETUTILS_PREFERRED_NETWORKS=cdacdnsmanagementsystem_application-network
+    volumes:
+      - workflow-logs:/var/log/app
     networks:
       - application-network
       - workflow-service-db-network
+      - logging-network
     depends_on:
       - service-registry
+      - logstash
 
   notification-service:
     container_name: notification-service
@@ -251,12 +255,16 @@ services:
     environment:
       - EUREKA_HOST=service-registry
       - EUREKA_PORT=8761
+    volumes:
+      - notification-logs:/var/log/app
     networks:
       - application-network
       - notification-service-db-network
+      - logging-network
     depends_on:
       - service-registry
       - notification-service-db
+      - logstash
   
   renewal-service:
     container_name: renewal-service
@@ -266,12 +274,16 @@ services:
     environment:
       - EUREKA_HOST=service-registry
       - EUREKA_PORT=8761
+    volumes:
+      - renewal-logs:/var/log/app
     networks:
       - application-network
       - renewal-service-db-network
+      - logging-network
     depends_on:
       - service-registry
       - renewal-service-db
+      - logstash
     
   user-management-service:
     container_name: user-management-service
@@ -281,14 +293,18 @@ services:
     environment:
       - EUREKA_HOST=service-registry
       - EUREKA_PORT=8761
+    volumes:
+      - user-management-logs:/var/log/app
     networks:
       - application-network
       - user-management-service-db-network
       - ldap-net
+      - logging-network
     depends_on:
       - service-registry
       - user-management-service-db
       - openldap
+      - logstash
 
   api-gateway:
     container_name: api_gateway
@@ -297,8 +313,11 @@ services:
       - "8085:8085"
     env_file:
       - .env
+    volumes:
+      - api-gateway-logs:/var/log/app
     networks:
       - application-network
+      - logging-network
     depends_on:
       - service-registry
 
@@ -392,6 +411,87 @@ services:
     depends_on:
       - openldap
 
+  elasticsearch:
+    image: elasticsearch:8.14.0
+    container_name: elasticsearch
+    environment:
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+    ports:
+      - "9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\\|yellow\"'"]
+      interval: 30s
+      timeout: 15s
+      retries: 10
+    networks:
+      - logging-network
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodata:/data/db
+    networks:
+      - logging-network
+    restart: unless-stopped
+
+  kibana:
+    image: kibana:8.14.0
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    networks:
+      - logging-network
+    restart: unless-stopped
+
+  logstash:
+    build:
+      context: ./ELK/logstash
+    container_name: logstash
+    ports:
+      - "5044:5044"
+      - "9600:9600"
+    volumes:
+      - ./ELK/logstash/pipeline:/usr/share/logstash/pipeline:ro
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
+    networks:
+      - logging-network
+    restart: unless-stopped
+
+  filebeat:
+    image: elastic/filebeat:8.14.0
+    container_name: filebeat
+    user: root
+    command: filebeat -e --strict.perms=false
+    volumes:
+      - ./ELK/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - workflow-logs:/var/log/workflow-service:ro
+      - notification-logs:/var/log/notification-service:ro
+      - renewal-logs:/var/log/renewal-service:ro
+      - user-management-logs:/var/log/user-management-service:ro
+      - api-gateway-logs:/var/log/api-gateway:ro
+    depends_on:
+      - logstash
+    networks:
+      - logging-network
+    restart: unless-stopped
+
+
 volumes:
   sonarqube_data:
   sonarqube_extensions:
@@ -402,6 +502,16 @@ volumes:
   user-management-service-db-volume:
   prometheus-data:
   grafana-data:
+  
+  # Logging Volumes
+  workflow-logs:
+  notification-logs:
+  renewal-logs:
+  user-management-logs:
+  api-gateway-logs:
+  esdata:
+  mongodata:
+
 
 networks:
   application-network:
@@ -415,5 +525,7 @@ networks:
   user-management-service-db-network:
     driver: bridge
   ldap-net:
+    driver: bridge
+  logging-network:
     driver: bridge
   
