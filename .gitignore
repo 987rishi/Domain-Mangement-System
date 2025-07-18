@@ -8,6 +8,6 @@
 .vscode
 **/*.jtl
 ./identities
-./ziti/identities
-./ziti/.env
-./ziti/docker-compose.yml
+# **/*.jwt 
+**/identities
+\ziti/docker-compose.yml
