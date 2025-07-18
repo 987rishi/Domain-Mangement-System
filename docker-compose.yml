@@ -1,375 +1,189 @@
-
-# services:
-#   service-registry:
-#     container_name: service-registry
-#     build:
-#       context: ./ServiceRegistry
-#       dockerfile: Dockerfile
-#     env_file:
-#       - .env
-#     networks:
-#       - application-network
-
-#   workflow-service:
-#     container_name: workflow-service
-#     build:
-#       context: ./WorkFlowIpVaptService
-#       dockerfile: Dockerfile
-#     env_file:
-#       - .env
-#     networks:
-#       - application-network
-#       - workflow-service-db-network
-#     depends_on:
-#       - service-registry
-
-#   notification-service:
-#     container_name: notification-service
-#     build:
-#       context: ./NotificationMicroservice
-#       dockerfile: Dockerfile
-#     env_file:
-#       - .env
-#     environment:
-#       - EUREKA_HOST=service-registry
-#       - EUREKA_PORT=8761
-#     networks:
-#       - application-network
-#       - notification-service-db-network
-#     depends_on:
-#       - service-registry
-#       - notification-service-db
-  
-#   renewal-service:
-#     container_name: renewal-service
-#     build:
-#       context: ./RenewalAndTransferMicroService
-#       dockerfile: Dockerfile
-#     env_file:
-#       - .env
-#     environment:
-#       - EUREKA_HOST=service-registry
-#       - EUREKA_PORT=8761
-#     networks:
-#       - application-network
-#       - renewal-service-db-network
-#     depends_on:
-#       - service-registry
-#       - renewal-service-db
-    
-#   user-management-service:
-#     container_name: user-management-service
-#     build:
-#       context: ./UserManagementMicroservice/server
-#       dockerfile: Dockerfile
-#     env_file:
-#       - .env
-#     environment:
-#       - EUREKA_HOST=service-registry
-#       - EUREKA_PORT=8761
-#     networks:
-#       - application-network
-#       - user-management-service-db-network
-#       - ldap-net
-#     depends_on:
-#       - service-registry
-#       - user-management-service-db
-#       - openldap
-
-
-#   api-gateway:
-#     container_name: api_gateway
-#     build:
-#       context: ./ApiGateway
-#       dockerfile: Dockerfile
-#     ports:
-#       - "8085:8085"
-#     env_file:
-#       - .env
-#     networks:
-#       - application-network
-#     depends_on:
-#       - service-registry
-
-  
-#   sonarqube:
-#     image: 4f01870f15a6
-#     container_name: sonarqube
-#     ports:
-#       - "9000:9000"
-#     volumes:
-#       - sonarqube_data:/opt/sonarqube/data
-#       - sonarqube_extensions:/opt/sonarqube/extensions
-#       - sonarqube_logs:/opt/sonarqube/logs
-
-
-#   workflow-service-db:
-#     image: postgres:16-alpine3.21
-#     container_name: workflow_db
-#     # ports:
-#     #   - "5432:5432"
-#     environment:
-#       - POSTGRES_USER=postgres
-#       - POSTGRES_PASSWORD=1234
-#       - POSTGRES_DB=workflow_db
-#     volumes:
-#       - workflow-service-db-volume:/var/lib/postgresql/data
-#     networks:
-#       - workflow-service-db-network
-  
-#   notification-service-db:
-#     image: postgres:16-alpine3.21
-#     container_name: notification_db
-#     # ports:
-#     #   - "5432:5432"
-#     environment:
-#       - POSTGRES_USER=postgres
-#       - POSTGRES_PASSWORD=1234
-#       - POSTGRES_DB=notification_db
-#     volumes:
-#       - notification-service-db-volume:/var/lib/postgresql/data
-#     networks:
-#       - notification-service-db-network
-  
-#   renewal-service-db:
-#     image: postgres:16-alpine3.21
-#     container_name: renewal_db
-#     # ports:
-#     #   - "5432:5432"
-#     environment:
-#       - POSTGRES_USER=postgres
-#       - POSTGRES_PASSWORD=1234
-#       - POSTGRES_DB=renewal_db
-#     volumes:
-#       - renewal-service-db-volume:/var/lib/postgresql/data
-#     networks:
-#       - renewal-service-db-network
-
-#   user-management-service-db:
-#     image: postgres:16-alpine3.21
-#     container_name: user_management_db
-#     # ports:
-#     #   - "5432:5432"
-#     environment:
-#       - POSTGRES_USER=postgres
-#       - POSTGRES_PASSWORD=1234
-#       - POSTGRES_DB=user_management_db
-#     volumes:
-#       - user-management-service-db-volume:/var/lib/postgresql/data
-#     networks:
-#       - user-management-service-db-network
-
-#   openldap:
-#     image: osixia/openldap:latest
-#     container_name: openldap
-#     environment:
-#       LDAP_BASE_DN: "dc=cdac,dc=in,dc=world"
-#       LDAP_ORGANISATION: "CDAC"
-#       LDAP_DOMAIN: "cdac.in.world"
-#       LDAP_ADMIN_PASSWORD: "raju"
-#       LDAP_TLS: "false"             # deactivate TLS for the LDAP server
-#     volumes:
-#       - ./ldap/ldap-initial-data/text.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/50-bootstrap.ldif
-#     networks:
-#       - ldap-net
-#     ports:
-#       - "389:389"                   # default port for unsecured LDAP
-#     command: --copy-service
-#     restart: unless-stopped
-  
-#   phpldapadmin:
-#     image: osixia/phpldapadmin:latest
-#     container_name: phpldapadmin
-#     environment:
-#       PHPLDAPADMIN_LDAP_HOSTS: openldap
-#       PHPLDAPADMIN_HTTPS: "false"   # deactivate HTTPS
-#     networks:
-#       - ldap-net
-#     ports:
-#       - "8081:80"
-#     restart: unless-stopped
-#     depends_on:
-#       - openldap
-
-# volumes:
-#   sonarqube_data:
-#   sonarqube_extensions:
-#   sonarqube_logs:
-#   workflow-service-db-volume:
-#   notification-service-db-volume:
-#   renewal-service-db-volume:
-#   user-management-service-db-volume:
-#   ldap_data:
-#   ldap_config:
-
-
-# networks:
-#   application-network:
-#     driver: bridge
-#   workflow-service-db-network:
-#     driver: bridge
-#   notification-service-db-network:
-#     driver: bridge
-#   renewal-service-db-network:
-#     driver: bridge
-#   user-management-service-db-network:
-#     driver: bridge
-#   ldap-net:
-#     driver: bridge
-  
-
-
-
-  
 services:
+  ziti-controller:
+    image: "${ZITI_IMAGE}:${ZITI_VERSION}"
+    healthcheck:
+      test: curl -m 1 -s -k -f https://${ZITI_CTRL_EDGE_ADVERTISED_ADDRESS:-ziti-edge-controller}:${ZITI_CTRL_EDGE_ADVERTISED_PORT:-1280}/edge/client/v1/version
+      interval: 1s
+      timeout: 3s
+      retries: 30
+    env_file:
+      - ./.env
+    ports:
+      - ${ZITI_INTERFACE:-0.0.0.0}:${ZITI_CTRL_EDGE_ADVERTISED_PORT:-1280}:${ZITI_CTRL_EDGE_ADVERTISED_PORT:-1280}
+      - ${ZITI_INTERFACE:-0.0.0.0}:${ZITI_CTRL_ADVERTISED_PORT:-6262}:${ZITI_CTRL_ADVERTISED_PORT:-6262}
+    environment:
+      - ZITI_CTRL_NAME=${ZITI_CTRL_NAME:-ziti-edge-controller}
+      - ZITI_CTRL_EDGE_ADVERTISED_ADDRESS=${ZITI_CTRL_EDGE_ADVERTISED_ADDRESS:-ziti-edge-controller}
+      - ZITI_CTRL_EDGE_ADVERTISED_PORT=${ZITI_CTRL_EDGE_ADVERTISED_PORT:-1280}
+      - ZITI_CTRL_EDGE_IP_OVERRIDE=${ZITI_CTRL_EDGE_IP_OVERRIDE:-127.0.0.1}
+      - ZITI_CTRL_ADVERTISED_PORT=${ZITI_CTRL_ADVERTISED_PORT:-6262}
+      - ZITI_EDGE_IDENTITY_ENROLLMENT_DURATION=${ZITI_EDGE_IDENTITY_ENROLLMENT_DURATION}
+      - ZITI_ROUTER_ENROLLMENT_DURATION=${ZITI_ROUTER_ENROLLMENT_DURATION}
+      - ZITI_USER=${ZITI_USER:-admin}
+      - ZITI_PWD=${ZITI_PWD}
+    networks:
+      ziti:
+        aliases:
+          - ziti-edge-controller
+    volumes:
+      - ziti-fs:/persistent
+    entrypoint:
+      - "/var/openziti/scripts/run-controller.sh"
+
+  ziti-controller-init-container:
+    image: "${ZITI_IMAGE}:${ZITI_VERSION}"
+    depends_on:
+      ziti-controller:
+        condition: service_healthy
+    environment:
+      - ZITI_CTRL_EDGE_ADVERTISED_ADDRESS=${ZITI_CTRL_EDGE_ADVERTISED_ADDRESS:-ziti-edge-controller}
+      - ZITI_CTRL_EDGE_ADVERTISED_PORT=${ZITI_CTRL_EDGE_ADVERTISED_PORT:-1280}
+    env_file:
+      - ./.env
+    networks:
+      ziti:
+    volumes:
+      - ziti-fs:/persistent
+    entrypoint:
+      - "/var/openziti/scripts/run-with-ziti-cli.sh"
+    command:
+      - "/var/openziti/scripts/access-control.sh"
+
+  ziti-edge-router:
+    image: "${ZITI_IMAGE}:${ZITI_VERSION}"
+    env_file:
+      - ./.env
+    depends_on:
+      ziti-controller:
+        condition: service_healthy
+    ports:
+      - ${ZITI_INTERFACE:-0.0.0.0}:${ZITI_ROUTER_PORT:-3022}:${ZITI_ROUTER_PORT:-3022}
+      - ${ZITI_INTERFACE:-0.0.0.0}:${ZITI_ROUTER_LISTENER_BIND_PORT:-10080}:${ZITI_ROUTER_LISTENER_BIND_PORT:-10080}
+    environment:
+      - ZITI_CTRL_ADVERTISED_ADDRESS=${ZITI_CTRL_ADVERTISED_ADDRESS:-ziti-controller}
+      - ZITI_CTRL_ADVERTISED_PORT=${ZITI_CTRL_ADVERTISED_PORT:-6262}
+      - ZITI_CTRL_EDGE_ADVERTISED_ADDRESS=${ZITI_CTRL_EDGE_ADVERTISED_ADDRESS:-ziti-edge-controller}
+      - ZITI_CTRL_EDGE_ADVERTISED_PORT=${ZITI_CTRL_EDGE_ADVERTISED_PORT:-1280}
+      - ZITI_ROUTER_NAME=${ZITI_ROUTER_NAME:-ziti-edge-router}
+      - ZITI_ROUTER_ADVERTISED_ADDRESS=${ZITI_ROUTER_ADVERTISED_ADDRESS:-ziti-edge-router}
+      - ZITI_ROUTER_PORT=${ZITI_ROUTER_PORT:-3022}
+      - ZITI_ROUTER_LISTENER_BIND_PORT=${ZITI_ROUTER_LISTENER_BIND_PORT:-10080}
+      - ZITI_ROUTER_ROLES=public
+    networks:
+      - ziti
+    volumes:
+      - ziti-fs:/persistent
+    entrypoint: /bin/bash
+    command: "/var/openziti/scripts/run-router.sh edge"
+
+  ziti-console:
+    image: openziti/zac
+    working_dir: /usr/src/app
+    environment:
+      - ZAC_SERVER_CERT_CHAIN=/persistent/pki/${ZITI_CTRL_EDGE_ADVERTISED_ADDRESS:-ziti-edge-controller}-intermediate/certs/${ZITI_CTRL_EDGE_ADVERTISED_ADDRESS:-ziti-edge-controller}-server.cert
+      - ZAC_SERVER_KEY=/persistent/pki/${ZITI_CTRL_EDGE_ADVERTISED_ADDRESS:-ziti-edge-controller}-intermediate/keys/${ZITI_CTRL_EDGE_ADVERTISED_ADDRESS:-ziti-edge-controller}-server.key
+      - ZITI_CTRL_EDGE_ADVERTISED_ADDRESS=${ZITI_CTRL_EDGE_ADVERTISED_ADDRESS:-ziti-edge-controller}
+      - ZITI_CTRL_EDGE_ADVERTISED_PORT=${ZITI_CTRL_EDGE_ADVERTISED_PORT:-1280}
+      - ZITI_CTRL_NAME=${ZITI_CTRL_NAME:-ziti-edge-controller}
+      - PORTTLS=8443
+    depends_on:
+      ziti-controller:
+        condition: service_healthy
+    ports:
+      - ${ZITI_INTERFACE:-0.0.0.0}:8443:8443
+    volumes:
+      - ziti-fs:/persistent
+    networks:
+      - ziti
+
   service-registry:
     container_name: service-registry
     image: weakpassword/serviceregistry:latest
     env_file:
       - .env
     networks:
-      - application-network
-  service-registry-tunneler:
-    image: openziti/ziti-edge-tunnel:latest
-    container_name: service-registry-tunneler
-    network_mode: "service:service-registry"
-    volumes:
-      - ./identities/service-registry-identity.jwt:/ziti-identity.jwt
-    environment:
-      ZITI_IDENTITY_FILE: "/ziti-identity.jwt"
-      # This tunneler HOSTS the 'service-registry-svc' so others can find it.
-      # The service name must match what you created in Ziti.
-      ZITI_SERVICE_HOST_v1: "service-registry-svc,localhost,8761,tcp"
+      - ziti
+    depends_on:
+      ziti-controller:
+        condition: service_healthy
+
 
   workflow-service:
     container_name: workflow-service
-    image: weakpassword/workflowipvaptservice:latest
+    image: weakpassword/workflowipvaptservice:ziti.v2
     env_file:
       - .env
-    environment:
-      - SPRING_CLOUD_INETUTILS_PREFERRED_NETWORKS=cdacdnsmanagementsystem_application-network
     networks:
-      - application-network
-      - workflow-service-db-network
+      - ziti
     depends_on:
       - service-registry
     
-  workflow-service-tunneler:
-    image: openziti/ziti-edge-tunnel:latest
-    container_name: workflow-service-tunneler
-    network_mode: "service:workflow-service"
-    volumes:
-      - ./identities/workflow-svc-identity.jwt:/ziti-identity.jwt
-    environment:
-      ZITI_IDENTITY_FILE: "/ziti-identity.jwt"
-      # This tunneler HOSTS the 'service-registry-svc' so others can find it.
-      # The service name must match what you created in Ziti.
-      ZITI_SERVICE_HOST_v1: "workflow-svc,localhost,8080,tcp"
-
+    
+ 
   notification-service:
     container_name: notification-service
-    image: weakpassword/notificationmicroservice:latest
+    image: weakpassword/notificationmicroservice:ziti.v1
     env_file:
       - .env
     networks:
-      - application-network
-      - notification-service-db-network
+      - ziti
     depends_on:
       - service-registry
-      - notification-service-db
+
     
-  notification-service-tunneler:
-    image: openziti/ziti-edge-tunnel:latest
-    container_name: notification-service-tunneler
-    network_mode: "service:notification-service"
-    volumes:
-      - ./identities/notification-svc-identity.jwt:/ziti-identity.jwt
-    environment:
-      ZITI_IDENTITY_FILE: "/ziti-identity.jwt"
-      # This tunneler HOSTS the 'service-registry-svc' so others can find it.
-      # The service name must match what you created in Ziti.
-      ZITI_SERVICE_HOST_v1: "notification-svc,localhost,5000,tcp"
+ 
 
     
   
   renewal-service:
     container_name: renewal-service
-    image: weakpassword/renewalandtransfermicroservice:latest
+    image: weakpassword/renewalandtransfermicroservice:ziti.v1
     env_file:
       - .env
     networks:
-      - application-network
-      - renewal-service-db-network
+      - ziti
+
     depends_on:
       - service-registry
       - renewal-service-db
 
-  renewal-service-tunneler:
-    image: openziti/ziti-edge-tunnel:latest
-    container_name: renewal-service-tunneler
-    network_mode: "service:renewal-service"
-    volumes:
-      - ./identities/renewal-svc-identity.jwt:/ziti-identity.jwt
-    environment:
-      ZITI_IDENTITY_FILE: "/ziti-identity.jwt"
-      # This tunneler HOSTS the 'service-registry-svc' so others can find it.
-      # The service name must match what you created in Ziti.
-      ZITI_SERVICE_HOST_v1: "renewal-svc,localhost,5000,tcp"
+  
 
     
     
   user-management-service:
     container_name: user-management-service
-    image: weakpassword/usermanagementmicroservice:latest
+    image: weakpassword/usermanagementmicroservice:ziti.v1
     env_file:
       - .env
     networks:
-      - application-network
-      - user-management-service-db-network
-      - ldap-net
+      - ziti
     depends_on:
       - service-registry
       - user-management-service-db
       - openldap
 
-  user-management-service-tunneler:
-    image: openziti/ziti-edge-tunnel:latest
-    container_name: user-management-service-tunneler
-    network_mode: "service:user-management-service"
-    volumes:
-      - ./identities/user-mgmt-identity.jwt:/ziti-identity.jwt
-    environment:
-      ZITI_IDENTITY_FILE: "/ziti-identity.jwt"
-      # This tunneler HOSTS the 'service-registry-svc' so others can find it.
-      # The service name must match what you created in Ziti.
-      ZITI_SERVICE_HOST_v1: "user-mgmt-svc,localhost,5000,tcp"
+  
 
   api-gateway:
     container_name: api_gateway
-    image: weakpassword/apigateway:latest
+    image: weakpassword/apigateway:ziti.v1
+    networks:
+      - ziti
     ports:
       - "8085:8085"
     env_file:
       - .env
-    networks:
-      - application-network
     depends_on:
       - service-registry
     
-  api-gateway-tunneler:
-    image: openziti/ziti-edge-tunnel:latest
-    container_name: uapi-gateway-tunneler
-    network_mode: "service:api-gateway-tunneler"
-    volumes:
-      - ./identities/api-gateway-identity.jwt:/ziti-identity.jwt
-    environment:
-      ZITI_IDENTITY_FILE: "/ziti-identity.jwt"
+ 
 
   
 
   workflow-service-db:
     image: postgres:16-alpine3.21
-    container_name: workflow_db
+    container_name: workflow-service-db
     # ports:
     #   - "5432:5432"
     environment:
@@ -379,13 +193,11 @@ services:
     volumes:
       - workflow-service-db-volume:/var/lib/postgresql/data
     networks:
-      - workflow-service-db-network
+      - ziti
   
   notification-service-db:
     image: postgres:16-alpine3.21
-    container_name: notification_db
-    # ports:
-    #   - "5432:5432"
+    container_name: notification-service-db
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=1234
@@ -393,13 +205,11 @@ services:
     volumes:
       - notification-service-db-volume:/var/lib/postgresql/data
     networks:
-      - notification-service-db-network
+      - ziti
   
   renewal-service-db:
     image: postgres:16-alpine3.21
-    container_name: renewal_db
-    # ports:
-    #   - "5432:5432"
+    container_name: renewal-service-db
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=1234
@@ -407,23 +217,21 @@ services:
     volumes:
       - renewal-service-db-volume:/var/lib/postgresql/data
     networks:
-      - renewal-service-db-network
+      - ziti
 
   user-management-service-db:
     image: postgres:16-alpine3.21
-    container_name: user_management_db
-    # ports:
-    #   - "5432:5432"
+    container_name: user-management-service-db
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=1234
       - POSTGRES_DB=user_management_db
     volumes:
       - user-management-service-db-volume:/var/lib/postgresql/data
-      - ./dump_files/dumpfileUMM.dump:/docker-entrypoint-initdb.d/user_management_db.dump
-      - ./db_init_scripts/init-db-usermanagement.sh:/docker-entrypoint-initdb.d/init-user-db.sh
+      - ../dump_files/dumpfileUMM.dump:/docker-entrypoint-initdb.d/user_management_db.dump
+      - ../db_init_scripts/init-db-usermanagement.sh:/docker-entrypoint-initdb.d/init-user-db.sh
     networks:
-      - user-management-service-db-network
+      - ziti
 
   openldap:
     image: osixia/openldap:latest
@@ -435,27 +243,25 @@ services:
       LDAP_ADMIN_PASSWORD: "raju"
       LDAP_TLS: "false"             # deactivate TLS for the LDAP server
     volumes:
-      - ./ldap/ldap-initial-data/cdacNew.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/50-bootstrap.ldif
+      - ../ldap/ldap-initial-data/cdacNew.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/50-bootstrap.ldif
     networks:
-      - ldap-net
-    ports:
-      - "389:389"                   # default port for unsecured LDAP
+      - ziti
     command: --copy-service
     restart: unless-stopped
   
-  phpldapadmin:
-    image: osixia/phpldapadmin:latest
-    container_name: phpldapadmin
-    environment:
-      PHPLDAPADMIN_LDAP_HOSTS: openldap
-      PHPLDAPADMIN_HTTPS: "false"   # deactivate HTTPS
-    networks:
-      - ldap-net
-    ports:
-      - "8081:80"
-    restart: unless-stopped
-    depends_on:
-      - openldap
+  # phpldapadmin:
+  #   image: osixia/phpldapadmin:latest
+  #   container_name: phpldapadmin
+  #   environment:
+  #     PHPLDAPADMIN_LDAP_HOSTS: openldap
+  #     PHPLDAPADMIN_HTTPS: "false"   # deactivate HTTPS
+  #   networks:
+  #     - ldap-net
+  #   ports:
+  #     - "8081:80"
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - openldap
 
 volumes:
   sonarqube_data:
@@ -465,20 +271,11 @@ volumes:
   notification-service-db-volume:
   renewal-service-db-volume:
   user-management-service-db-volume:
-  prometheus-data:
-  grafana-data:
+  ziti-fs:
+  ziti-host:
 
 networks:
-  application-network:
+  ziti:
     driver: bridge
-  workflow-service-db-network:
-    driver: bridge
-  notification-service-db-network:
-    driver: bridge
-  renewal-service-db-network:
-    driver: bridge
-  user-management-service-db-network:
-    driver: bridge
-  ldap-net:
-    driver: bridge
+  
   
