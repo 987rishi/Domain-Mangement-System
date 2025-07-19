@@ -8,4 +8,4 @@
 .vscode
 **/*.jtl
 ziti\docker-compose.yml
-./reports
+ziti
