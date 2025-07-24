@@ -224,7 +224,7 @@
 services:
   service-registry:
     container_name: service-registry
-    image: weakpassword/serviceregistry:latest
+    image: weakpassword/serviceregistry:dev.v2
     env_file:
       - .env
     networks:
@@ -232,7 +232,7 @@ services:
 
   workflow-service:
     container_name: workflow-service
-    image: weakpassword/workflowipvaptservice:latest
+    image: weakpassword/workflowipvaptservice:dev.v2
     env_file:
       - .env
     environment:
@@ -268,7 +268,7 @@ services:
   
   renewal-service:
     container_name: renewal-service
-    image: weakpassword/renewalandtransfermicroservice:latest
+    image: dnms-local/renewalandtransfermicroservice:dev.v1.0.0
     env_file:
       - .env
     environment:
@@ -287,7 +287,7 @@ services:
     
   user-management-service:
     container_name: user-management-service
-    image: weakpassword/usermanagementmicroservice:latest
+    image: versatile7programmer/ums:dev.v1
     env_file:
       - .env
     environment:
@@ -308,7 +308,7 @@ services:
 
   api-gateway:
     container_name: api_gateway
-    image: weakpassword/apigateway:latest
+    image: weakpassword/apigateway:dev.v2
     ports:
       - "8085:8085"
     env_file:
@@ -458,12 +458,15 @@ services:
   logstash:
     build:
       context: ./ELK/logstash
+      # dockerfile: Dockerfile
     container_name: logstash
     ports:
       - "5044:5044"
       - "9600:9600"
     volumes:
       - ./ELK/logstash/pipeline:/usr/share/logstash/pipeline:ro
+      - ./archived-logs:/usr/share/logstash/archived-logs # archived-logs on host bind mount to container
+
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -509,6 +512,7 @@ volumes:
   renewal-logs:
   user-management-logs:
   api-gateway-logs:
+  all-logs:
   esdata:
   mongodata:
 
