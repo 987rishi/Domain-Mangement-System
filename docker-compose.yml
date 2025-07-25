@@ -225,6 +225,8 @@ services:
   service-registry:
     container_name: service-registry
     image: weakpassword/serviceregistry:latest
+    ports:
+      - "8761:8761" 
     env_file:
       - .env
     networks:
@@ -276,6 +278,9 @@ services:
   user-management-service:
     container_name: user-management-service
     image: weakpassword/usermanagementmicroservice:latest
+    # build: 
+    #   context: ./UserManagementMicroservice/server
+    #   dockerfile: Dockerfile
     env_file:
       - .env
     environment:
