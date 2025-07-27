@@ -9,3 +9,4 @@
 **/*.jtl
 ziti\docker-compose.yml
 ziti
+archived-logs
