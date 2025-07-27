@@ -7,7 +7,7 @@
 **/*.env
 .vscode
 **/*.jtl
-./identities
-./ziti/identities
-./ziti/.env
-./ziti/docker-compose.yml
+ziti\docker-compose.yml
+ziti
+archived-logs
+

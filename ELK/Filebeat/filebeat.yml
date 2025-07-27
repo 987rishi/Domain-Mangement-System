@@ -1,0 +1,46 @@
+filebeat.inputs:
+  - type: filestream
+    paths:
+      - /var/log/workflow-service/*.log
+    fields:
+      service_name: "workflow-service"
+    fields_under_root: true
+
+  - type: filestream
+    paths:
+      - /var/log/notification-service/*.log
+    fields:
+      service_name: "notification-service"
+    fields_under_root: true
+
+  - type: filestream
+    paths:
+      - /var/log/renewal-service/*.log
+    fields:
+      service_name: "renewal-service"
+    fields_under_root: true
+
+  - type: filestream
+    paths:
+      - /var/log/user-management-service/*.log
+    fields:
+      service_name: "user-management-service"
+    fields_under_root: true
+
+  - type: filestream
+    paths:
+      - /var/log/api-gateway/*.log
+    fields:
+      service_name: "api-gateway"
+    fields_under_root: true
+
+output.logstash:
+  hosts: ["logstash:5044"]
+
+# Optional: Disable Elasticsearch output if sending via Logstash
+output.elasticsearch:
+  enabled: false
+
+# Setup Kibana for initial dashboard loading (useful for general logs, less for custom app logs)
+setup.kibana:
+  host: "kibana:5601"

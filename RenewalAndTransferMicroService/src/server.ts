@@ -1,13 +1,12 @@
 import express from "express";
 import "colors";
-import cors from "cors";
 import { connectDB, disconnectDB } from "./database/methods";
 import routeIndex from "./routes/index";
-import logger from "./middlewares/loggerMiddleware";
 import errorHandler from "./middlewares/errorMiddleware";
 import eurekaClient from "./integrations/eureka/eurekaClient";
 import client from "prom-client";
-import { contextMiddleware } from "./middlewares/contextMiddleware";
+import logger from "./logging/index";
+import loggerMiddleware from "./middlewares/loggerMiddleware";
 
 const app = express();
 const PORT = process.env.PORT;
@@ -17,10 +16,8 @@ const PORT = process.env.PORT;
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// app.use(contextMiddleware);
-
 // Setup logger middleware
-app.use(logger);
+app.use(loggerMiddleware);
 
 // Setup routes
 app.use("/api", routeIndex);
@@ -32,9 +29,14 @@ app.use(errorHandler);
 connectDB();
 
 // Start the server
-app.listen(PORT, () =>
-  console.log(`Server local: http://localhost:${PORT}`.cyan.bold)
-);
+app.listen(PORT, () => {
+  console.log(
+    `${process.env.SERVICE_NAME} listening successfully on port ${process.env.PORT}`
+  );
+  logger.info(
+    `${process.env.SERVICE_NAME} listening successfully on port ${process.env.PORT}`
+  );
+});
 
 /**
  * BELOW IS THE CONFIGURATION FOR PROMETHEUS SCRAPING OF METRICS
@@ -48,74 +50,47 @@ app.get("/metrics", async (req, res) => {
   res.set("Content-Type", registry.contentType);
   res.end(await registry.metrics());
 });
-// -------------X-------------X-----------------------
 
+// Register with eureka service registry
+eurekaClient.start((error: unknown) => {
+  if (error) {
+    console.log("❌❌❌ Eureka registration failed(1):", error);
+  } else {
+    console.log("✅✅✅ Application registered with Eureka!");
+    logger.info(
+      `✅✅✅ Application successfully registered with eureka service registry.`
+    );
+  }
+});
+
+// On registration failure, register after an interval
+let numOfTries: number = 1;
 const intId = setInterval(() => {
-  // Registering with eureka service reg
   eurekaClient.start((error: unknown) => {
     if (error) {
-      console.log("❌ Eureka registration failed:", error);
+      if ((numOfTries += 1) % 10 === 0) {
+        logger.error(
+          `❌❌❌ Application failed to register with eureka service registry.`,
+          {
+            error: error,
+            numOfTries: numOfTries,
+            registrationDelay: `${numOfTries * 10}s`,
+          }
+        );
+      }
+      console.log(`❌❌❌ Eureka registration failed(${numOfTries}):`, error);
     } else {
-      console.log("✅ Registered with Eureka!");
+      console.log("✅✅✅ Applicaation registered with Eureka!");
+      logger.info(
+        `✅✅✅ Application successfully registered with eureka service registry.`
+      );
       clearInterval(intId);
     }
   });
-}, 100000);
-
-eurekaClient.start((error: unknown) => {
-  if (error) {
-    console.log("❌ Eureka registration failed:", error);
-  } else {
-    console.log("✅ Registered with Eureka!");
-  }
-});
+}, 60000);
 
 // Deregistering from eureka service reg
 process.on("SIGINT", () => eurekaClient.stop());
 
 // Setup database disconnect on exit
 process.on("SIGINT", disconnectDB);
-
-app.get("/api-gateway", (req, res) => {
-  const service = eurekaClient.getInstancesByAppId("api-gateway")[0];
-  const ips = fetch(`http://${service.ipAddr}:${service.port}`, {
-    method: "GET",
-  });
-
-  res.send({ service, port: service.port });
-  console.log(service);
-});
-
-app.get("/workflow-service", (req, res) => {
-  const service = eurekaClient.getInstancesByAppId("workflow-service")[0];
-  const ips = fetch(`http://${service.ipAddr}:${service.port}`, {
-    method: "GET",
-  });
-
-  res.send({ service, port: service.port });
-  console.log(service);
-});
-
-app.get("/user-management-service", (req, res) => {
-  const service = eurekaClient.getInstancesByAppId(
-    "user-management-service"
-  )[0];
-  const ips = fetch(`http://${service.ipAddr}:${service.port}`, {
-    method: "GET",
-  });
-
-  res.send({ service, port: service.port });
-  console.log(service);
-});
-
-app.get("/renewl-transfer-service", (req, res) => {
-  const service = eurekaClient.getInstancesByAppId(
-    "renewl-transfer-service"
-  )[0];
-  const ips = fetch(`http://${service.ipAddr}:${service.port}`, {
-    method: "GET",
-  });
-
-  res.send({ service, port: service.port });
-  console.log(service);
-});

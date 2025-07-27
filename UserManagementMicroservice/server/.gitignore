@@ -3,5 +3,5 @@ node_modules
 .env
 prisma/migrations
 /**/dist
-docs/
 docker
+docs/
