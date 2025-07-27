@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 Test set: com.springApiGateway.ApiGateway.gatewaytests.GatewayApplicationTests
 -------------------------------------------------------------------------------
-Tests run: 3, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 9.892 s <<< FAILURE! -- in com.springApiGateway.ApiGateway.gatewaytests.GatewayApplicationTests
-com.springApiGateway.ApiGateway.gatewaytests.GatewayApplicationTests.testCentreRoute -- Time elapsed: 0.754 s <<< FAILURE!
+Tests run: 3, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 10.43 s <<< FAILURE! -- in com.springApiGateway.ApiGateway.gatewaytests.GatewayApplicationTests
+com.springApiGateway.ApiGateway.gatewaytests.GatewayApplicationTests.testCentreRoute -- Time elapsed: 0.692 s <<< FAILURE!
 java.lang.AssertionError: Status expected:<200 OK> but was:<401 UNAUTHORIZED>
 	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:61)
 	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:128)
@@ -15,7 +15,7 @@ java.lang.AssertionError: Status expected:<200 OK> but was:<401 UNAUTHORIZED>
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
-com.springApiGateway.ApiGateway.gatewaytests.GatewayApplicationTests.testUserDrmRoute -- Time elapsed: 0.036 s <<< FAILURE!
+com.springApiGateway.ApiGateway.gatewaytests.GatewayApplicationTests.testUserDrmRoute -- Time elapsed: 0.031 s <<< FAILURE!
 java.lang.AssertionError: Status expected:<200 OK> but was:<401 UNAUTHORIZED>
 	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:61)
 	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:128)
@@ -28,7 +28,7 @@ java.lang.AssertionError: Status expected:<200 OK> but was:<401 UNAUTHORIZED>
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
 
-com.springApiGateway.ApiGateway.gatewaytests.GatewayApplicationTests.testGroupRoute -- Time elapsed: 0.019 s <<< FAILURE!
+com.springApiGateway.ApiGateway.gatewaytests.GatewayApplicationTests.testGroupRoute -- Time elapsed: 0.016 s <<< FAILURE!
 java.lang.AssertionError: Status expected:<200 OK> but was:<401 UNAUTHORIZED>
 	at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:61)
 	at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:128)

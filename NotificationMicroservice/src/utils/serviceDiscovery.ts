@@ -12,6 +12,7 @@ const app = express();
 const PORT = Number(process.env.NMS_PORT) || 3001;
 const EUREKA_HOST = process.env.EUREKA_HOST || "localhost";
 const EUREKA_PORT = process.env.EUREKA_PORT || "8761";
+const ZITI_HOSTNAME_NOTIFICATION = process.env.ZITI_HOSTNAME_NOTIFICATION || "notification.ziti"
 
 // Get the actual network IP
 const networkInterfaces = os.networkInterfaces();
@@ -142,9 +143,9 @@ export const eurekaClient = new Eureka({
   instance: {
     app: "notification-service",
     instanceId: `notification-service-${PORT}`,
-    hostName: localIP, // ✅ Use actual network IP
-    ipAddr: localIP, // ✅ Use actual network IP
-    statusPageUrl: `http://${localIP}:${PORT}`, // ✅ Use actual network IP
+    hostName: ZITI_HOSTNAME_NOTIFICATION, // ✅ Use actual network IP
+    ipAddr: ZITI_HOSTNAME_NOTIFICATION, // ✅ Use actual network IP
+    statusPageUrl: `http://${ZITI_HOSTNAME_NOTIFICATION}:${PORT}`, // ✅ Use actual network IP
     port: {
       "@enabled": true,
       $: Number(PORT),

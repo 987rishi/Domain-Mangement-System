@@ -12,6 +12,7 @@ const app = express();
 const PORT = Number(process.env.UMMS_PORT) || 5000;
 const EUREKA_HOST = process.env.EUREKA_HOST || "localhost";
 const EUREKA_PORT = process.env.EUREKA_PORT || "8761";
+const ZITI_HOSTNAME_USM = process.env.ZITI_HOSTNAME_USM || "usermgmt.ziti"
 
 // Get the actual network IP
 const networkInterfaces = os.networkInterfaces();
@@ -90,9 +91,9 @@ export const eurekaClient = new Eureka({
   instance: {
     app: "user-management-service",
     instanceId: `user-management-service-${PORT}`,
-    hostName: localIP, // ✅ Use actual network IP
-    ipAddr: localIP, // ✅ Use actual network IP
-    statusPageUrl: `http://${localIP}:${PORT}`, // ✅ Use actual network IP
+    hostName: ZITI_HOSTNAME_USM, // ✅ Use actual network IP
+    ipAddr: ZITI_HOSTNAME_USM, // ✅ Use actual network IP
+    statusPageUrl: `http://${ZITI_HOSTNAME_USM}:${PORT}`, // ✅ Use actual network IP
     metadata: {
         'prometheus.path': '/metrics',  // 👈 Prometheus can detect this!
         'management.port': PORT.toString(),
