@@ -2,8 +2,10 @@ package com.eurekaServiceRegistry.ServiceRegistry;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
+@TestPropertySource(properties = {"REGISTRY_LOG_FILE_PATH=./logs"})
 class ServiceRegistryApplicationTests {
 
 

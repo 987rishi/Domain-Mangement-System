@@ -7,6 +7,7 @@ import { assignmentSchemaValidation } from "../middleware/schemaValidation";
 import { formatError } from "../utils/helper";
 import { findNotificationServiceUrl } from "../services/notificationSender";
 import axios from "axios";
+import logger from "../config/logger.config";
 /**
      * This is the transaction that creates the project assignment. If any of the
      * operations inside the transaction throw an error, the entire transaction
@@ -63,14 +64,23 @@ export const assignmentController = async (
   req: Request,
   res: Response
 ): Promise<void> => {
+  const hod_emp_no = req.user?.id;
+  logger.info("Project assignment process initiated by HOD", {
+    hod_emp_no: hod_emp_no,
+    requestBody: req.body, // Log the initial body for traceability
+  });
   // const { project_name, project_remarks,drm_emp_no,arm_emp_no} = req.body;
   try {
   const assignDrmArmBody = req.body;
   const webhookAPI = await findNotificationServiceUrl();
   const payload = assignmentSchemaValidation.safeParse(assignDrmArmBody);
+  
   if (!payload.success) {
     const errors = formatError(payload.error);
-    // console.log("Validation error:", errors);
+      logger.warn("Project assignment validation failed", {
+        hod_emp_no: hod_emp_no,
+        validationErrors: errors,
+      });
     res.status(422).json({ message: "Validation error", errors });
     return;
   }
@@ -80,10 +90,16 @@ export const assignmentController = async (
   const drm_emp_no = payload.data.drm_emp_no;
   const arm_emp_no = payload.data.arm_emp_no;
 
-  const hod_emp_no = req.user?.id;
-  console.log("The hod emp no is: ", hod_emp_no);
+
+  
 
   if (!hod_emp_no) {
+     logger.warn(
+       "Unauthorized attempt to assign project: No HOD ID in request",
+       {
+         ip: req.ip,
+       }
+     );
     res.status(401).json({ message: "Not a valid Users" });
     return;
   }
@@ -91,6 +107,9 @@ export const assignmentController = async (
   
     // Create a new transaction
     const result = await prisma.$transaction(async (tx) => {
+      logger.debug("Starting database transaction for project assignment", {
+        hod_emp_no,
+      });
       // Find the HOD user by their employee number
       const hod = await tx.hod.findUnique({
         where: { emp_no: BigInt(hod_emp_no) },
@@ -107,6 +126,7 @@ export const assignmentController = async (
         role: Role,
         table: "drm" | "arm"
       ) => {
+        logger.debug(`Validating user`, { emp_no, role });
         // Check if the user already exists in the appUser table
         const existingUser = await tx.appUser.findUnique({ where: { emp_no } });
 
@@ -117,16 +137,21 @@ export const assignmentController = async (
             : tx.arm.findUnique({ where: { emp_no } }));
 
           if (!roleRecord?.is_active) {
+
             // If the user is not active, throw an error that will cause the transaction to rollback
+            logger.debug(`Existing user is valid and active`, { emp_no, role });
             throw new Error(
               `${table.toUpperCase()} with emp_no ${emp_no} is not active.`
             );
+            
           }
 
           // Optional: check for conflicts with LDAP here if needed
           return;
         }
-
+           logger.debug(`User not found in appUser table, fetching from LDAP`, {
+             emp_no,
+           });
         // If the user doesn't exist, fetch from LDAP and create as usual
         const ldapData = await findUserByIdentifier(emp_no);
         if (!ldapData) throw new Error(`${emp_no} not found in LDAP.`);
@@ -149,7 +174,7 @@ export const assignmentController = async (
             centre_id,
           },
         });
-
+         logger.debug(`Created new appUser`, { emp_no, role });
         // Create a new record in either the drm table or the arm table
         if (table === "drm") {
           await tx.drm.create({
@@ -180,6 +205,7 @@ export const assignmentController = async (
             },
           });
         }
+         logger.debug(`Created new ${table} record`, { emp_no });
       };
 
       // Call the validateUserAndStatus function for the DRM user
@@ -198,10 +224,15 @@ export const assignmentController = async (
           arm_emp_no: BigInt(arm_emp_no),
         },
       });
-
+      logger.info("Database transaction for project assignment successful", {
+        assignmentId: assignment.project_id.toString(),
+        projectName: assignment.project_name,
+      });
       return assignment;
     });
-
+        logger.info("Project assigned successfully, sending 201 response", {
+          result: stringifyBigInts(result),
+        });
     // Return the result of the transaction
     res
       .status(201)
@@ -235,11 +266,31 @@ export const assignmentController = async (
          },
        }
      );
-   } catch (error) {
-    console.warn("Webhook notification failed:", error);
+     logger.info(
+       "Webhook notification sent successfully for project assignment",
+       {
+         projectName: project_name,
+         webhookAPI: webhookAPI,
+       }
+     );
+   } catch (notificationError) {
+    //  console.warn("Webhook notification failed:", error);
+      logger.warn(
+        "Webhook notification failed after successful project assignment",
+        {
+          error: (notificationError as Error).message,
+          projectName: project_name,
+          webhookAPI: webhookAPI,
+        }
+      );
    }
   } catch (error: any) {
     console.error("Assignment error:", error);
+    logger.error("Critical error during project assignment process", {
+      hod_emp_no: hod_emp_no,
+      errorMessage: error.message,
+      errorStack: error.stack, // Include stack for easier debugging
+    });
     res
       .status(500)
       .json({ message: error.message || "Error assigning project." });

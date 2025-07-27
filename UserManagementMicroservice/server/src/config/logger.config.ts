@@ -2,7 +2,7 @@ import winston from "winston";
 import path from "path";
 import fs from "fs";
 
-const logsDir = process.env.CONTAINER_LOG_FILE_PATH || "/var/log/app";
+const logsDir = "/var/log/app"; // Use a env variable
 
 // Create the logs directory if it doesn't exist
 if (!fs.existsSync(logsDir)) {
@@ -28,7 +28,7 @@ const logger = winston.createLogger({
   exitOnError: false,
 });
 
-if (process.env.NODE_ENV !== "not production") {
+if (process.env.NODE_ENV !== "rajraushan") {
   logger.add(
     new winston.transports.Console({
       format: winston.format.combine(
@@ -40,3 +40,4 @@ if (process.env.NODE_ENV !== "not production") {
 }
 
 export default logger;
+
