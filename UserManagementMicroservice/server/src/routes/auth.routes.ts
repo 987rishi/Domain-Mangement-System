@@ -1,6 +1,7 @@
 import express from "express";
 import { authenticateUser } from "../services/ldapAuth.js";
 import { generateToken } from "../services/ldapAuth.js";
+import logger from "../config/logger.config";
 const router = express.Router();
 
 /**
@@ -14,9 +15,12 @@ const router = express.Router();
 router.post("/login", async (req, res):Promise<void> => {
   const { email, password } = req.body;
   console.log(email,password)
-  console.log(req.body);
-
+  
   if (!email || !password) {
+     logger.warn("Login attempt with missing credentials", {
+       ip: req.ip, // Log the IP for security context
+       body: req.body,
+     });
     res.status(400).json({ message: "Email and password required" });
     return; 
   }
@@ -24,6 +28,12 @@ router.post("/login", async (req, res):Promise<void> => {
   try {
     //calling helper function for ldap authentication
     const user = await authenticateUser(email, password);
+       logger.info("User logged in successfully", {
+         userId: user.id,
+         email: user.employeeEmail,
+         role: user.role,
+         ip: req.ip,
+       });
     const response = {
       success: true,
       message: "Login Success",
@@ -35,6 +45,11 @@ router.post("/login", async (req, res):Promise<void> => {
     res.status(200).json(response);
     return;
   } catch (error) {
+        logger.error("User authentication failed", {
+          email: email, // Log the email they tried to use
+          error: (error as Error).message,
+          ip: req.ip,
+        });
     res.status(401).json({ message: (error as Error).message });
     return 
   }
