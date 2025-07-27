@@ -7,4 +7,5 @@
 **/*.env
 .vscode
 **/*.jtl
-\ziti
+ziti\docker-compose.yml
+ziti

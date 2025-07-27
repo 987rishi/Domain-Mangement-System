@@ -1,4 +1,4 @@
-  
+
 services:
   service-registry:
     container_name: service-registry
