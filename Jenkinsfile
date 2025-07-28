@@ -13,7 +13,7 @@ pipeline {
   environment {
         // This ID matches the 'ID' you gave the Secret file in Jenkins
         ALL_SERVICES_ENV_FILE_CRED_ID = 'cdac-env-file'
-        COMMIT_HASH = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
+        COMMIT_HASH = bat(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
   }
   stages {
     stage('Load Environment Variables from Secret File') {
