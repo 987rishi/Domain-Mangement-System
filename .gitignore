@@ -9,3 +9,6 @@
 **/*.jtl
 ziti\docker-compose.yml
 ziti
+
+**/*.html
+**/*.css
