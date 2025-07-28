@@ -309,7 +309,7 @@ pipeline {
         }
       }
     }
-    stage(name: 'Push to docker hub') {
+    stage('Push to docker hub') {
       steps {
           script {
             services.each {
