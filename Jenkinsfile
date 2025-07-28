@@ -12,13 +12,11 @@ pipeline {
   agent any
   environment {
         COMMIT_HASH = bat(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
+        ALL_SERVICES_ENV_FILE_CRED_ID = 'null'
   }
   stages {
-    stage('Load Environment Variables from Secret File') {
-      environment {
-        ALL_SERVICES_ENV_FILE_CRED_ID = 'null'
-      }
-      steps {
+    stage('Setting env var based on branch') {
+      steps{
         script {
           if (env.BRANCH_NAME == 'main') {
             env.ALL_SERVICES_ENV_FILE_CRED_ID = 'cdac-env-file'
@@ -28,6 +26,10 @@ pipeline {
           }
 
         }
+      }
+    }
+    stage('Load Environment Variables from Secret File') {
+      steps {
         withCredentials([file(credentialsId: env.ALL_SERVICES_ENV_FILE_CRED_ID, variable: 'SECRET_ENV_FILE_PATH')]) {
           script {
             // Read the file line by line and set environment variables
