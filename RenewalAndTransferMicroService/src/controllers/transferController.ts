@@ -8,6 +8,7 @@ import {
 } from "../validators/transferValidators";
 import { AppError } from "../errors";
 import { z } from "zod";
+import logger from "../logging/index";
 
 // @desc   Create a transfer
 // @route  /api/transfers/create
@@ -17,10 +18,15 @@ export const createTransfer = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
-  console.log("CONTROLLER START".red);
   const empno = req.user.id;
+  logger.debug(`Create transfer request received.`, { user: empno });
+
   const parsed = CreateTransferBodySchema.safeParse(req.body);
   if (!parsed.success) {
+    logger.warn("Invalid transfer data received from client.", {
+      user: empno,
+      validationErrors: parsed.error.flatten(),
+    });
     const err = new AppError("Invalid transfer data");
     console.log(parsed);
     err.statusCode = 400;
@@ -28,17 +34,58 @@ export const createTransfer = async (
     return;
   }
 
-  let newTransfer = await transferService.create(BigInt(empno), parsed.data);
+  try {
+    const newTransfer = await transferService.create(
+      BigInt(empno),
+      parsed.data
+    );
 
-  if (!newTransfer) {
-    const err = new AppError("Failed to create transfer");
+    if (!newTransfer) {
+      logger.error("Transfer service failed to create a new transfer.", {
+        user: empno,
+        requestBody: parsed.data,
+      });
+
+      const err = new AppError("Failed to create transfer");
+      err.statusCode = 500;
+      return next(err);
+    }
+
+    const response = CreateTransferResponseSchema.safeParse(newTransfer);
+    if (!response.success) {
+      logger.error(
+        "Service returned an invalid transfer object after creation.",
+        {
+          user: empno,
+          serviceResponse: newTransfer,
+          validationErrors: response.error.flatten(),
+        }
+      );
+      const err = new AppError(
+        "Internal server error: Invalid response from service"
+      );
+      err.statusCode = 500;
+      return next(err);
+    }
+
+    logger.info("New transfer created successfully.", {
+      user: empno,
+      transferId: newTransfer.id,
+    });
+
+    res.status(201).json(response.data);
+  } catch (error) {
+    // Catch any unexpected errors from the service layer.
+    logger.error("An unexpected error occurred while creating a transfer.", {
+      user: empno,
+      requestBody: parsed.data,
+      error: error instanceof Error ? error.stack : String(error),
+    });
+
+    const err = new AppError("An unexpected error occurred");
     err.statusCode = 500;
-    next(err);
-    return;
+    return next(err);
   }
-  let response = CreateTransferResponseSchema.safeParse(newTransfer);
-
-  res.status(200).json(response.data);
 };
 
 // @desc Approve a transfer
@@ -89,6 +136,12 @@ export const approveTransfer: RequestHandler = async (
   let response = CreateTransferResponseSchema.safeParse(approvedTransfer);
   console.log("RESPONSE: ", response.data);
   console.log("Parsed Response: ", response.error);
+
+  logger.info("TRANSFER APPROVED", {
+    user: hod_empno,
+    transferDetails: response,
+  });
+
   res.status(200).json(response.data);
 };
 
