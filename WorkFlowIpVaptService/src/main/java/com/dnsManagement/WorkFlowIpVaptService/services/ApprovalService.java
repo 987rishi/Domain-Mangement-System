@@ -12,7 +12,6 @@ import com.dnsManagement.WorkFlowIpVaptService.openfeign.NotificationClient;
 import com.dnsManagement.WorkFlowIpVaptService.repo.DomainNameRepo;
 import com.dnsManagement.WorkFlowIpVaptService.repo.DomainRenewalRepo;
 import com.dnsManagement.WorkFlowIpVaptService.repo.DomainVerificationRepo;
-import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 

@@ -55,7 +55,6 @@ public class SecurityConfiguration {
     return http
             .cors(AbstractHttpConfigurer::disable)
             .csrf(AbstractHttpConfigurer::disable)
-            // .authorizeHttpRequests(req -> req.anyRequest().authenticated()) // Example of securing all endpoints
             .httpBasic(Customizer.withDefaults())
             .build();
   }

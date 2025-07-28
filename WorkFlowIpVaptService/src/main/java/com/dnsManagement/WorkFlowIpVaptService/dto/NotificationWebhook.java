@@ -1,7 +1,6 @@
 package com.dnsManagement.WorkFlowIpVaptService.dto;
 
 import com.dnsManagement.WorkFlowIpVaptService.models.Role;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -109,7 +109,8 @@ services:
     depends_on:
       ziti-controller:
         condition: service_healthy
-      - logstash
+      logstash:
+        condition: service_healthy
 
 
   workflow-service:

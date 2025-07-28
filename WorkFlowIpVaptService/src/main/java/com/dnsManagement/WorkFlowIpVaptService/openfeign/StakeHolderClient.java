@@ -1,14 +1,9 @@
 package com.dnsManagement.WorkFlowIpVaptService.openfeign;
 
-import com.dnsManagement.WorkFlowIpVaptService.config.SecurityConfiguration;
 import com.dnsManagement.WorkFlowIpVaptService.dto.ProjectDto;
-import com.dnsManagement.WorkFlowIpVaptService.dto.TransferRequestDto;
 import com.dnsManagement.WorkFlowIpVaptService.dto.UpdateDrmAndArmDetails;
-import com.dnsManagement.WorkFlowIpVaptService.dto.VaptRenewalResponseDTO;
 import com.dnsManagement.WorkFlowIpVaptService.errorHandling.StakeHolderClientFallback;
-import com.dnsManagement.WorkFlowIpVaptService.models.Role;
 import jakarta.validation.constraints.Positive;
-import jakarta.ws.rs.GET;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 

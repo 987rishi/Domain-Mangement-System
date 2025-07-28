@@ -1,6 +1,5 @@
 package com.dnsManagement.WorkFlowIpVaptService.repo;
 
-import com.dnsManagement.WorkFlowIpVaptService.models.DomainName;
 import com.dnsManagement.WorkFlowIpVaptService.models.DomainRenewal;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.NativeQuery;

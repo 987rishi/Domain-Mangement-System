@@ -15,3 +15,5 @@ archived-logs
 # **/*.jwt 
 **/identities
 \ziti/docker-compose.yml
+
+\reports

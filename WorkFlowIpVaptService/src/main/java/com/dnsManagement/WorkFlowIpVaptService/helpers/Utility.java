@@ -5,7 +5,6 @@ import com.dnsManagement.WorkFlowIpVaptService.models.Role;
 import com.dnsManagement.WorkFlowIpVaptService.openfeign.StakeHolderClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

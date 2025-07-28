@@ -1,10 +1,7 @@
 package com.dnsManagement.WorkFlowIpVaptService.errorHandling;
 
 import com.dnsManagement.WorkFlowIpVaptService.dto.ProjectDto;
-import com.dnsManagement.WorkFlowIpVaptService.dto.TransferRequestDto;
 import com.dnsManagement.WorkFlowIpVaptService.dto.UpdateDrmAndArmDetails;
-import com.dnsManagement.WorkFlowIpVaptService.dto.VaptRenewalResponseDTO;
-import com.dnsManagement.WorkFlowIpVaptService.models.Role;
 import com.dnsManagement.WorkFlowIpVaptService.openfeign.StakeHolderClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

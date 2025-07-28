@@ -13,6 +13,7 @@ pipeline {
    environment {
         // This ID matches the 'ID' you gave the Secret file in Jenkins
         ALL_SERVICES_ENV_FILE_CRED_ID = 'cdac-env-file'
+        COMMIT_HASH = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
     }
   stages {
     stage('Load Environment Variables from Secret File') {
@@ -168,102 +169,93 @@ pipeline {
         }
       }
     }
-    // stage('SAST Analysis using SonarQube') {
-    //   // environment {
-    //   //   // Define these at pipeline or stage level
-    //   //   // SONAR_TOKEN = credentials('cdac-project-sonar-server')
-    //   //   // SONARQUBE_URL = 'http://localhost:9000' // CHANGE_ME
-    //   // }
-    //   steps {
-    //     script {
-    //       // Optional: Install @sonar/scan once if not a devDependency or globally on agent
-    //       // sh 'npm install -g @sonar/scan' // Or handle via npx / devDependency
+    stage('SAST Analysis using SonarQube') {
+      steps {
+        script {
+          // Optional: Install @sonar/scan once if not a devDependency or globally on agent
+          // sh 'npm install -g @sonar/scan' // Or handle via npx / devDependency
 
-    //       services.each { svc ->
-    //         dir(svc.name) {
-    //           echo "--- Starting SonarQube Analysis for ${svc.name} ---"
-    //           // Define projectKey either from svc map or derive it
-    //           String projectKeyForSonar = svc.name // Example: using service name as key
+          services.each { svc ->
+            dir(svc.name) {
+              echo "--- Starting SonarQube Analysis for ${svc.name} ---"
+              // Define projectKey either from svc map or derive it
+              String projectKeyForSonar = svc.name // Example: using service name as key
 
-    //           try {
-    //             // 'cdac-project-sonar-server' must match the SonarQube server name in Jenkins Global Config
-    //             withSonarQubeEnv('cdac-project-sonar-server') {
-    //               if (svc.lang == 'java') {
-    //                 bat(label: "Sonar Scan for ${svc.name}", script: """
-    //                   mvn sonar:sonar \
-    //                     -Dsonar.projectKey=${projectKeyForSonar} \
-    //                     -Dsonar.projectName=${svc.name} \
-    //                     -Dsonar.host.url=${env.SONAR_HOST_URL} \
-    //                 """)
-    //               } else { // TypeScript
-    //                 // Assuming @sonar/scan is available (globally, via npx, or path)
-    //                 // And sonar-project.properties defines sonar.sources, sonar.javascript.lcov.reportPaths etc.
-    //                 // OR you pass them all via -D
-    //                 bat(label: 'Installing sonar/scan', script: 'npm install -g @sonar/scan')
-    //                 bat(label: "Sonar Scan for ${svc.name}", script: """
-    //                   sonar \
-    //                     -Dsonar.projectKey=${projectKeyForSonar} \
-    //                     -Dsonar.projectName=${svc.name} \
-    //                     -Dsonar.host.url=${env.SONAR_HOST_URL} \
-    //                     -Dsonar.token=${env.SONAR_AUTH_TOKEN} \
-    //                     -Dsonar.projectVersion=${env.BUILD_ID}
-    //                 """)
-    //               }
-    //             } // End withSonarQubeEnv
+              try {
+                // 'cdac-project-sonar-server' must match the SonarQube server name in Jenkins Global Config
+                withSonarQubeEnv('cdac-project-sonar-server') {
+                  if (svc.lang == 'java') {
+                    bat(label: "Sonar Scan for ${svc.name}", script: """
+                      mvn sonar:sonar \
+                        -Dsonar.projectKey=${projectKeyForSonar} \
+                        -Dsonar.projectName=${svc.name} \
+                        -Dsonar.host.url=${env.SONAR_HOST_URL} \
+                    """)
+                  } else { // TypeScript
+                    // Assuming @sonar/scan is available (globally, via npx, or path)
+                    // And sonar-project.properties defines sonar.sources, sonar.javascript.lcov.reportPaths etc.
+                    // OR you pass them all via -D
+                    bat(label: 'Installing sonar/scan', script: 'npm install -g @sonar/scan')
+                    bat(label: "Sonar Scan for ${svc.name}", script: """
+                      sonar \
+                        -Dsonar.projectKey=${projectKeyForSonar} \
+                        -Dsonar.projectName=${svc.name} \
+                        -Dsonar.host.url=${env.SONAR_HOST_URL} \
+                        -Dsonar.token=${env.SONAR_AUTH_TOKEN} \
+                        -Dsonar.projectVersion=${env.BUILD_ID}
+                    """)
+                  }
+                } // End withSonarQubeEnv
 
-    //             // Quality Gate check, now correctly associated with the scan inside withSonarQubeEnv
-    //             // echo "SonarQube analysis submitted for ${svc.name}. Waiting for Quality Gate..."
-    //             // timeout(time: 4, unit: 'MINUTES') {
-    //             //   def qg = waitForQualityGate abortPipeline: false // Don't abort pipeline yet
-    //             //   if (qg.status != 'OK') {
-    //             //     currentBuild.result = 'FAILURE' // Mark build as failure
-    //             //     /* groovylint-disable-next-line LineLength */
-    //             //     error "Quality Gate for ${svc.name} failed: ${qg.status}. Dashboard: ${env.SONARQUBE_HOST_URL}/dashboard?id=${projectKeyForSonar}"
-    //             //   } else {
-    //             //     /* groovylint-disable-next-line LineLength */
-    //             //     echo "Quality Gate for ${svc.name} passed! Dashboard: ${env.SONARQUBE_HOST_URL}/dashboard?id=${projectKeyForSonar}"
-    //             //   }
-    //           // }
-    //           } catch (e) {
-    //             currentBuild.result = 'FAILURE' // Ensure any exception in the try block fails the build
-    //             error "SonarQube analysis or Quality Gate processing failed for ${svc.name}: ${e.getMessage()}"
-    //           }
-    //           echo "--- SonarQube Analysis for ${svc.name} finished ---"
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
-    stage('Build and Push Docker Images') {
+                // Quality Gate check, now correctly associated with the scan inside withSonarQubeEnv
+                // echo "SonarQube analysis submitted for ${svc.name}. Waiting for Quality Gate..."
+                // timeout(time: 4, unit: 'MINUTES') {
+                //   def qg = waitForQualityGate abortPipeline: false // Don't abort pipeline yet
+                //   if (qg.status != 'OK') {
+                //     currentBuild.result = 'FAILURE' // Mark build as failure
+                //     /* groovylint-disable-next-line LineLength */
+                //     error "Quality Gate for ${svc.name} failed: ${qg.status}. Dashboard: ${env.SONARQUBE_HOST_URL}/dashboard?id=${projectKeyForSonar}"
+                //   } else {
+                //     /* groovylint-disable-next-line LineLength */
+                //     echo "Quality Gate for ${svc.name} passed! Dashboard: ${env.SONARQUBE_HOST_URL}/dashboard?id=${projectKeyForSonar}"
+                //   }
+              // }
+              } catch (e) {
+                currentBuild.result = 'FAILURE' // Ensure any exception in the try block fails the build
+                error "SonarQube analysis or Quality Gate processing failed for ${svc.name}: ${e.getMessage()}"
+              }
+              echo "--- SonarQube Analysis for ${svc.name} finished ---"
+            }
+          }
+        }
+      }
+    }
+    stage('Build Docker Images') {
       steps {
           script {
+             
               services.each { svc ->
-                  
-                  // if (new File("${svc.name}/Dockerfile").exists()) { // Check if Dockerfile exists
-                  
                       dir(svc.name) {
                         if(svc.name == 'UserManagementMicroservice') {
                           dir('server') {
-                             echo "Building Docker image for ${svc.name}"
-                          // Example: Replace 'your-docker-registry'
-                          // Ensure you are logged into your Docker registry
-                          // bat "docker build -t weakpassword/${svc.name.toLowerCase()}:${env.BUILD_NUMBER} ."
-                          // bat "docker push weakpassword/${svc.name.toLowerCase()}:${env.BUILD_NUMBER}"
-                          bat "docker build -t weakpassword/${svc.name.toLowerCase()}:latest ."
-                          bat "docker push weakpassword/${svc.name.toLowerCase()}:latest"
-
+                            if (fileExists('Dockerfile')) {
+                            echo "Building Docker image for ${svc.name}"
+                            bat "docker build -t weakpassword/${svc.name.toLowerCase()}:${COMMIT_HASH}"
+                            }
+                            else {
+                              error(message: "${svc.name} does not contain a Dockerfile")
+                            }
                           }
                         }
                         else if (fileExists('Dockerfile')) {
-                          echo "Building Docker image for ${svc.name}"
-                          // Example: Replace 'your-docker-registry'
-                          // Ensure you are logged into your Docker registry
-                          // bat "docker build -t weakpassword/${svc.name.toLowerCase()}:${env.BUILD_NUMBER} ."
-                          // bat "docker push weakpassword/${svc.name.toLowerCase()}:${env.BUILD_NUMBER}"
-                           bat "docker build -t weakpassword/${svc.name.toLowerCase()}:latest ."
-                          bat "docker push weakpassword/${svc.name.toLowerCase()}:latest"
-                      }
-                  // }
+                            echo "Building Docker image for ${svc.name}"
+                            bat "docker build -t weakpassword/${svc.name.toLowerCase()}:${COMMIT_HASH}"
+                            // bat "docker push weakpassword/${svc.name.toLowerCase()}:latest"
+                        }
+                        else {
+                          error(message: "${svc.name} does not contain a Dockerfile")
+                        }
+                      
                 }
               }
           }
@@ -272,14 +264,14 @@ pipeline {
     stage('Dockerization of services and putting them in same network')
     {
       steps{
-        bat(label: 'Clearing the existing compose containers',script: 'docker-compose down')
-        bat(label: 'Running docker compose ',script: 'docker-compose up -d')
+        bat(label: 'Clearing the existing compose containers', script: 'docker-compose down -v')
+        bat(label: 'Running docker compose ', script: 'docker-compose up -d')
       }
     }
     stage('Stress and Load Testing using JMeter') {
       steps {
  
-        sleep(time: 5,unit: 'SECONDS')
+        sleep(time: 10, unit: 'SECONDS')
           
         
         // 1. Clean up the old JMeter report directory before the test.
@@ -303,14 +295,8 @@ pipeline {
     stage('DAST Scanning using Zed ZAP') {
       steps {
         script {
-          // --- Configuration for ZAP ---
-          // A. Define the Docker Compose network name. Find it by running 'docker network ls'.
-          //    It's usually '<directory-name>_default'.
-          def composeNetwork = 'cdacpipelinescript_application-network' // <-- IMPORTANT: VERIFY THIS NAME
-
-          // B. Define the target URL *inside* the Docker network.
-          //    This should be the service name from docker-compose.yml and its internal port.
-          def targetUrl = 'http://host.docker.internal:8085' // <-- SCAN THE API GATEWAY
+          def composeNetwork = 'cdacpipelinescript_application-network'
+          def targetUrl = 'http://host.docker.internal:8085'
 
           echo "Preparing for DAST scan..."
 
@@ -318,8 +304,7 @@ pipeline {
           bat(label: 'Cleaning up previous ZAP report', script: 'if exist .\\reports\\zap (rmdir /s /q .\\reports\\zap)')
 
           echo "Starting ZAP Baseline Scan against ${targetUrl} on network ${composeNetwork}"
-//           docker run --rm -v "%CD%/reports/zap:/zap/wrk/" zaproxy/zap-stable zap-full-scan.py -t http://host.doc
-// ker.internal:8085 -r /zap
+
           bat(label: 'Running ZAP Baseline scan',
               script: """
                 docker run --rm --network ${composeNetwork} -v "%CD%/reports/zap:/zap/wrk/" zaproxy/zap-stable zap-baseline.py -t ${targetUrl} -r /zap
@@ -332,6 +317,16 @@ pipeline {
           archiveArtifacts artifacts: 'reports/zap/zap.html', allowEmptyArchive: true
           echo('OWASP ZAP DAST scan finished. Check the archived report "zap.html" in the Jenkins build.')
         }
+      }
+    }
+
+    stage(name: 'Push to docker hub') {
+      steps{
+          script {
+            services.each {
+              svc -> bat(label: 'Pushing to docker hub', script: "docker push weakpassword/${svc.name.toLowerCase()}:latest")
+            }
+          }
       }
     }
   } // stages

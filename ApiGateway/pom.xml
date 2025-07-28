@@ -138,8 +138,16 @@
         <dependency>
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
-            <version>7.4</version> <!-- Or the latest stable version -->
+            <version>7.4</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webflux-api</artifactId>
+            <version>2.8.9</version>
+        </dependency>
+
+
 
 
     </dependencies>
