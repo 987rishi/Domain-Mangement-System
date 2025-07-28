@@ -17,3 +17,5 @@ archived-logs
 \ziti/docker-compose.yml
 
 \reports
+**/*.html
+**/*.css 

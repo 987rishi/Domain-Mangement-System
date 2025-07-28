@@ -11,20 +11,25 @@ def services = [
 pipeline {
   agent any
   environment {
-        // This ID matches the 'ID' you gave the Secret file in Jenkins
-        ALL_SERVICES_ENV_FILE_CRED_ID = 'cdac-env-file'
         COMMIT_HASH = bat(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
   }
   stages {
     stage('Load Environment Variables from Secret File') {
+      environment {
+        ALL_SERVICES_ENV_FILE_CRED_ID = 'null'
+      }
       steps {
-        // Use withCredentials to access the secret file.
-        // It will make the file available at a temporary path,
-        // and the path is stored in an environment variable (e.g., MY_ENV_FILE).
+        script {
+          if (env.BRANCH_NAME == 'main') {
+            env.ALL_SERVICES_ENV_FILE_CRED_ID = 'cdac-env-file'
+          }
+          else {
+            env.ALL_SERVICES_ENV_FILE_CRED_ID = 'ziti-feature'
+          }
+
+        }
         withCredentials([file(credentialsId: env.ALL_SERVICES_ENV_FILE_CRED_ID, variable: 'SECRET_ENV_FILE_PATH')]) {
           script {
-            echo "Secret environment file is available at: ${env.SECRET_ENV_FILE_PATH}"
-
             // Read the file line by line and set environment variables
             def envFileContent = readFile(env.SECRET_ENV_FILE_PATH).trim()
 
@@ -82,10 +87,9 @@ pipeline {
           services.each { svc ->
             dir(svc.name) {
               echo "Running checks for ${svc.name}"
-              echo "Example from loaded env: EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE = ${env.EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE}"
-              echo "WORKFLOW_SERVICE_DB_PASSWORD is (masked): ${env.WORKFLOW_SERVICE_DB_PASSWORD}"
+              echo 'Example from loaded env: EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE = ${env.EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE}'
+              echo 'WORKFLOW_SERVICE_DB_PASSWORD is (masked): ${env.WORKFLOW_SERVICE_DB_PASSWORD}'
               echo "NODE_ENV for this stage: ${env.NODE_ENV}"
-            // ... your check commands ...
             }
           }
         }
@@ -127,15 +131,11 @@ pipeline {
     stage('Build and Unit Tests') {
       steps {
         script {
-          // Prepare reports directory
-          // mkdir dir: '/reports/junit'
-
           services.each { svc ->
             dir(svc.name) {
               if (svc.lang == 'java') {
                 catchError(message: "Error executing Maven tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
                   bat 'mvn clean verify'
-                // bat 'mvn test'
                 }
               } else if (svc.name == 'UserManagementMicroservice') {
                 dir('server') {
@@ -168,14 +168,10 @@ pipeline {
     stage('SAST Analysis using SonarQube') {
       steps {
         script {
-          // Optional: Install @sonar/scan once if not a devDependency or globally on agent
-          // sh 'npm install -g @sonar/scan' // Or handle via npx / devDependency
-
           services.each { svc ->
             dir(svc.name) {
               echo "--- Starting SonarQube Analysis for ${svc.name} ---"
-              // Define projectKey either from svc map or derive it
-              String projectKeyForSonar = svc.name // Example: using service name as key
+              String projectKeyForSonar = svc.name
 
               try {
                 // 'cdac-project-sonar-server' must match the SonarQube server name in Jenkins Global Config
@@ -185,23 +181,16 @@ pipeline {
                       mvn sonar:sonar \
                         -Dsonar.projectKey=${projectKeyForSonar} \
                         -Dsonar.projectName=${svc.name} \
-                        -Dsonar.host.url=${env.SONAR_HOST_URL} \
                     """)
-                  } else { // TypeScript
-                    // Assuming @sonar/scan is available (globally, via npx, or path)
-                    // And sonar-project.properties defines sonar.sources, sonar.javascript.lcov.reportPaths etc.
-                    // OR you pass them all via -D
+                  } else {
                     bat(label: 'Installing sonar/scan', script: 'npm install -g @sonar/scan')
                     bat(label: "Sonar Scan for ${svc.name}", script: """
                       sonar \
                         -Dsonar.projectKey=${projectKeyForSonar} \
                         -Dsonar.projectName=${svc.name} \
-                        -Dsonar.host.url=${env.SONAR_HOST_URL} \
-                        -Dsonar.token=${env.SONAR_AUTH_TOKEN} \
-                        -Dsonar.projectVersion=${env.BUILD_ID}
                     """)
                   }
-                } // End withSonarQubeEnv
+                }
 
               // Quality Gate check, now correctly associated with the scan inside withSonarQubeEnv
               // echo "SonarQube analysis submitted for ${svc.name}. Waiting for Quality Gate..."
@@ -235,7 +224,7 @@ pipeline {
                 dir('server') {
                   if (fileExists('Dockerfile')) {
                     echo "Building Docker image for ${svc.name}"
-                    bat "docker build -t weakpassword/${svc.name.toLowerCase()}:${COMMIT_HASH}"
+                    bat "docker build -t weakpassword/${svc.name.toLowerCase()}:${env.BRANCH_NAME}.${COMMIT_HASH}"
                   }
                             else {
                     error(message: "${svc.name} does not contain a Dockerfile")
@@ -244,8 +233,7 @@ pipeline {
               }
                         else if (fileExists('Dockerfile')) {
                 echo "Building Docker image for ${svc.name}"
-                bat "docker build -t weakpassword/${svc.name.toLowerCase()}:${COMMIT_HASH}"
-                        // bat "docker push weakpassword/${svc.name.toLowerCase()}:latest"
+                bat "docker build -t weakpassword/${svc.name.toLowerCase()}:${env.BRANCH_NAME}.${COMMIT_HASH}"
                         }
                         else {
                 error(message: "${svc.name} does not contain a Dockerfile")
@@ -313,7 +301,7 @@ pipeline {
       steps {
           script {
             services.each {
-              svc -> bat(label: 'Pushing to docker hub', script: "docker push weakpassword/${svc.name.toLowerCase()}:latest")
+              svc -> bat(label: 'Pushing to docker hub', script: "docker push weakpassword/${svc.name.toLowerCase()}:${env.BRANCH_NAME}.${COMMIT_HASH}")
             }
           }
       }
