@@ -225,7 +225,7 @@ pipeline {
                 dir('server') {
                   if (fileExists('Dockerfile')) {
                     echo "Building Docker image for ${svc.name}"
-                    bat "docker build -t weakpassword/${svc.name.toLowerCase()}:${env.BRANCH_NAME}.${env.COMMIT_HASH}"
+                    bat "docker build -t weakpassword/${svc.name.toLowerCase()}:${env.BRANCH_NAME}.${env.COMMIT_HASH} ."
                   }
                             else {
                     error(message: "${svc.name} does not contain a Dockerfile")
@@ -234,7 +234,7 @@ pipeline {
               }
                         else if (fileExists('Dockerfile')) {
                 echo "Building Docker image for ${svc.name}"
-                bat "docker build -t weakpassword/${svc.name.toLowerCase()}:${env.BRANCH_NAME}.${env.COMMIT_HASH}"
+                bat "docker build -t weakpassword/${svc.name.toLowerCase()}:${env.BRANCH_NAME}.${env.COMMIT_HASH} ."
                         }
                         else {
                 error(message: "${svc.name} does not contain a Dockerfile")
