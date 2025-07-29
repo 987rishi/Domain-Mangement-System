@@ -319,7 +319,7 @@ pipeline {
 
       script {
         services.each {
-          svc -> bat(script: "docker rmi weakpassword/${svc.name.toLowerCase()}:${env.IMAGE_TAG}")
+          svc -> bat(script: "docker rmi -f weakpassword/${svc.name.toLowerCase()}:${env.IMAGE_TAG}")
         }
       }
 
