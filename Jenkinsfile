@@ -8,11 +8,12 @@ def services = [
   [name: 'ServiceRegistry',            lang: 'java']
 ]
 def ALL_SERVICES_ENV_FILE_CRED_ID = 'null'
-
 pipeline {
   agent any
   environment {
         COMMIT_HASH = bat(returnStdout: true, script: '@git rev-parse --short HEAD').trim()
+        DOCKER_PROJECT_NAME = env.BUILD_NUMBER
+        IMAGE_TAG = "${env.BRANCH_NAME}.${env.COMMIT_HASH}"
   }
   stages {
     stage('Setting env var based on branch') {
@@ -248,7 +249,10 @@ pipeline {
     {
       steps {
         bat(label: 'Clearing the existing compose containers', script: 'docker-compose down -v')
-        bat(label: 'Running docker compose ', script: 'docker-compose up -d')
+        bat(label: 'Running docker compose ', script: """
+          IMAGE_TAG=${env.IMAGE_TAG} docker-compose up -d -p ${env.DOCKER_PROJECT_NAME}
+          """
+          )
       }
     }
     stage('Stress and Load Testing using JMeter') {
@@ -274,7 +278,7 @@ pipeline {
     stage('DAST Scanning using Zed ZAP') {
       steps {
         script {
-          def composeNetwork = 'cdacpipelinescript_application-network'
+          def composeNetwork = "${env.DOCKER_PROJECT_NAME}_application-network"
           def targetUrl = 'http://host.docker.internal:8085'
 
           echo 'Preparing for DAST scan...'
@@ -284,10 +288,12 @@ pipeline {
 
           echo "Starting ZAP Baseline Scan against ${targetUrl} on network ${composeNetwork}"
 
-          bat(label: 'Running ZAP Baseline scan',
-              script: """
-                docker run --rm --network ${composeNetwork} -v "%CD%/reports/zap:/zap/wrk/" zaproxy/zap-stable zap-baseline.py -t ${targetUrl} -r /zap
-              """)
+          catchError(buildResult: 'FAILURE') {
+            bat(label: 'Running ZAP Baseline scan',
+                script: """
+                  docker run --rm --network ${composeNetwork} -v "${env.WORKSPACE}/reports/zap:/zap/wrk/" zaproxy/zap-stable zap-baseline.py -t ${targetUrl} -r /zap
+                """)
+          }
         }
       }
       post {
@@ -314,9 +320,15 @@ pipeline {
       // Use -v to also remove volumes, ensuring a clean state for the next run.
       bat(label: 'Clearing docker containers and volumes', script: 'docker-compose down -v')
 
-      // deleteDir() is the most robust way to clean the workspace.
+      script {
+        services.each {
+          svc -> bat(script: "docker rmi weakpassword/${svc.name.toLowerCase()}:${env.IMAGE_TAG}")
+        }
+      }
+
       echo 'Cleaning up the workspace for the next run.'
       cleanWs()
+      
     }
   }
 }

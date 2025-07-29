@@ -98,7 +98,8 @@ services:
 
   service-registry:
     container_name: service-registry
-    image: weakpassword/serviceregistry:dev.v2
+    # image: weakpassword/serviceregistry:dev.v2
+    image: weakpassword/serviceregistry:${IMAGE_TAG}
     env_file:
       - .env
     networks:
@@ -115,7 +116,8 @@ services:
 
   workflow-service:
     container_name: workflow-service
-    image: weakpassword/workflowipvaptservice:dev.v2
+    # image: weakpassword/workflowipvaptservice:dev.v2
+    image: weakpassword/workflowipvaptservice:${IMAGE_TAG}
     env_file:
       - .env
     volumes:
@@ -130,7 +132,10 @@ services:
     
   notification-service:
     container_name: notification-service
-    image: weakpassword/notificationmicroservice:ziti.v1
+    # image: weakpassword/notificationmicroservice:ziti.v1
+    image: weakpassword/notificationmicroservice:${IMAGE_TAG}
+
+    
     env_file:
       - .env
     volumes:
@@ -145,7 +150,9 @@ services:
   
   renewal-service:
     container_name: renewal-service
-    image: dnms-local/renewalandtransfermicroservice:dev.v1.0.0
+    # image: dnms-local/renewalandtransfermicroservice:dev.v1.0.0
+    image: weakpassword/renewalandtransfermicroservice:${IMAGE_TAG}
+
     build:
       context: ./RenewalAndTransferMicroService
       dockerfile: Dockerfile
@@ -163,7 +170,9 @@ services:
     
   user-management-service:
     container_name: user-management-service
-    image: versatile7programmer/ums:dev.v1
+    # image: versatile7programmer/ums:dev.v1
+    image: weakpassword/usermanagementmicroservice:${IMAGE_TAG}
+
     env_file:
       - .env
     volumes:
@@ -191,7 +200,9 @@ services:
 
   api-gateway:
     container_name: api_gateway
-    image: weakpassword/apigateway:ziti.v1
+    # image: weakpassword/apigateway:ziti.v1
+    image: weakpassword/apigateway:${IMAGE_TAG}
+
     ports:
       - "8085:8085"
     env_file:
