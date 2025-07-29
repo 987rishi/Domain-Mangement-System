@@ -7,12 +7,13 @@ def services = [
   [name: 'UserManagementMicroservice', lang: 'typescript'],
   [name: 'ServiceRegistry',            lang: 'java']
 ]
+def ALL_SERVICES_ENV_FILE_CRED_ID = 'null'
 
 pipeline {
   agent any
   environment {
         COMMIT_HASH = bat(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
-        ALL_SERVICES_ENV_FILE_CRED_ID = 'null'
+        
   }
   stages {
     stage('Setting env var based on branch') {
@@ -24,7 +25,6 @@ pipeline {
           else {
             env.ALL_SERVICES_ENV_FILE_CRED_ID = 'ziti-feature'
           }
-
         }
       }
     }
