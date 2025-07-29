@@ -12,7 +12,7 @@ def ALL_SERVICES_ENV_FILE_CRED_ID = 'null'
 pipeline {
   agent any
   environment {
-        COMMIT_HASH = bat(returnStdout: true, script: 'git rev-parse --short HEAD').trim()   
+        COMMIT_HASH = bat(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
   }
   stages {
     stage('Setting env var based on branch') {
@@ -225,7 +225,7 @@ pipeline {
                 dir('server') {
                   if (fileExists('Dockerfile')) {
                     echo "Building Docker image for ${svc.name}"
-                    bat "docker build -t weakpassword/${svc.name.toLowerCase()}:${env.BRANCH_NAME}.${COMMIT_HASH}"
+                    bat "docker build -t weakpassword/${svc.name.toLowerCase()}:${env.BRANCH_NAME}.${env.COMMIT_HASH}"
                   }
                             else {
                     error(message: "${svc.name} does not contain a Dockerfile")
@@ -234,7 +234,7 @@ pipeline {
               }
                         else if (fileExists('Dockerfile')) {
                 echo "Building Docker image for ${svc.name}"
-                bat "docker build -t weakpassword/${svc.name.toLowerCase()}:${env.BRANCH_NAME}.${COMMIT_HASH}"
+                bat "docker build -t weakpassword/${svc.name.toLowerCase()}:${env.BRANCH_NAME}.${env.COMMIT_HASH}"
                         }
                         else {
                 error(message: "${svc.name} does not contain a Dockerfile")
@@ -302,7 +302,7 @@ pipeline {
       steps {
           script {
             services.each {
-              svc -> bat(label: 'Pushing to docker hub', script: "docker push weakpassword/${svc.name.toLowerCase()}:${env.BRANCH_NAME}.${COMMIT_HASH}")
+              svc -> bat(label: 'Pushing to docker hub', script: "docker push weakpassword/${svc.name.toLowerCase()}:${env.BRANCH_NAME}.${env.COMMIT_HASH}")
             }
           }
       }
