@@ -15,6 +15,7 @@ pipeline {
         COMMIT_HASH = bat(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
         
   }
+  work
   stages {
     stage('Setting env var based on branch') {
       steps{
@@ -317,7 +318,7 @@ pipeline {
 
       // deleteDir() is the most robust way to clean the workspace.
       echo 'Cleaning up the workspace for the next run.'
-      deleteDir()
+      cleanWs()
     }
   }
 }
