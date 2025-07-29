@@ -184,7 +184,7 @@ pipeline {
                         -Dsonar.projectName=${svc.name} \
                     """)
                   } else {
-                    bat(label: 'Installing sonar/scan', script: 'npm install -g @sonar/scan')
+                    bat(label: 'Installing sonar/scan', script: 'npm install @sonar/scan')
                     bat(label: "Sonar Scan for ${svc.name}", script: """
                       sonar \
                         -Dsonar.projectKey=${projectKeyForSonar} \
