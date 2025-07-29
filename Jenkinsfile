@@ -12,7 +12,7 @@ def ALL_SERVICES_ENV_FILE_CRED_ID = 'null'
 pipeline {
   agent any
   environment {
-        COMMIT_HASH = bat(returnStdout: true, @script: 'git rev-parse --short HEAD').trim()
+        COMMIT_HASH = bat(returnStdout: true, script: '@git rev-parse --short HEAD').trim()
   }
   stages {
     stage('Setting env var based on branch') {
