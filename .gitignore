@@ -12,3 +12,4 @@ ziti\docker-compose.yml
 
 **/*.html
 **/*.css
+/reports
