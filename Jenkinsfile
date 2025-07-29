@@ -248,7 +248,7 @@ pipeline {
       steps {
         bat(label: 'Clearing the existing compose containers', script: 'docker-compose down -v')
         bat(label: 'Running docker compose ', script: """
-          set IMAGE_TAG=${env.IMAGE_TAG} && docker compose --project-name ${env.DOCKER_PROJECT_NAME} up  -d
+          set IMAGE_TAG=${env.IMAGE_TAG}&&docker compose --project-name ${env.DOCKER_PROJECT_NAME} up  -d
           """
           )
       }
