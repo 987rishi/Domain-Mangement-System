@@ -12,7 +12,7 @@ pipeline {
   agent any
   environment {
         COMMIT_HASH = bat(returnStdout: true, script: '@git rev-parse --short HEAD').trim()
-        DOCKER_PROJECT_NAME = env.BUILD_NUMBER
+        DOCKER_PROJECT_NAME = "${env.BUILD_NUMBER}"
         IMAGE_TAG = "${env.BRANCH_NAME}.${env.COMMIT_HASH}"
   }
   stages {
