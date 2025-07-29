@@ -23,7 +23,7 @@ pipeline {
             env.ALL_SERVICES_ENV_FILE_CRED_ID = 'cdac-env-file'
           }
           else {
-            env.ALL_SERVICES_ENV_FILE_CRED_ID = 'ziti-feature'
+            env.ALL_SERVICES_ENV_FILE_CRED_ID = 'ziti-feature-env-vars'
           }
         }
       }
