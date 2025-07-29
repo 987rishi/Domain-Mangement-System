@@ -97,7 +97,6 @@ pipeline {
         }
       }
     }
-
     stage('Check SonarQube Env') {
       steps {
         script {
@@ -129,7 +128,6 @@ pipeline {
         }
       }
     }
-
     stage('Build and Unit Tests') {
       steps{
         script {
@@ -250,7 +248,7 @@ pipeline {
       steps {
         bat(label: 'Clearing the existing compose containers', script: 'docker-compose down -v')
         bat(label: 'Running docker compose ', script: """
-          set IMAGE_TAG=${env.IMAGE_TAG} && docker-compose up --project-name ${env.DOCKER_PROJECT_NAME} -d
+          set IMAGE_TAG=${env.IMAGE_TAG} && docker compose --project-name ${env.DOCKER_PROJECT_NAME} up  -d
           """
           )
       }
@@ -314,7 +312,6 @@ pipeline {
       }
     }
   } // stages
-
   post {
     always {
       // Use -v to also remove volumes, ensuring a clean state for the next run.
