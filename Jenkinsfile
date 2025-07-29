@@ -317,7 +317,7 @@ pipeline {
 
       // deleteDir() is the most robust way to clean the workspace.
       echo 'Cleaning up the workspace for the next run.'
-      deleteDir()
+      cleanWs()
     }
   }
 }
