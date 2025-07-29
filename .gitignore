@@ -8,7 +8,7 @@
 .vscode
 **/*.jtl
 ziti\docker-compose.yml
-ziti
+\ziti
 
 **/*.html
 **/*.css
