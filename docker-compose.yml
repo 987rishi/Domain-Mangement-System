@@ -355,7 +355,7 @@ services:
       - ./ELK/logstash/pipeline:/usr/share/logstash/pipeline:ro
       - ./archived-logs:/usr/share/logstash/archived-logs # archived-logs on host bind mount to container
     healthcheck:
-      test: ["curl", "-f", "http://logstash:9600"]
+      test: ["CMD-SHELL", "curl -f http://logstash:9600 || exit 1"]
       interval: 5s
       timeout: 30s
       retries: 5
