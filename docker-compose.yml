@@ -354,6 +354,12 @@ services:
     volumes:
       - ./ELK/logstash/pipeline:/usr/share/logstash/pipeline:ro
       - ./archived-logs:/usr/share/logstash/archived-logs # archived-logs on host bind mount to container
+    healthcheck:
+      test: ["curl", "-f", "http://logstash:9600"]
+      interval: 5s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
 
     depends_on:
       elasticsearch:

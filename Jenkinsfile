@@ -315,7 +315,7 @@ pipeline {
   post {
     always {
       // Use -v to also remove volumes, ensuring a clean state for the next run.
-      bat(label: 'Clearing docker containers and volumes', script: 'docker compose down -v')
+      bat(label: 'Clearing docker containers and volumes', script: "docker compose --project-name ${env.DOCKER_PROJECT_NAME} down -v")
 
       script {
         services.each {
