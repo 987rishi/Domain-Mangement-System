@@ -8,6 +8,47 @@ def services = [
   [name: 'ServiceRegistry',            lang: 'java']
 ]
 def ALL_SERVICES_ENV_FILE_CRED_ID = 'null'
+def ZAP_AUTH_TOKEN = 'null'
+
+def prepareBuildStages() {
+  def buildParallelStageMap = [:]
+  for (service in services) {
+    buildParalledStageMap.put(service, prepareSingleBuildStage(service))
+  }
+  return buildParallelStageMap
+}
+def prepareSingleBuildStage(String[] svcMap) {
+  return {
+    stage("Build stage for svc:${name}") {
+      script {
+        dir(svcMap.name) {
+          if (svc.lang == 'java') {
+                  catchError(message: "Error executing Maven tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+                    bat 'mvn clean verify'
+            }
+          } else if (svc.name == 'UserManagementMicroservice') {
+                  dir('server') {
+                    catchError(message: "Error executing TypeScript tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+                      bat 'npm install'
+                      bat 'npx prisma generate'
+                      bat 'npx tsc'
+                      bat 'npx jest'
+                    }
+                  }
+          }
+          else {
+                  catchError(message: "Error executing TypeScript tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+                      bat 'npm install'
+                      bat 'npx prisma generate'
+                      bat 'npx tsc'
+                      bat 'npx jest --coverage'
+                  }
+          }
+        }
+      }
+    }
+  }
+}
 
 pipeline {
   agent any
@@ -131,34 +172,36 @@ pipeline {
 
     stage('Build and Unit Tests') {
       steps {
-        script {
-          services.each { svc ->
-            dir(svc.name) {
-              if (svc.lang == 'java') {
-                catchError(message: "Error executing Maven tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-                  bat 'mvn clean verify'
-                }
-              } else if (svc.name == 'UserManagementMicroservice') {
-                dir('server') {
-                  catchError(message: "Error executing TypeScript tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-                    bat 'npm install'
-                    bat 'npx prisma generate'
-                    bat 'npx tsc'
-                    bat 'npx jest'
-                  }
-                }
-              }
-              else {
-                catchError(message: "Error executing TypeScript tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-                    bat 'npm install'
-                    bat 'npx prisma generate'
-                    bat 'npx tsc'
-                    bat 'npx jest --coverage'
-                }
-              }
-            }
-          }
-        }
+        // script {
+        //   services.each { svc ->
+        //     dir(svc.name) {
+        //       if (svc.lang == 'java') {
+        //         catchError(message: "Error executing Maven tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+        //           bat 'mvn clean verify'
+        //         }
+        //       } else if (svc.name == 'UserManagementMicroservice') {
+        //         dir('server') {
+        //           catchError(message: "Error executing TypeScript tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+        //             bat 'npm install'
+        //             bat 'npx prisma generate'
+        //             bat 'npx tsc'
+        //             bat 'npx jest'
+        //           }
+        //         }
+        //       }
+        //       else {
+        //         catchError(message: "Error executing TypeScript tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+        //             bat 'npm install'
+        //             bat 'npx prisma generate'
+        //             bat 'npx tsc'
+        //             bat 'npx jest --coverage'
+        //         }
+        //       }
+        //     }
+        //   }
+        // }
+        echo "Building and Testing services in parallel"
+        parallel prepareBuildStages()
       }
       post {
         always {
@@ -271,6 +314,63 @@ pipeline {
         }
       }
     }
+
+    stage('Checkout and Run Frontend') {
+      steps {
+        script {
+          // Create a directory for the frontend code
+          dir('frontend-app') {
+            // Checkout the frontend source code
+            // Replace with your actual repository URL and credentialsId
+            echo 'Checking out frontend repository...'
+            git url: 'https://github.com/Versatile-Programmer/CDAC-Frontend.git', branch: 'main'
+
+            // Install dependencies
+            echo 'Installing frontend dependencies...'
+            bat 'npm install'
+
+            // Start the frontend dev server in the background
+            // The 'start' command on Windows runs the process in a new window
+            // and allows the pipeline to continue immediately.
+            echo 'Starting frontend dev server on localhost:5173...'
+            bat 'start "Frontend Dev Server" npm run dev'
+
+            // IMPORTANT: Wait for the dev server to start up
+            echo 'Pausing for 30 seconds to allow the frontend server to initialize...'
+            sleep(time: 30, unit: 'SECONDS')
+          }
+        }
+      }
+    }
+
+    stage('Generation of application authentication token') {
+      steps{
+        script {
+          withCredentials([string(credentialsId: 'test-user-password', variable: 'TEST_USER_PASS')]) {
+            def response = bat(returnStdout: true, script: '''@curl -X POST \
+              -d '{email":"csb22055@tezu.ac.in","password":"${TEST_USER_PASS}"}' \
+              -H "Content-Type: application/json" \
+              http://host.docker.internal/login''',).trim()
+
+            if (response.contains("token")) { // A simple check
+                    // Assuming your response is JSON like: {"token": "ey..."}
+                    // Use a regular expression or JSON parsing to extract the token
+                    // This example uses a simple regex for Groovy
+                    def matcher = (response =~ /"token"\s*:\s*"([^"]+)"/)
+                    if (matcher.find()) {
+                        env.ZAP_AUTH_TOKEN = matcher.group(1)
+                        echo "Successfully extracted JWT token for DAST scan."
+                    } else {
+                        error "Login successful, but could not parse token from response: ${response}"
+                    }
+                } else {
+                    error "Failed to generate JWT token. API response: ${response}"
+                }
+          }
+        }
+      }
+    }
+
     stage('DAST Scanning using Zed ZAP') {
       steps {
         script {
@@ -316,7 +416,7 @@ pipeline {
 
       // deleteDir() is the most robust way to clean the workspace.
       echo 'Cleaning up the workspace for the next run.'
-      cleanWs()
+      cleanWs(deleteDirs: true)
     }
   }
 }
