@@ -13,6 +13,7 @@ def ZAP_AUTH_TOKEN = 'null'
 def prepareBuildStages(List services) {
   def buildParallelStageMap = [:]
   for (service in services) {
+    println(service)
     buildParallelStageMap.put(service, prepareSingleBuildStage(service))
   }
   return buildParallelStageMap
