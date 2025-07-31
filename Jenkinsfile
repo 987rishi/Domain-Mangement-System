@@ -171,7 +171,7 @@ pipeline {
     }
 
     stage('Build and Unit Tests') {
-      steps {
+
         // script {
         //   services.each { svc ->
         //     dir(svc.name) {
@@ -200,9 +200,8 @@ pipeline {
         //     }
         //   }
         // }
-        echo "Building and Testing services in parallel"
+        // echo "Building and Testing services in parallel"
         parallel prepareBuildStages()
-      }
       post {
         always {
           junit testResults: '/reports/junit/*.xml'
