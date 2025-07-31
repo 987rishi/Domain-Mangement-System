@@ -201,7 +201,11 @@ pipeline {
         //   }
         // }
         // echo "Building and Testing services in parallel"
-        parallel prepareBuildStages()
+        def buildStagesArray = []
+        buildStagesArray.add(prepareBuildStages())
+        for (build in buildStagesArray) {
+          parallel (build)
+        }
       post {
         always {
           junit testResults: '/reports/junit/*.xml'
