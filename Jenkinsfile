@@ -13,7 +13,7 @@ def ZAP_AUTH_TOKEN = 'null'
 def prepareBuildStages() {
   def buildParallelStageMap = [:]
   for (service in services) {
-    buildParalledStageMap.put(service, prepareSingleBuildStage(service))
+    buildParallelStageMap.put(service, prepareSingleBuildStage(service))
   }
   return buildParallelStageMap
 }
@@ -171,6 +171,7 @@ pipeline {
     }
 
     stage('Build and Unit Tests') {
+      steps{
 
         // script {
         //   services.each { svc ->
@@ -201,11 +202,12 @@ pipeline {
         //   }
         // }
         // echo "Building and Testing services in parallel"
-        def buildStagesArray = []
-        buildStagesArray.add(prepareBuildStages())
-        for (build in buildStagesArray) {
-          parallel (build)
+        script {
+          echo "Preparing to build and test services in parallel..."
+          def buildStages = prepareBuildStages()
+          parallel buildStages
         }
+      }
       post {
         always {
           junit testResults: '/reports/junit/*.xml'
