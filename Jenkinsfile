@@ -17,7 +17,7 @@ def prepareBuildStages() {
   }
   return buildParallelStageMap
 }
-def prepareSingleBuildStage(String[] svcMap) {
+def prepareSingleBuildStage(Map svcMap) {
   return {
     stage("Build stage for svc:${name}") {
       script {
