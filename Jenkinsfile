@@ -10,7 +10,7 @@ def services = [
 def ALL_SERVICES_ENV_FILE_CRED_ID = 'null'
 def ZAP_AUTH_TOKEN = 'null'
 
-def prepareBuildStages() {
+def prepareBuildStages(List services) {
   def buildParallelStageMap = [:]
   for (service in services) {
     buildParallelStageMap.put(service, prepareSingleBuildStage(service))
@@ -204,7 +204,7 @@ pipeline {
         // echo "Building and Testing services in parallel"
         script {
           echo "Preparing to build and test services in parallel..."
-          def buildStages = prepareBuildStages()
+          def buildStages = prepareBuildStages(services)
           parallel buildStages
         }
       }
