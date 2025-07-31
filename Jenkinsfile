@@ -20,16 +20,16 @@ def prepareBuildStages(List services) {
 }
 def prepareSingleBuildStage(Map svcMap) {
   return {
-    stage("Build stage for svc:${name}") {
+    stage("Build stage for svc:${svcMap.name}") {
       script {
         dir(svcMap.name) {
-          if (svc.lang == 'java') {
-                  catchError(message: "Error executing Maven tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+          if (svcMap.lang == 'java') {
+                  catchError(message: "Error executing Maven tests for ${svcMap.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
                     bat 'mvn clean verify'
             }
-          } else if (svc.name == 'UserManagementMicroservice') {
+          } else if (svcMap.name == 'UserManagementMicroservice') {
                   dir('server') {
-                    catchError(message: "Error executing TypeScript tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+                    catchError(message: "Error executing TypeScript tests for ${svcMap.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
                       bat 'npm install'
                       bat 'npx prisma generate'
                       bat 'npx tsc'
@@ -38,7 +38,7 @@ def prepareSingleBuildStage(Map svcMap) {
                   }
           }
           else {
-                  catchError(message: "Error executing TypeScript tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+                  catchError(message: "Error executing TypeScript tests for ${svcMap.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
                       bat 'npm install'
                       bat 'npx prisma generate'
                       bat 'npx tsc'
