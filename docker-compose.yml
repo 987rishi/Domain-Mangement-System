@@ -4,7 +4,7 @@ services:
     container_name: service-registry
     image: weakpassword/serviceregistry:dev.v2
     env_file:
-      - .env
+      - main.env
     networks:
       - application-network
 
@@ -12,7 +12,7 @@ services:
     container_name: workflow-service
     image: weakpassword/workflowipvaptservice:dev.v2
     env_file:
-      - .env
+      - main.env
     environment:
       - SPRING_CLOUD_INETUTILS_PREFERRED_NETWORKS=cdacdnsmanagementsystem_application-network
     volumes:
@@ -29,7 +29,7 @@ services:
     container_name: notification-service
     image: weakpassword/notificationmicroservice:latest
     env_file:
-      - .env
+      - main.env
     environment:
       - EUREKA_HOST=service-registry
       - EUREKA_PORT=8761
@@ -51,7 +51,7 @@ services:
       context: ./RenewalAndTransferMicroService
       dockerfile: Dockerfile
     env_file:
-      - .env
+      - main.env
     environment:
       - EUREKA_HOST=service-registry
       - EUREKA_PORT=8761
@@ -70,7 +70,7 @@ services:
     container_name: user-management-service
     image: versatile7programmer/ums:dev.v1
     env_file:
-      - .env
+      - main.env
     environment:
       - EUREKA_HOST=service-registry
       - EUREKA_PORT=8761
@@ -93,7 +93,7 @@ services:
     ports:
       - "8085:8085"
     env_file:
-      - .env
+      - main.env
     volumes:
       - api-gateway-logs:/var/log/app
     networks:

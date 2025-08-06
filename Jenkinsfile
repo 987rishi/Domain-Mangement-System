@@ -14,7 +14,7 @@ def prepareBuildStages(List services) {
   def buildParallelStageMap = [:]
   for (service in services) {
     println(service)
-    buildParallelStageMap.put(service, prepareSingleBuildStage(service))
+    buildParallelStageMap.put(service.name, prepareSingleBuildStage(service))
   }
   return buildParallelStageMap
 }
@@ -50,11 +50,65 @@ def prepareSingleBuildStage(Map svcMap) {
     }
   }
 }
+def prepareSingleSASTStage(Map svcMap) {
+  return {
+    stage('SAST Analysis for :${svcMap.name}') {
+      steps{
+        script {
+          String projectKeyForSonar = svcMap.name
+          dir(svcMap.name) {
+            withSonarQubeEnv('cdac-project-sonar-server') {
+                  if (svcMap.lang == 'java') {
+                    bat(label: "Sonar Scan for ${svcMap.name}", script: """
+                      mvn sonar:sonar \
+                        -Dsonar.projectKey=${projectKeyForSonar} \
+                        -Dsonar.projectName=${svcMap.name} \
+                    """)
+                  } else {
+                    bat(label: 'Installing sonar/scan', script: 'npm install @sonar/scan')
+                    bat(label: "Sonar Scan for ${svcMap.name}", script: """
+                      sonar \
+                        -Dsonar.projectKey=${projectKeyForSonar} \
+                        -Dsonar.projectName=${svcMap.name} \
+                    """)
+              }
+            }
+          }
+         
+        }
+      }
+    }
+  }
+}
+def prepareSingleBuildImageStep(Map svcMap) {
+  return {
+    stage() {
+      dir(svc.name) {
+        if (svc.name == 'UserManagementMicroservice') {
+          dir('server') {
+            if (fileExists('Dockerfile')) {
+              echo "Building Docker image for ${svc.name}"
+              bat "docker build -t weakpassword/${svc.name.toLowerCase()}:${env.BRANCH_NAME}.${env.COMMIT_HASH} ."
+            } else {
+              error(message: "${svc.name} does not contain a Dockerfile")
+            }
+          }
+        } else if (fileExists('Dockerfile')) {
+            echo "Building Docker image for ${svc.name}"
+            bat "docker build -t weakpassword/${svc.name.toLowerCase()}:${env.BRANCH_NAME}.${env.COMMIT_HASH} ."
+        } else {
+            error(message: "${svc.name} does not contain a Dockerfile")
+        }
+      }
+    }
+  }
+}
 
 pipeline {
   agent any
   environment {
         COMMIT_HASH = bat(returnStdout: true, script: '@git rev-parse --short HEAD').trim()
+        IMAGE_TAG = "${env.BRANCH_NAME}.${env.COMMIT_HASH}"
   }
   stages {
     stage('Setting env var based on branch') {
@@ -217,87 +271,97 @@ pipeline {
     }
     stage('SAST Analysis using SonarQube') {
       steps {
+        // script {
+        //   services.each { svc ->
+        //     dir(svc.name) {
+        //       echo "--- Starting SonarQube Analysis for ${svc.name} ---"
+        //       String projectKeyForSonar = svc.name
+
+        //       try {
+        //         // 'cdac-project-sonar-server' must match the SonarQube server name in Jenkins Global Config
+        //         withSonarQubeEnv('cdac-project-sonar-server') {
+        //           if (svc.lang == 'java') {
+        //             bat(label: "Sonar Scan for ${svc.name}", script: """
+        //               mvn sonar:sonar \
+        //                 -Dsonar.projectKey=${projectKeyForSonar} \
+        //                 -Dsonar.projectName=${svc.name} \
+        //             """)
+        //           } else {
+        //             bat(label: 'Installing sonar/scan', script: 'npm install @sonar/scan')
+        //             bat(label: "Sonar Scan for ${svc.name}", script: """
+        //               sonar \
+        //                 -Dsonar.projectKey=${projectKeyForSonar} \
+        //                 -Dsonar.projectName=${svc.name} \
+        //             """)
+        //           }
+        //         }
+
+        //       // Quality Gate check, now correctly associated with the scan inside withSonarQubeEnv
+        //       // echo "SonarQube analysis submitted for ${svc.name}. Waiting for Quality Gate..."
+        //       // timeout(time: 4, unit: 'MINUTES') {
+        //       //   def qg = waitForQualityGate abortPipeline: false // Don't abort pipeline yet
+        //       //   if (qg.status != 'OK') {
+        //       //     currentBuild.result = 'FAILURE' // Mark build as failure
+        //       //     /* groovylint-disable-next-line LineLength */
+        //       //     error "Quality Gate for ${svc.name} failed: ${qg.status}. Dashboard: ${env.SONARQUBE_HOST_URL}/dashboard?id=${projectKeyForSonar}"
+        //       //   } else {
+        //       //     /* groovylint-disable-next-line LineLength */
+        //       //     echo "Quality Gate for ${svc.name} passed! Dashboard: ${env.SONARQUBE_HOST_URL}/dashboard?id=${projectKeyForSonar}"
+        //       //   }
+        //       // }
+        //       } catch (e) {
+        //         currentBuild.result = 'FAILURE' // Ensure any exception in the try block fails the build
+        //         error "SonarQube analysis or Quality Gate processing failed for ${svc.name}: ${e.getMessage()}"
+        //       }
+        //       echo "--- SonarQube Analysis for ${svc.name} finished ---"
+        //     }
+        //   }
+        // }
         script {
-          services.each { svc ->
-            dir(svc.name) {
-              echo "--- Starting SonarQube Analysis for ${svc.name} ---"
-              String projectKeyForSonar = svc.name
-
-              try {
-                // 'cdac-project-sonar-server' must match the SonarQube server name in Jenkins Global Config
-                withSonarQubeEnv('cdac-project-sonar-server') {
-                  if (svc.lang == 'java') {
-                    bat(label: "Sonar Scan for ${svc.name}", script: """
-                      mvn sonar:sonar \
-                        -Dsonar.projectKey=${projectKeyForSonar} \
-                        -Dsonar.projectName=${svc.name} \
-                    """)
-                  } else {
-                    bat(label: 'Installing sonar/scan', script: 'npm install @sonar/scan')
-                    bat(label: "Sonar Scan for ${svc.name}", script: """
-                      sonar \
-                        -Dsonar.projectKey=${projectKeyForSonar} \
-                        -Dsonar.projectName=${svc.name} \
-                    """)
-                  }
-                }
-
-              // Quality Gate check, now correctly associated with the scan inside withSonarQubeEnv
-              // echo "SonarQube analysis submitted for ${svc.name}. Waiting for Quality Gate..."
-              // timeout(time: 4, unit: 'MINUTES') {
-              //   def qg = waitForQualityGate abortPipeline: false // Don't abort pipeline yet
-              //   if (qg.status != 'OK') {
-              //     currentBuild.result = 'FAILURE' // Mark build as failure
-              //     /* groovylint-disable-next-line LineLength */
-              //     error "Quality Gate for ${svc.name} failed: ${qg.status}. Dashboard: ${env.SONARQUBE_HOST_URL}/dashboard?id=${projectKeyForSonar}"
-              //   } else {
-              //     /* groovylint-disable-next-line LineLength */
-              //     echo "Quality Gate for ${svc.name} passed! Dashboard: ${env.SONARQUBE_HOST_URL}/dashboard?id=${projectKeyForSonar}"
-              //   }
-              // }
-              } catch (e) {
-                currentBuild.result = 'FAILURE' // Ensure any exception in the try block fails the build
-                error "SonarQube analysis or Quality Gate processing failed for ${svc.name}: ${e.getMessage()}"
-              }
-              echo "--- SonarQube Analysis for ${svc.name} finished ---"
-            }
-          }
+          echo(message: 'Executing SAST Analysis using Sonarqube')
+          def buildStages = prepareBuildStages(services)
+          parallel buildStages
         }
       }
     }
     stage('Build Docker Images') {
       steps {
+          // script {
+          //     services.each { svc ->
+          //   dir(svc.name) {
+          //     if (svc.name == 'UserManagementMicroservice') {
+          //       dir('server') {
+          //         if (fileExists('Dockerfile')) {
+          //           echo "Building Docker image for ${svc.name}"
+          //           bat "docker build -t weakpassword/${svc.name.toLowerCase()}:${env.BRANCH_NAME}.${env.COMMIT_HASH} ."
+          //         }
+          //                   else {
+          //           error(message: "${svc.name} does not contain a Dockerfile")
+          //                   }
+          //       }
+          //     }
+          //               else if (fileExists('Dockerfile')) {
+          //       echo "Building Docker image for ${svc.name}"
+          //       bat "docker build -t weakpassword/${svc.name.toLowerCase()}:${env.BRANCH_NAME}.${env.COMMIT_HASH} ."
+          //               }
+          //               else {
+          //       error(message: "${svc.name} does not contain a Dockerfile")
+          //               }
+          //   }
+          //     }
+          // }
           script {
-              services.each { svc ->
-            dir(svc.name) {
-              if (svc.name == 'UserManagementMicroservice') {
-                dir('server') {
-                  if (fileExists('Dockerfile')) {
-                    echo "Building Docker image for ${svc.name}"
-                    bat "docker build -t weakpassword/${svc.name.toLowerCase()}:${env.BRANCH_NAME}.${env.COMMIT_HASH} ."
-                  }
-                            else {
-                    error(message: "${svc.name} does not contain a Dockerfile")
-                            }
-                }
-              }
-                        else if (fileExists('Dockerfile')) {
-                echo "Building Docker image for ${svc.name}"
-                bat "docker build -t weakpassword/${svc.name.toLowerCase()}:${env.BRANCH_NAME}.${env.COMMIT_HASH} ."
-                        }
-                        else {
-                error(message: "${svc.name} does not contain a Dockerfile")
-                        }
-            }
-              }
+            def buildStages = prepareBuildStages(services)
+            echo(message: 'Starting to build docker images')
+            parallel buildStages
           }
       }
     }
     stage('Dockerization of services and putting them in same network')
     {
       steps {
-        bat(label: 'Clearing the existing compose containers', script: 'docker-compose down -v')
-        bat(label: 'Running docker compose ', script: 'docker-compose up -d')
+        bat(label: 'Clearing the existing compose containers', script: "docker compose -p ${env.BUILD_NUMBER-1} down -v")
+        bat(label: 'Running docker compose ', script: "set IMAGE_TAG=${env.IMAGE_TAG} docker compose -p ${env.BUILD_NUMBER-1} up -d")
       }
     }
     stage('Stress and Load Testing using JMeter') {
