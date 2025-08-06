@@ -14,7 +14,7 @@ def prepareBuildStages(List services, Closure func) {
   def buildParallelStageMap = [:]
   for (service in services) {
     println(service)
-    buildParallelStageMap.put(service.name, func(service))
+    buildParallelStageMap.put(service.name, func.call(service))
   }
   return buildParallelStageMap
 }
