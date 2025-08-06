@@ -259,7 +259,10 @@ pipeline {
         // echo "Building and Testing services in parallel"
         script {
           echo "Preparing to build and test services in parallel..."
-          def buildStages = prepareBuildStages(services, prepareSingleBuildStage)
+          def buildStages = [:]
+          services.each {
+            svc -> buildStages.put(svc.name, prepareSingleBuildStage(svc))
+          }
           parallel buildStages
         }
       }
@@ -319,7 +322,10 @@ pipeline {
         // }
         script {
           echo(message: 'Executing SAST Analysis using Sonarqube')
-          def buildStages = prepareBuildStages(services, prepareSingleSASTStage)
+          def buildStages = [:]
+          services.each {
+            svc -> buildStages.put(svc.name, prepareSingleSASTStage(svc))
+          }
           parallel buildStages
         }
       }
@@ -351,8 +357,11 @@ pipeline {
           //     }
           // }
           script {
-            def buildStages = prepareBuildStages(services, prepareSingleBuildImageStep)
             echo(message: 'Starting to build docker images')
+            def buildStages = [:]
+            services.each {
+              svc -> buildStages.put(svc.name, prepareSingleBuildImageStep(svc))
+            }
             parallel buildStages
           }
       }
