@@ -53,7 +53,6 @@ def prepareSingleBuildStage(Map svcMap) {
 def prepareSingleSASTStage(Map svcMap) {
   return {
     stage("SAST Analysis for :${svcMap.name}") {
-      steps{
         script {
           String projectKeyForSonar = svcMap.name
           dir(svcMap.name) {
@@ -74,9 +73,7 @@ def prepareSingleSASTStage(Map svcMap) {
               }
             }
           }
-         
         }
-      }
     }
   }
 }
