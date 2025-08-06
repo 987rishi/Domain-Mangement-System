@@ -168,7 +168,6 @@ pipeline {
       // The individual env vars (env.WORKFLOW_SERVICE_DB_URL etc.) are now set for subsequent stages.
       }
     }
-
     stage('Checkout') {
       steps {
         echo 'Pulling source code from GitHub'
@@ -189,7 +188,6 @@ pipeline {
         }
       }
     }
-
     stage('Check SonarQube Env') {
       steps {
         script {
@@ -221,7 +219,6 @@ pipeline {
         }
       }
     }
-
     stage('Build and Unit Tests') {
       steps{
 
