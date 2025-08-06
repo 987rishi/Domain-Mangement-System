@@ -52,7 +52,7 @@ def prepareSingleBuildStage(Map svcMap) {
 }
 def prepareSingleSASTStage(Map svcMap) {
   return {
-    stage('SAST Analysis for :${svcMap.name}') {
+    stage("SAST Analysis for :${svcMap.name}") {
       steps{
         script {
           String projectKeyForSonar = svcMap.name
@@ -82,22 +82,22 @@ def prepareSingleSASTStage(Map svcMap) {
 }
 def prepareSingleBuildImageStep(Map svcMap) {
   return {
-    stage() {
-      dir(svc.name) {
-        if (svc.name == 'UserManagementMicroservice') {
+    stage("Building Image for service:${svcMap.name}") {
+      dir(svcMap.name) {
+        if (svcMap.name == 'UserManagementMicroservice') {
           dir('server') {
             if (fileExists('Dockerfile')) {
-              echo "Building Docker image for ${svc.name}"
-              bat "docker build -t weakpassword/${svc.name.toLowerCase()}:${env.BRANCH_NAME}.${env.COMMIT_HASH} ."
+              echo "Building Docker image for ${svcMap.name}"
+              bat "docker build -t weakpassword/${svcMap.name.toLowerCase()}:${env.IMAGE_TAG} ."
             } else {
-              error(message: "${svc.name} does not contain a Dockerfile")
+              error(message: "${svcMap.name} does not contain a Dockerfile")
             }
           }
         } else if (fileExists('Dockerfile')) {
-            echo "Building Docker image for ${svc.name}"
-            bat "docker build -t weakpassword/${svc.name.toLowerCase()}:${env.BRANCH_NAME}.${env.COMMIT_HASH} ."
+            echo "Building Docker image for ${svcMap.name}"
+            bat "docker build -t weakpassword/${svcMap.name.toLowerCase()}:${env.IMAGE_TAG} ."
         } else {
-            error(message: "${svc.name} does not contain a Dockerfile")
+            error(message: "${svcMap.name} does not contain a Dockerfile")
         }
       }
     }
@@ -420,7 +420,7 @@ pipeline {
             def response = bat(returnStdout: true, script: '''@curl -X POST \
               -d '{email":"csb22055@tezu.ac.in","password":"${TEST_USER_PASS}"}' \
               -H "Content-Type: application/json" \
-              http://host.docker.internal/login''',).trim()
+              http://host.docker.internal:5173/login''',).trim()
 
             if (response.contains("token")) { // A simple check
                     // Assuming your response is JSON like: {"token": "ey..."}
