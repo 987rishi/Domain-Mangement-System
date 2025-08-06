@@ -127,8 +127,8 @@ pipeline {
             // Read the file line by line and set environment variables
             def envFileContent = readFile(env.SECRET_ENV_FILE_PATH).trim()
 
-            writeFile file: '.env', text: envFileContent
-            echo 'Successfully created .env file in the workspace for Docker Compose.'
+            writeFile file: 'main.env', text: envFileContent
+            echo 'Successfully created main.env file in the workspace for Docker Compose.'
 
             envFileContent.eachLine { line ->
               // Skip comments and empty lines
