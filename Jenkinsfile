@@ -360,7 +360,7 @@ pipeline {
     stage('Dockerization of services and putting them in same network')
     {
       steps {
-        bat(label: 'Clearing the existing compose containers', script: "docker compose -p ${env.BUILD_NUMBER-1} down -v")
+        bat(label: 'Clearing the existing compose containers', script: "docker compose -p ${env.BUILD_NUMBER} down -v")
         bat(label: 'Running docker compose ', script: "set IMAGE_TAG=${env.IMAGE_TAG}&&docker compose -p ${env.BUILD_NUMBER} up -d")
       }
     }
@@ -442,29 +442,31 @@ pipeline {
     }
 
     stage('DAST Scanning using Zed ZAP') {
-      steps {
-        script {
-          def composeNetwork = 'cdacpipelinescript_application-network'
-          def targetUrl = 'http://host.docker.internal:8085'
+        steps {
+          script {
+            def composeNetwork = "${env.BUILD_NUMBER}_application-network"
+            def targetUrl = 'http://host.docker.internal:5173'
 
-          echo 'Preparing for DAST scan...'
+            echo 'Preparing for DAST scan...'
 
-          // 1. Clean up the old ZAP report directory.
-          bat(label: 'Cleaning up previous ZAP report', script: 'if exist .\\reports\\zap (rmdir /s /q .\\reports\\zap)')
+            // 1. Clean up the old ZAP report directory.
+            bat(label: 'Cleaning up previous ZAP report', script: 'if exist .\\reports\\zap (rmdir /s /q .\\reports\\zap)')
 
-          echo "Starting ZAP Baseline Scan against ${targetUrl} on network ${composeNetwork}"
+            echo "Starting ZAP Baseline Scan against ${targetUrl} on network ${composeNetwork}"
 
-          bat(label: 'Running ZAP Baseline scan',
-              script: """
-                docker run --rm --network ${composeNetwork} -v "%CD%/reports/zap:/zap/wrk/" zaproxy/zap-stable zap-baseline.py -t ${targetUrl} -r /zap
-              """)
+            catchError(buildResult: 'FAILURE') {
+              bat(label: 'Running ZAP Baseline scan',
+                  script: """
+                    docker run --rm --network ${composeNetwork} -v "${env.WORKSPACE}/reports/zap:/zap/wrk/" ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t ${targetUrl} -r testreport.html
+                  """)
+            }
         }
-      }
-      post {
-        always {
-          // 4. Archive the ZAP report for easy access.
-          archiveArtifacts artifacts: 'reports/zap/zap.html', allowEmptyArchive: true
-          echo('OWASP ZAP DAST scan finished. Check the archived report "zap.html" in the Jenkins build.')
+        post {
+          always {
+            // 4. Archive the ZAP report for easy access.
+            archiveArtifacts artifacts: 'reports/zap/testreport.html', allowEmptyArchive: true
+            echo('OWASP ZAP DAST scan finished. Check the archived report "testreport.html" in the Jenkins build.')
+          }
         }
       }
     }
