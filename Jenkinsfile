@@ -10,11 +10,11 @@ def services = [
 def ALL_SERVICES_ENV_FILE_CRED_ID = 'null'
 def ZAP_AUTH_TOKEN = 'null'
 
-def prepareBuildStages(List services) {
+def prepareBuildStages(List services, Closure func) {
   def buildParallelStageMap = [:]
   for (service in services) {
     println(service)
-    buildParallelStageMap.put(service.name, prepareSingleBuildStage(service))
+    buildParallelStageMap.put(service.name, func(service))
   }
   return buildParallelStageMap
 }
@@ -259,7 +259,7 @@ pipeline {
         // echo "Building and Testing services in parallel"
         script {
           echo "Preparing to build and test services in parallel..."
-          def buildStages = prepareBuildStages(services)
+          def buildStages = prepareBuildStages(services, prepareSingleBuildStage)
           parallel buildStages
         }
       }
@@ -319,7 +319,7 @@ pipeline {
         // }
         script {
           echo(message: 'Executing SAST Analysis using Sonarqube')
-          def buildStages = prepareBuildStages(services)
+          def buildStages = prepareBuildStages(services, prepareSingleSASTStage)
           parallel buildStages
         }
       }
@@ -351,7 +351,7 @@ pipeline {
           //     }
           // }
           script {
-            def buildStages = prepareBuildStages(services)
+            def buildStages = prepareBuildStages(services, prepareSingleBuildImageStep)
             echo(message: 'Starting to build docker images')
             parallel buildStages
           }
