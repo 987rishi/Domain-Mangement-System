@@ -361,7 +361,7 @@ pipeline {
     {
       steps {
         bat(label: 'Clearing the existing compose containers', script: "docker compose -p ${env.BUILD_NUMBER-1} down -v")
-        bat(label: 'Running docker compose ', script: "set IMAGE_TAG=${env.IMAGE_TAG} docker compose -p ${env.BUILD_NUMBER-1} up -d")
+        bat(label: 'Running docker compose ', script: "set IMAGE_TAG=${env.IMAGE_TAG}&&docker compose -p ${env.BUILD_NUMBER} up -d")
       }
     }
     stage('Stress and Load Testing using JMeter') {
@@ -472,7 +472,7 @@ pipeline {
       steps {
           script {
             services.each {
-              svc -> bat(label: 'Pushing to docker hub', script: "docker push weakpassword/${svc.name.toLowerCase()}:${env.BRANCH_NAME}.${env.COMMIT_HASH}")
+              svc -> bat(label: 'Pushing to docker hub', script: "docker push weakpassword/${svc.name.toLowerCase()}:${env.IMAGE_TAG}")
             }
           }
       }
@@ -482,9 +482,17 @@ pipeline {
   post {
     always {
       // Use -v to also remove volumes, ensuring a clean state for the next run.
-      bat(label: 'Clearing docker containers and volumes', script: 'docker-compose down -v')
+      bat(label: 'Clearing docker containers and volumes', script: "docker compose -p ${env.BUILD_NUMBER} down -v")
 
       // deleteDir() is the most robust way to clean the workspace.
+
+      
+      script {
+        services.each {
+          svc -> bat(script: "docker rmi -f weakpassword/${svc.name.toLowerCase()}:${env.IMAGE_TAG}")
+        }
+      }
+
       echo 'Cleaning up the workspace for the next run.'
       cleanWs(deleteDirs: true)
     }
