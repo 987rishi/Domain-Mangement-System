@@ -449,7 +449,7 @@ pipeline {
         steps {
           script {
             def composeNetwork = "${env.BUILD_NUMBER}_application-network"
-            def targetUrl = 'http://host.docker.internal:5173'
+            def targetUrl = 'http://localhost:5173'
 
             echo 'Preparing for DAST scan...'
 
@@ -461,7 +461,7 @@ pipeline {
             catchError(buildResult: 'FAILURE') {
               bat(label: 'Running ZAP Baseline scan',
                   script: """
-                    docker run --rm -v "${env.WORKSPACE}/reports/zap:/zap/wrk/" ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t ${targetUrl} -r testreport.html
+                    docker run --network host --rm -v "${env.WORKSPACE}/reports/zap:/zap/wrk/" ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t ${targetUrl} -r testreport.html
                   """)
             }
         }
