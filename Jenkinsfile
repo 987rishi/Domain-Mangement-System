@@ -406,7 +406,7 @@ pipeline {
             // The 'start' command on Windows runs the process in a new window
             // and allows the pipeline to continue immediately.
             echo 'Starting frontend dev server on localhost:5173...'
-            bat 'start "Frontend Dev Server" npm run dev'
+            bat 'start "Frontend Dev Server" npm run dev -- --host'
 
             // IMPORTANT: Wait for the dev server to start up
             echo 'Pausing for 30 seconds to allow the frontend server to initialize...'
