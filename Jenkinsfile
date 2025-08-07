@@ -388,33 +388,14 @@ pipeline {
       }
     }
 
-    stage('Checkout and Run Frontend') {
-      steps {
-        script {
-          // Create a directory for the frontend code
-          dir('frontend-app') {
-            // Checkout the frontend source code
-            // Replace with your actual repository URL and credentialsId
-            echo 'Checking out frontend repository...'
-            git url: 'https://github.com/Versatile-Programmer/CDAC-Frontend.git', branch: 'main'
+    // stage('Checkout and Run Frontend') {
+    //   steps {
+    //     script {
+    //       // Create a directory for the frontend code
 
-            // Install dependencies
-            echo 'Installing frontend dependencies...'
-            bat 'npm install'
-
-            // Start the frontend dev server in the background
-            // The 'start' command on Windows runs the process in a new window
-            // and allows the pipeline to continue immediately.
-            echo 'Starting frontend dev server on localhost:5173...'
-            bat 'start "Frontend Dev Server" npm run dev -- --host'
-
-            // IMPORTANT: Wait for the dev server to start up
-            echo 'Pausing for 30 seconds to allow the frontend server to initialize...'
-            sleep(time: 15, unit: 'SECONDS')
-          }
-        }
-      }
-    }
+    //     }
+    //   }
+    // }
 
     stage('Generation of application authentication token') {
       steps{
@@ -448,6 +429,26 @@ pipeline {
     stage('DAST Scanning using Zed ZAP') {
         steps {
           script {
+                      dir('frontend-app') {
+            // Checkout the frontend source code
+            // Replace with your actual repository URL and credentialsId
+            echo 'Checking out frontend repository...'
+            git url: 'https://github.com/Versatile-Programmer/CDAC-Frontend.git', branch: 'main'
+
+            // Install dependencies
+            echo 'Installing frontend dependencies...'
+            bat 'npm install'
+
+            // Start the frontend dev server in the background
+            // The 'start' command on Windows runs the process in a new window
+            // and allows the pipeline to continue immediately.
+            echo 'Starting frontend dev server on localhost:5173...'
+            bat 'start "Frontend Dev Server" npm run dev -- --host'
+
+            // IMPORTANT: Wait for the dev server to start up
+            echo 'Pausing for 30 seconds to allow the frontend server to initialize...'
+            sleep(time: 15, unit: 'SECONDS')
+          }
             def composeNetwork = "${env.BUILD_NUMBER}_application-network"
             def targetUrl = 'http://localhost:5173'
 
