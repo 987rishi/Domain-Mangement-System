@@ -410,7 +410,7 @@ pipeline {
 
             // IMPORTANT: Wait for the dev server to start up
             echo 'Pausing for 30 seconds to allow the frontend server to initialize...'
-            sleep(time: 30, unit: 'SECONDS')
+            sleep(time: 15, unit: 'SECONDS')
           }
         }
       }
@@ -420,15 +420,15 @@ pipeline {
       steps{
         script {
           withCredentials([string(credentialsId: 'test-user-password', variable: 'TEST_USER_PASS')]) {
-            def response = bat(returnStdout: true, script: '''@curl -X POST \
-              -d '{email":"csb22055@tezu.ac.in","password":"${TEST_USER_PASS}"}' \
-              -H "Content-Type: application/json" \
-              http://host.docker.internal:5173/login''',).trim()
+     def command = """
+                    curl -s -X POST http://127.0.0.1:8085/api/auth/login ^
+                         -H "Content-Type: application/json" ^
+                         --data "{\\"email\\":\\"csb22055@tezu.ac.in\\",\\"password\\":\\"${TEST_USER_PASS}\\"}"
+                """
+                
+                def response = bat(returnStdout: true, script: command).trim()
 
-            if (response.contains("token")) { // A simple check
-                    // Assuming your response is JSON like: {"token": "ey..."}
-                    // Use a regular expression or JSON parsing to extract the token
-                    // This example uses a simple regex for Groovy
+                if (response.contains("token")) {
                     def matcher = (response =~ /"token"\s*:\s*"([^"]+)"/)
                     if (matcher.find()) {
                         env.ZAP_AUTH_TOKEN = matcher.group(1)
@@ -437,7 +437,8 @@ pipeline {
                         error "Login successful, but could not parse token from response: ${response}"
                     }
                 } else {
-                    error "Failed to generate JWT token. API response: ${response}"
+                    // Provide a more helpful error message
+                    error "Failed to generate JWT token. Status/Response from API: ${response}"
                 }
           }
         }
