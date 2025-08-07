@@ -381,13 +381,15 @@ pipeline {
 
             echo "Starting ZAP Baseline Scan against ${targetUrl} on network ${composeNetwork}"
 
-            catchError(buildResult: 'FAILURE') {
-              powershell(label: 'Running ZAP Baseline scan',
+              def statusCode = powershell(returnStatus: true, label: 'Running ZAP Baseline scan',
                   script: """
                     docker run --rm -v "${env.WORKSPACE}/reports/zap:/zap/wrk/" -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t ${targetUrl} -r testreport.html
                   """)
+              echo "DAST Scanning Status Code:${statusCode}"
+              if (statusCode == 1 || statusCode == 3) {
+                error(message: "DAST Scanning failed with error code :${statusCode}")
+              } 
             }
-                      }
           }
         }
         post {
