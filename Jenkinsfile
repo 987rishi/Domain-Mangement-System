@@ -447,7 +447,8 @@ pipeline {
 
             // IMPORTANT: Wait for the dev server to start up
             echo 'Pausing for 30 seconds to allow the frontend server to initialize...'
-            sleep(time: 15, unit: 'SECONDS')
+            sleep(time: 30, unit: 'SECONDS')
+
             def composeNetwork = "${env.BUILD_NUMBER}_application-network"
             def targetUrl = 'http://localhost:5173'
 
