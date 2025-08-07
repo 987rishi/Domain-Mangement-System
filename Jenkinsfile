@@ -324,7 +324,7 @@ pipeline {
         script {
           withCredentials([string(credentialsId: 'test-user-password', variable: 'TEST_USER_PASS')]) {
      def command = """
-                    curl -s -X POST http://127.0.0.1:8085/api/auth/login ^
+                    @curl -s -X POST http://127.0.0.1:8085/api/auth/login ^
                          -H "Content-Type: application/json" ^
                          --data "{\\"email\\":\\"csb22055@tezu.ac.in\\",\\"password\\":\\"${TEST_USER_PASS}\\"}"
                 """
@@ -382,7 +382,7 @@ pipeline {
             echo "Starting ZAP Baseline Scan against ${targetUrl} on network ${composeNetwork}"
 
             catchError(buildResult: 'FAILURE') {
-              bat(label: 'Running ZAP Baseline scan',
+              powershell(label: 'Running ZAP Baseline scan',
                   script: """
                     docker run --rm -v "${env.WORKSPACE}/reports/zap:/zap/wrk/" -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t ${targetUrl} -r testreport.html
                   """)
