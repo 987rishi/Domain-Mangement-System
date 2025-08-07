@@ -448,7 +448,6 @@ pipeline {
             // IMPORTANT: Wait for the dev server to start up
             echo 'Pausing for 30 seconds to allow the frontend server to initialize...'
             sleep(time: 15, unit: 'SECONDS')
-          }
             def composeNetwork = "${env.BUILD_NUMBER}_application-network"
             def targetUrl = 'http://localhost:5173'
 
@@ -465,6 +464,8 @@ pipeline {
                     docker run --network host --rm -v "${env.WORKSPACE}/reports/zap:/zap/wrk/" -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t ${targetUrl} -r testreport.html
                   """)
             }
+                      }
+          }
         }
         post {
           always {
