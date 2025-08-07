@@ -461,7 +461,7 @@ pipeline {
             catchError(buildResult: 'FAILURE') {
               bat(label: 'Running ZAP Baseline scan',
                   script: """
-                    docker run --rm --network ${composeNetwork} -v "${env.WORKSPACE}/reports/zap:/zap/wrk/" ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t ${targetUrl} -r testreport.html
+                    docker run --rm -v "${env.WORKSPACE}/reports/zap:/zap/wrk/" ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t ${targetUrl} -r testreport.html
                   """)
             }
         }
