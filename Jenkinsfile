@@ -221,36 +221,6 @@ pipeline {
     }
     stage('Build and Unit Tests') {
       steps{
-
-        // script {
-        //   services.each { svc ->
-        //     dir(svc.name) {
-        //       if (svc.lang == 'java') {
-        //         catchError(message: "Error executing Maven tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-        //           bat 'mvn clean verify'
-        //         }
-        //       } else if (svc.name == 'UserManagementMicroservice') {
-        //         dir('server') {
-        //           catchError(message: "Error executing TypeScript tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-        //             bat 'npm install'
-        //             bat 'npx prisma generate'
-        //             bat 'npx tsc'
-        //             bat 'npx jest'
-        //           }
-        //         }
-        //       }
-        //       else {
-        //         catchError(message: "Error executing TypeScript tests for ${svc.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-        //             bat 'npm install'
-        //             bat 'npx prisma generate'
-        //             bat 'npx tsc'
-        //             bat 'npx jest --coverage'
-        //         }
-        //       }
-        //     }
-        //   }
-        // }
-        // echo "Building and Testing services in parallel"
         script {
           echo "Preparing to build and test services in parallel..."
           def buildStages = [:]
@@ -266,90 +236,42 @@ pipeline {
         }
       }
     }
-    stage('SAST Analysis using SonarQube') {
-      steps {
-        // script {
-        //   services.each { svc ->
-        //     dir(svc.name) {
-        //       echo "--- Starting SonarQube Analysis for ${svc.name} ---"
-        //       String projectKeyForSonar = svc.name
+    // stage('SAST Analysis using SonarQube') {
+    //   steps {
 
-        //       try {
-        //         // 'cdac-project-sonar-server' must match the SonarQube server name in Jenkins Global Config
-        //         withSonarQubeEnv('cdac-project-sonar-server') {
-        //           if (svc.lang == 'java') {
-        //             bat(label: "Sonar Scan for ${svc.name}", script: """
-        //               mvn sonar:sonar \
-        //                 -Dsonar.projectKey=${projectKeyForSonar} \
-        //                 -Dsonar.projectName=${svc.name} \
-        //             """)
-        //           } else {
-        //             bat(label: 'Installing sonar/scan', script: 'npm install @sonar/scan')
-        //             bat(label: "Sonar Scan for ${svc.name}", script: """
-        //               sonar \
-        //                 -Dsonar.projectKey=${projectKeyForSonar} \
-        //                 -Dsonar.projectName=${svc.name} \
-        //             """)
-        //           }
-        //         }
-
-        //       // Quality Gate check, now correctly associated with the scan inside withSonarQubeEnv
-        //       // echo "SonarQube analysis submitted for ${svc.name}. Waiting for Quality Gate..."
-        //       // timeout(time: 4, unit: 'MINUTES') {
-        //       //   def qg = waitForQualityGate abortPipeline: false // Don't abort pipeline yet
-        //       //   if (qg.status != 'OK') {
-        //       //     currentBuild.result = 'FAILURE' // Mark build as failure
-        //       //     /* groovylint-disable-next-line LineLength */
-        //       //     error "Quality Gate for ${svc.name} failed: ${qg.status}. Dashboard: ${env.SONARQUBE_HOST_URL}/dashboard?id=${projectKeyForSonar}"
-        //       //   } else {
-        //       //     /* groovylint-disable-next-line LineLength */
-        //       //     echo "Quality Gate for ${svc.name} passed! Dashboard: ${env.SONARQUBE_HOST_URL}/dashboard?id=${projectKeyForSonar}"
-        //       //   }
-        //       // }
-        //       } catch (e) {
-        //         currentBuild.result = 'FAILURE' // Ensure any exception in the try block fails the build
-        //         error "SonarQube analysis or Quality Gate processing failed for ${svc.name}: ${e.getMessage()}"
-        //       }
-        //       echo "--- SonarQube Analysis for ${svc.name} finished ---"
-        //     }
-        //   }
-        // }
-        script {
-          echo(message: 'Executing SAST Analysis using Sonarqube')
-          def buildStages = [:]
-          services.each {
-            svc -> buildStages.put(svc.name, prepareSingleSASTStage(svc))
-          }
-          parallel buildStages
-        }
-      }
-    }
+    //     //       // Quality Gate check, now correctly associated with the scan inside withSonarQubeEnv
+    //     //       // echo "SonarQube analysis submitted for ${svc.name}. Waiting for Quality Gate..."
+    //     //       // timeout(time: 4, unit: 'MINUTES') {
+    //     //       //   def qg = waitForQualityGate abortPipeline: false // Don't abort pipeline yet
+    //     //       //   if (qg.status != 'OK') {
+    //     //       //     currentBuild.result = 'FAILURE' // Mark build as failure
+    //     //       //     /* groovylint-disable-next-line LineLength */
+    //     //       //     error "Quality Gate for ${svc.name} failed: ${qg.status}. Dashboard: ${env.SONARQUBE_HOST_URL}/dashboard?id=${projectKeyForSonar}"
+    //     //       //   } else {
+    //     //       //     /* groovylint-disable-next-line LineLength */
+    //     //       //     echo "Quality Gate for ${svc.name} passed! Dashboard: ${env.SONARQUBE_HOST_URL}/dashboard?id=${projectKeyForSonar}"
+    //     //       //   }
+    //     //       // }
+    //     //       } catch (e) {
+    //     //         currentBuild.result = 'FAILURE' // Ensure any exception in the try block fails the build
+    //     //         error "SonarQube analysis or Quality Gate processing failed for ${svc.name}: ${e.getMessage()}"
+    //     //       }
+    //     //       echo "--- SonarQube Analysis for ${svc.name} finished ---"
+    //     //     }
+    //     //   }
+    //     // }
+    //     script {
+    //       echo(message: 'Executing SAST Analysis using Sonarqube')
+    //       def buildStages = [:]
+    //       services.each {
+    //         svc -> buildStages.put(svc.name, prepareSingleSASTStage(svc))
+    //       }
+    //       parallel buildStages
+    //     }
+    //   }
+    // }
     stage('Build Docker Images') {
       steps {
-          // script {
-          //     services.each { svc ->
-          //   dir(svc.name) {
-          //     if (svc.name == 'UserManagementMicroservice') {
-          //       dir('server') {
-          //         if (fileExists('Dockerfile')) {
-          //           echo "Building Docker image for ${svc.name}"
-          //           bat "docker build -t weakpassword/${svc.name.toLowerCase()}:${env.BRANCH_NAME}.${env.COMMIT_HASH} ."
-          //         }
-          //                   else {
-          //           error(message: "${svc.name} does not contain a Dockerfile")
-          //                   }
-          //       }
-          //     }
-          //               else if (fileExists('Dockerfile')) {
-          //       echo "Building Docker image for ${svc.name}"
-          //       bat "docker build -t weakpassword/${svc.name.toLowerCase()}:${env.BRANCH_NAME}.${env.COMMIT_HASH} ."
-          //               }
-          //               else {
-          //       error(message: "${svc.name} does not contain a Dockerfile")
-          //               }
-          //   }
-          //     }
-          // }
           script {
             echo(message: 'Starting to build docker images')
             def buildStages = [:]
