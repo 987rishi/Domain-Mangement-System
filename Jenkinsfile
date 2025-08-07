@@ -474,7 +474,6 @@ pipeline {
             echo('OWASP ZAP DAST scan finished. Check the archived report "testreport.html" in the Jenkins build.')
           }
         }
-      }
     }
     stage('Push to docker hub') {
       steps {
