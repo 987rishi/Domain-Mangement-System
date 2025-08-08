@@ -30,6 +30,7 @@ def prepareSingleBuildStage(Map svcMap) {
           } else if (svcMap.name == 'UserManagementMicroservice') {
                   dir('server') {
                     catchError(message: "Error executing TypeScript tests for ${svcMap.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+                      bat 'npm cache clean --force'
                       bat 'npm install'
                       bat 'npx prisma generate'
                       bat 'npx tsc'
@@ -39,6 +40,7 @@ def prepareSingleBuildStage(Map svcMap) {
           }
           else {
                   catchError(message: "Error executing TypeScript tests for ${svcMap.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
+                      bat 'npm cache clean --force'
                       bat 'npm install'
                       bat 'npx prisma generate'
                       bat 'npx tsc'
