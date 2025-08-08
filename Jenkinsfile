@@ -107,6 +107,9 @@ pipeline {
         COMMIT_HASH = bat(returnStdout: true, script: '@git rev-parse --short HEAD').trim()
         IMAGE_TAG = "${env.BRANCH_NAME}.${env.COMMIT_HASH}"
   }
+  options {
+     buildDiscarder(logRotator(daysToKeepStr: '30', numToKeepStr: '10'))
+  }
   stages {
     stage('Setting env var based on branch') {
       steps{
@@ -426,7 +429,7 @@ pipeline {
       }
 
       echo 'Cleaning up the workspace for the next run.'
-      cleanWs(deleteDirs: true)
+      cleanWs()
     }
   }
 }
