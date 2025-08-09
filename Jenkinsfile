@@ -402,6 +402,7 @@ pipeline {
             // 4. Archive the ZAP report for easy access.
             archiveArtifacts artifacts: 'reports/zap/testreport.html', allowEmptyArchive: true
             echo('OWASP ZAP DAST scan finished. Check the archived report "testreport.html" in the Jenkins build.')
+            bat 'npm cache clean --force'
           }
         }
     }
@@ -431,7 +432,7 @@ pipeline {
       }
 
       echo 'Cleaning up the workspace for the next run.'
-      cleanWs(deleteDirs: true)
+      cleanWs(deleteDirs: true, disableDeferredWipeout: true)
     }
   }
 }
