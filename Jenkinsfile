@@ -402,7 +402,7 @@ pipeline {
             archiveArtifacts artifacts: 'reports/zap/testreport.html', allowEmptyArchive: true
             echo('OWASP ZAP DAST scan finished. Check the archived report "testreport.html" in the Jenkins build.')
             bat 'npm cache clean --force'
-            bat(script: 'for /f "tokens=5" %a in (\'netstat -aon ^| find "5173"\') do taskkill /F /PID %a || true', returnStdout: true)
+            powershell(script: 'Stop-Process -Id (Get-NetTCPConnection -LocalPort 5173).OwningProcess -Force -ErrorAction SilentlyContinue')
           }
         }
     }
