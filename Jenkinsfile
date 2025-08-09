@@ -30,7 +30,6 @@ def prepareSingleBuildStage(Map svcMap) {
           } else if (svcMap.name == 'UserManagementMicroservice') {
                   dir('server') {
                     catchError(message: "Error executing TypeScript tests for ${svcMap.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-                      bat 'npm cache clean --force'
                       bat 'npm install'
                       bat 'npx prisma generate'
                       bat 'npx tsc'
@@ -40,7 +39,6 @@ def prepareSingleBuildStage(Map svcMap) {
           }
           else {
                   catchError(message: "Error executing TypeScript tests for ${svcMap.name}", buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-                      bat 'npm cache clean --force'
                       bat 'npm install'
                       bat 'npx prisma generate'
                       bat 'npx tsc'
@@ -227,6 +225,7 @@ pipeline {
     stage('Build and Unit Tests') {
       steps{
         script {
+          bat(script: 'npm cache clean --force', label: 'Running npm cache clean')
           echo "Preparing to build and test services in parallel..."
           def buildStages = [:]
           services.each {
@@ -403,6 +402,7 @@ pipeline {
             archiveArtifacts artifacts: 'reports/zap/testreport.html', allowEmptyArchive: true
             echo('OWASP ZAP DAST scan finished. Check the archived report "testreport.html" in the Jenkins build.')
             bat 'npm cache clean --force'
+            bat(script: 'for /f "tokens=5" %a in (\'netstat -aon ^| find "5173"\') do taskkill /F /PID %a || true', returnStdout: true)
           }
         }
     }
