@@ -109,14 +109,8 @@ pipeline {
   }
   options {
      buildDiscarder(logRotator(daysToKeepStr: '30', numToKeepStr: '10'))
-     skipDefaultCheckout(true)
   }
   stages {
-    stage('Pre-run cleanout') {
-      steps{
-          cleanWs()
-      }
-    }
     stage('Setting env var based on branch') {
       steps{
         script {
@@ -437,7 +431,14 @@ pipeline {
           svc -> bat(script: "docker rmi -f weakpassword/${svc.name.toLowerCase()}:${env.IMAGE_TAG}")
         }
       }
-      // cleanWs()
+      // cleanWs(
+      //   cleanWhenFailure: true,
+      //   cleanWhenNotBuilt: true,
+      //   cleanWhenSuccess: true,
+      //   cleanWhenUnstable: true,
+      //   deleteDirs: true,
+      //   cleanWhenAborted: true,
+      // )
     }
   }
 }
