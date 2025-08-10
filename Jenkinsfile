@@ -431,6 +431,7 @@ pipeline {
           svc -> bat(script: "docker rmi -f weakpassword/${svc.name.toLowerCase()}:${env.IMAGE_TAG}")
         }
       }
+      sleep(time: 1, unit: 'MINUTES')
 
       echo 'Cleaning up the workspace for the next run.'
       cleanWs()
