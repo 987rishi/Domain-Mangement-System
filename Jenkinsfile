@@ -434,7 +434,8 @@ pipeline {
       sleep(time: 1, unit: 'MINUTES')
 
       echo 'Cleaning up the workspace for the next run.'
-      cleanWs()
+      deleteDir()
+      // cleanWs()
     }
   }
 }
